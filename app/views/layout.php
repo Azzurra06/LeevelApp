@@ -1,6 +1,6 @@
 <?php $me = current_user(); $r = $_GET['r'] ?? 'home'; $role = $me['role'] ?? ''; $sidQ = isset($s['id']) ? ['sid' => $s['id']] : [];
 $nav = match ($role) {
-    'tutor' => [['t', 'house', 'Tableau de bord', 'Accueil'], ['t_rdv', 'clipboard-list', 'Premier rendez-vous', '1er RDV'], ['t_student', 'user', 'Fiche élève', 'Élève'], ['t_messages', 'message-circle', 'Échanges', 'Échanges']],
+    'tutor' => [['t', 'house', 'Tableau de bord', 'Accueil'], ['t_student', 'user', 'Fiche élève', 'Élève'], ['t_student', 'calendar', 'Séances', 'Séances', ['tab' => 'seances']], ['t_student', 'book-open', 'Matières', 'Matières', ['tab' => 'matieres']], ['t_messages', 'message-circle', 'Échanges', 'Échanges']],
     'parent' => [['p', 'house', 'Suivi', 'Suivi'], ['p_planning', 'calendar', 'Planning', 'Planning'], ['p_messages', 'message-circle', 'Échanges', 'Échanges'], ['q', 'clipboard-list', 'Mon questionnaire', 'Questionnaire']],
     'student' => [['s', 'house', 'Mon espace', 'Accueil'], ['s_subjects', 'book-open', 'Mes matières', 'Matières'], ['s_tools', 'lightbulb', 'Mes outils', 'Outils'], ['s_messages', 'message-circle', 'Messages', 'Messages'], ['q', 'clipboard-list', 'Mon questionnaire', 'Questionnaire']],
     default => [],
@@ -27,8 +27,12 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
   </form>
   <?php endif ?>
   <nav class="nav nav-main" aria-label="Navigation principale">
-    <?php foreach ($nav as [$route, $ic, $label, $short]): $on = $r === $route || ($route === 't_student' && str_starts_with($r, 't_student')); ?>
-      <a href="<?= e(url($route, $role === 'tutor' && $route !== 't_users' ? $sidQ : [])) ?>" class="<?= $on ? 'on' : '' ?>"<?= $on ? ' aria-current="page"' : '' ?>><span class="nav-ic"><?= icon($ic) ?><?php if ($unread && in_array($route, ['t_messages', 'p_messages', 's_messages'], true)): ?><span class="nav-badge"><?= $unread ?></span><?php endif ?></span><span class="lbl"><?= e($label) ?></span><span class="lbl-s"><?= e($short) ?></span></a>
+    <?php $curTab = (string)($_GET['tab'] ?? '');
+    foreach ($nav as $item): [$route, $ic, $label, $short] = $item; $params = $item[4] ?? [];
+      $on = $route === 't_student'
+          ? (($r === 't_student' || $r === 't_rdv') && (($params['tab'] ?? '') === (in_array($curTab, ['seances', 'matieres'], true) && $r === 't_student' ? $curTab : '')))
+          : $r === $route; ?>
+      <a href="<?= e(url($route, ($role === 'tutor' ? $sidQ : []) + $params)) ?>" class="<?= $on ? 'on' : '' ?>"<?= $on ? ' aria-current="page"' : '' ?>><span class="nav-ic"><?= icon($ic) ?><?php if ($unread && in_array($route, ['t_messages', 'p_messages', 's_messages'], true)): ?><span class="nav-badge"><?= $unread ?></span><?php endif ?></span><span class="lbl"><?= e($label) ?></span><span class="lbl-s"><?= e($short) ?></span></a>
     <?php endforeach ?>
   </nav>
   <div class="nav nav-side">

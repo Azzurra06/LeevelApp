@@ -10,8 +10,8 @@ $pass = function (string $code, string $label) use ($s): void { ?>
   </div>
   <p class="muted"><small>Passation : la personne répond seule sur l'appareil. Remplir moi-même : vous saisissez ses réponses en restant connectée.</small></p>
 <?php }; ?>
-<div class="page-head"><div><h1><?= icon('clipboard-list') ?> Premier rendez-vous</h1><p><?= e($s['first_name']) ?> · <?= e($s['family_name']) ?></p></div>
-  <a class="btn ghost" href="<?= e(url('t_synthesis', $sidp)) ?>"><?= icon('eye') ?> Synthèse famille</a></div>
+<?php $ficheTab = 'rdv'; $headExtra = '<a class="btn ghost sm" href="' . e(url('t_synthesis', $sidp)) . '">' . icon('eye') . ' Synthèse famille</a>'; require __DIR__ . '/_fiche_head.php'; ?>
+<h2 class="rdv-title"><?= icon('clipboard-list') ?> Premier rendez-vous</h2>
 <ol class="steps-rdv">
   <li class="<?= $parentU && $studentU ? 'ok' : '' ?>"><h3>Vérifier les comptes</h3>
     <ul class="list"><?php foreach ($users as $x): ?><li><?= icon($x['role'] === 'student' ? 'smile' : ($x['role'] === 'parent' ? 'user' : 'shield')) ?><div><?= e($x['display_name']) ?> · <code><?= e($x['username']) ?></code> <span class="badge"><?= e(ROLE_LABELS[$x['role']]) ?></span> <?= $x['is_active'] ? '' : '<span class="badge err">désactivé</span>' ?></div></li><?php endforeach ?></ul>

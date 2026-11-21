@@ -14,6 +14,8 @@
     if (m && !confirm(m)) e.preventDefault();
   });
   $$('select[data-autosubmit]').forEach(sel => sel.addEventListener('change', () => sel.form.submit()));
+  // Onglets défilants : l'onglet actif est toujours visible
+  $$('.tabs').forEach(t => { const on = t.querySelector('a.on'); if (on && t.scrollWidth > t.clientWidth) t.scrollLeft = on.offsetLeft - (t.clientWidth - on.offsetWidth) / 2; });
   // Sélecteur d'élève (barre du haut) : largeur ajustée à l'élève affiché, pas au nom le plus long
   const sw = $('.st-switch select');
   if (sw) {

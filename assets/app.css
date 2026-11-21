@@ -630,3 +630,13 @@ body.student .s-badges h2{margin:0}
   .st-switch select{font-size:14px!important;height:38px;min-width:150px}
   .st-switch select:focus{font-size:16px!important} /* 16 px au toucher : pas de zoom automatique sur iPhone */
 }
+
+.tabs .tab-rdv{display:inline-flex;align-items:center;gap:6px;margin-left:auto}.tabs .tab-rdv .ic{color:var(--accent-d)}
+.rdv-title{display:flex;align-items:center;gap:8px;margin:0 0 14px}.rdv-title .ic{color:var(--accent-d)}
+@media (max-width:720px){.tabs .tab-rdv{margin-left:0}}
+
+@media (max-width:720px){
+  .page-head>.row.fiche-actions{width:auto;gap:6px}
+  .page-head .row.fiche-actions .btn{flex:0 0 auto;width:auto;min-height:36px}
+  .page-head:has(.fiche-actions){align-items:center;flex-wrap:nowrap}
+}

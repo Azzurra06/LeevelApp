@@ -17,10 +17,10 @@ $faq = [
         ['calendar', 'Où voir les prochaines séances ?', "Dans « Planning », en liste ou en calendrier. Pour une absence, prévenez la tutrice par message ou par téléphone."],
     ],
     'tutor' => [
-        ['book-open', 'Ajouter des matières, chapitres et quiz', "Fiche élève > onglet « Matières » : ajoutez une matière, puis ses chapitres avec leur niveau. Cochez « En cours » sur le chapitre du moment : c'est lui que l'élève peut réviser avec le quiz. Les questions s'ajoutent dans le volet « Quiz » de chaque chapitre."],
-        ['file-text', 'Rédiger et envoyer un bilan de séance', "Fiche élève > onglet « Séances » : après une séance, rédigez le bilan. « Envoyer » le publie dans le suivi du parent et dans « Échanges »."],
+        ['book-open', 'Ajouter des matières, chapitres et quiz', "Onglet « Matières » de la barre principale : ajoutez une matière, puis ses chapitres avec leur niveau. Cochez « En cours » sur le chapitre du moment : c'est lui que l'élève peut réviser avec le quiz. Les questions s'ajoutent dans le volet « Quiz » de chaque chapitre."],
+        ['file-text', 'Rédiger et envoyer un bilan de séance', "Onglet « Séances » de la barre principale : après une séance, rédigez le bilan. « Envoyer » le publie dans le suivi du parent et dans « Échanges »."],
         ['message-circle', 'Deux discussions par famille', "Dans « Échanges », chaque famille a deux fils : « Parent » et celui de l'élève. Le parent peut lire la discussion de l'élève, sans y écrire."],
-        ['lock', 'Faire passer un questionnaire sur un seul appareil', "Écran « Premier rendez-vous » : lancez la passation. Votre session se ferme, seul le questionnaire est accessible, puis vous vous reconnectez à la fin."],
+        ['lock', 'Faire passer un questionnaire sur un seul appareil', "Fiche élève > onglet « 1er RDV » : lancez la passation. Votre session se ferme, seul le questionnaire est accessible, puis vous vous reconnectez à la fin."],
         ['users', 'Inviter un parent ou un élève', "Page « Familles » : créez les comptes vous-même ou envoyez un lien d'invitation par e-mail."],
     ],
 ][$role];

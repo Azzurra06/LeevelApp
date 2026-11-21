@@ -3,9 +3,9 @@ $tabs = ['profil' => 'Profil', 'parent' => 'Questionnaire parent', 'eleve' => 'Q
 if (!isset($tabs[$tab])) $tab = 'profil';
 $hidden = fn() => csrf_field() . '<input type="hidden" name="sid" value="' . (int)$s['id'] . '">';
 $catOpts = fn($cur) => implode('', array_map(fn($a, $l) => '<option value="' . e($a) . '"' . ($cur === $a ? ' selected' : '') . '>' . e($l) . '</option>', array_keys(AXES), AXES)); ?>
-<div class="page-head"><div><h1><?= e($s['first_name']) ?> <?php if ($s['is_demo']): ?><span class="badge demo">DÉMO</span><?php endif ?></h1><p><?= e($s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?></p></div>
-  <a class="btn ghost" href="<?= e(url('t_export', $sidp)) ?>"><?= icon('download') ?> Exporter</a></div>
-<nav class="tabs"><?php foreach ($tabs as $k => $l): ?><a href="<?= e(url('t_student', $sidp + ['tab' => $k])) ?>" class="<?= $tab === $k ? 'on' : '' ?>"><?= e($l) ?></a><?php endforeach ?></nav>
+<?php if (in_array($tab, ['seances', 'matieres'], true)): ?>
+<div class="page-head"><div><h1><?= icon($tab === 'seances' ? 'calendar' : 'book-open') ?> <?= $tab === 'seances' ? 'Séances' : 'Matières' ?></h1><p><?= e($s['first_name']) ?> · <?= e($s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?></p></div></div>
+<?php else: $ficheTab = $tab; require __DIR__ . '/_fiche_head.php'; endif ?>
 
 <?php if ($tab === 'profil'): ?>
 <div class="grid-2 align-start">
