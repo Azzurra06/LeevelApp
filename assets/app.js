@@ -130,7 +130,7 @@
   // ---------- Grille masonry (gauche à droite) ----------
   const masonry = grid => {
     const ROW = 4, GAP = 16;
-    grid.classList.add('js-on');
+    grid.classList.add('js-masonry');
     const fit = () => [...grid.children].forEach(c => {
       c.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil((c.getBoundingClientRect().height + GAP) / ROW));
     });
@@ -138,7 +138,7 @@
     if ('ResizeObserver' in window) { const ro = new ResizeObserver(fit); [...grid.children].forEach(c => ro.observe(c)); }
     window.addEventListener('resize', fit);
   };
-  $$('.masonry').forEach(masonry);
+  $$('.grid:not(.stat-grid), .grid-2').forEach(masonry); // partout : ordre gauche → droite, hauteurs libres
 
   // ---------- Mes outils : chrono de travail ----------
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };

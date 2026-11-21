@@ -299,6 +299,6 @@ body.student .bar>i{background:linear-gradient(90deg,#7c5cff,#b39cff)}
 .checklist{display:flex;flex-direction:column;gap:8px}.checklist input:checked+*,.checklist label:has(input:checked){color:var(--muted);text-decoration:line-through}
 
 /* Masonry horizontal : ordre de gauche à droite, chaque carte garde sa hauteur */
-.masonry{align-items:start}
-.masonry.js-on{grid-auto-rows:4px;row-gap:0}
-.masonry.js-on>*{margin-bottom:16px}
+.grid,.grid-2{align-items:start}
+.js-masonry{grid-auto-rows:4px;row-gap:0!important;margin-bottom:-16px}
+.js-masonry>*{margin-bottom:16px}

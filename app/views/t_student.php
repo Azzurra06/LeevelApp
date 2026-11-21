@@ -9,7 +9,6 @@ $catOpts = fn($cur) => implode('', array_map(fn($a, $l) => '<option value="' . e
 
 <?php if ($tab === 'profil'): ?>
 <div class="grid-2 align-start">
-  <div class="col-stack">
   <?php $parentU = array_values(array_filter($users, fn($x) => $x['role'] === 'parent'))[0] ?? null; $pane = ($_GET['pane'] ?? '') === 'parent' ? 'parent' : 'student'; ?>
   <div class="card" data-views>
     <div class="row between"><h2><?= icon('user') ?> Profil</h2>
@@ -58,7 +57,6 @@ $catOpts = fn($cur) => implode('', array_map(fn($a, $l) => '<option value="' . e
   <div class="card"><h2><?= icon('users') ?> Comptes associés</h2><ul class="list"><?php foreach ($users as $x): ?><li><?= icon('user') ?><div><?= e($x['display_name']) ?> · <code><?= e($x['username']) ?></code> · <?= e(ROLE_LABELS[$x['role']]) ?></div></li><?php endforeach ?></ul>
   </div>
   <div class="card"><h2><?= icon('target') ?> Priorités actuelles</h2><?php require __DIR__ . '/_axes.php' ?></div>
-  </div>
   <div class="card"><h2><?= icon('users') ?> Bilan partagé avec la famille</h2>
     <p class="muted"><small>Visible par le parent et l'élève. N'y mettez que des informations partageables.</small></p>
     <form method="post" action="<?= e(url('t_shared')) ?>" class="stack"><?= $hidden() ?><input type="hidden" name="back" value="t_student">
