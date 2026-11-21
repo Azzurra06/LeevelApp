@@ -617,3 +617,10 @@ body.student .s-badges h2{margin:0}
 @media (min-width:721px) and (max-width:920px){
   .has-switch .acct-lbl,.has-switch .acct-chev{display:none}.has-switch .acct-btn{padding:5px 8px 5px 6px}
 }
+@media (max-width:720px){
+  .has-switch .brand{margin-right:auto}
+  .st-switch{flex:0 1 auto;margin:0 2px 0 0}
+  .st-switch select{width:auto;max-width:44vw;padding:7px 26px 7px 28px;font-size:16px!important;background-position:right 8px center;text-overflow:ellipsis}
+  .st-switch .st-ic{left:10px;width:.9em;height:.9em}
+}
+@media (max-width:720px){.st-switch select{max-width:52vw}}

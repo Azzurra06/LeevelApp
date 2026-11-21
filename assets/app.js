@@ -14,6 +14,20 @@
     if (m && !confirm(m)) e.preventDefault();
   });
   $$('select[data-autosubmit]').forEach(sel => sel.addEventListener('change', () => sel.form.submit()));
+  // Sélecteur d'élève (barre du haut) : largeur ajustée à l'élève affiché, pas au nom le plus long
+  const sw = $('.st-switch select');
+  if (sw) {
+    const meter = document.createElement('span');
+    meter.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap';
+    document.body.appendChild(meter);
+    const fit = () => {
+      const cs = getComputedStyle(sw);
+      ['fontFamily', 'fontSize', 'fontWeight', 'letterSpacing'].forEach(k => { meter.style[k] = cs[k]; });
+      meter.textContent = sw.options[sw.selectedIndex] ? sw.options[sw.selectedIndex].text : '';
+      sw.style.width = Math.ceil(meter.getBoundingClientRect().width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 30) + 'px';
+    };
+    fit(); addEventListener('resize', fit);
+  }
   // « Voir plus » : replie les blocs trop longs
   $$('[data-clamp]').forEach(el => {
     const max = +el.dataset.clamp || 190;
