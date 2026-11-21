@@ -576,3 +576,18 @@ body.student .s-badges h2{margin:0}
   .page-chat .chat-top{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:8;background:var(--bg);margin:0 -14px;padding:10px 14px 2px;border-bottom:1px solid var(--beige)}
   .page-chat .chat-top .seg{margin:8px 0 6px}
 }
+
+/* Quiz : génération par IA et édition des questions */
+.ai-gen{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:linear-gradient(135deg,#f6f3ff,#fdf2f8);margin:10px 0}
+.ai-gen-row{display:flex;gap:10px;flex-wrap:wrap}.ai-gen-row select{width:auto;min-width:80px}.ai-focus{flex:1;min-width:200px}
+.ai-btn{align-self:flex-start;background:linear-gradient(120deg,#5b3df5,#9b5cff)}.ai-btn.loading{opacity:.75;cursor:progress}
+.ai-btn.loading .ic{animation:spin 1.2s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.ai-off{margin:8px 0}.ai-badge{font-size:.68rem;padding:1px 7px;vertical-align:2px}
+.qa-list{list-style:decimal;padding-left:1.3em;margin:10px 0;display:flex;flex-direction:column;gap:10px}
+.qa-item{padding-left:2px}.qa-view{display:flex;gap:8px;justify-content:space-between;align-items:flex-start}.qa-view>div:first-child{flex:1;min-width:0}
+.qa-actions{display:flex;gap:2px;flex:none}
+.qa-opts-view{list-style:none;padding:0;margin:6px 0;display:flex;flex-wrap:wrap;gap:6px}
+.qa-opts-view li{font-size:.84rem;padding:3px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--beige);display:inline-flex;align-items:center;gap:4px}
+.qa-opts-view li.ok{background:#e3f4e8;border-color:#bfe3cb;color:#2c7a45;font-weight:600}.qa-opts-view .ic{width:.9em;height:.9em}
+.qa-edit{padding:10px;border:1px solid #d9cfff;border-radius:12px;background:#fff;margin-top:6px}
+.qa-add{margin-top:6px}.qa-add>summary{font-size:.88rem}.qa-add .qa-form{margin-top:8px}

@@ -160,20 +160,37 @@ function tutor_route(string $r, bool $isPost): never
                     if ($chapter) { q('DELETE FROM subject_chapters WHERE id=?', [$chapter['id']]); flash('Chapitre supprimé.'); }
                     break;
                 case 'question_add':
-                    $opts = array_values(array_filter(array_map(fn($x) => mb_substr(trim((string)$x), 0, 200), (array)($_POST['opt'] ?? [])), fn($x) => $x !== ''));
-                    $ans = post_int('answer');
-                    if (!$chapter || post_str('question', 500) === '' || count($opts) < 2) flash('Une question et au moins deux réponses sont nécessaires.', 'err');
+                    if (!$chapter) break;
+                    $parsed = quiz_options_from_post();
+                    if (is_string($parsed)) flash($parsed, 'err');
                     else {
-                        // la bonne réponse est repérée sur les champs saisis (avant filtrage des réponses vides)
-                        $raw = array_map(fn($x) => trim((string)$x), (array)($_POST['opt'] ?? []));
-                        $correct = $raw[$ans] ?? '';
-                        $idx = array_search(mb_substr($correct, 0, 200), $opts, true);
-                        if ($idx === false) flash('Cochez la bonne réponse parmi les réponses remplies.', 'err');
-                        else {
-                            q('INSERT INTO chapter_questions (chapter_id, question, options_json, answer, explanation) VALUES (?,?,?,?,?)', [$chapter['id'], post_str('question', 500), json_encode($opts, JSON_UNESCAPED_UNICODE), $idx, post_str('explanation', 500) ?: null]);
-                            flash('Question ajoutée au quiz.'); $anchor = '#quiz-' . $chapter['id'];
-                        }
+                        q('INSERT INTO chapter_questions (chapter_id, question, options_json, answer, explanation) VALUES (?,?,?,?,?)', [$chapter['id'], post_str('question', 500), json_encode($parsed[0], JSON_UNESCAPED_UNICODE), $parsed[1], post_str('explanation', 500) ?: null]);
+                        flash('Question ajoutée au quiz.');
                     }
+                    $anchor = '#quiz-' . $chapter['id'];
+                    break;
+                case 'question_update':
+                    $qq = one('SELECT cq.* FROM chapter_questions cq JOIN subject_chapters c ON c.id=cq.chapter_id JOIN student_subjects ss ON ss.id=c.subject_id WHERE cq.id=? AND ss.student_id=?', [post_int('question_id'), $sid]);
+                    if (!$qq) break;
+                    $parsed = quiz_options_from_post();
+                    if (is_string($parsed)) flash($parsed, 'err');
+                    else {
+                        q('UPDATE chapter_questions SET question=?, options_json=?, answer=?, explanation=? WHERE id=?', [post_str('question', 500), json_encode($parsed[0], JSON_UNESCAPED_UNICODE), $parsed[1], post_str('explanation', 500) ?: null, $qq['id']]);
+                        flash('Question modifiée.');
+                    }
+                    $anchor = '#quiz-' . $qq['chapter_id'];
+                    break;
+                case 'question_ai':
+                    if (!$chapter) break;
+                    $existing = array_column(chapter_questions((int)$chapter['id']), 'question');
+                    $res = ai_generate_quiz($chapter['subject'], $chapter['title'], $s['grade'] ?? null, max(1, min(10, post_int('count') ?: 5)), post_str('focus', 300), $existing);
+                    if (isset($res['error'])) flash($res['error'], 'err');
+                    else {
+                        foreach ($res['questions'] as $g) q('INSERT INTO chapter_questions (chapter_id, question, options_json, answer, explanation, source) VALUES (?,?,?,?,?,"ai")', [$chapter['id'], $g['question'], json_encode($g['options'], JSON_UNESCAPED_UNICODE), $g['answer'], $g['explanation'] ?: null]);
+                        audit('quiz_ai_generated', count($res['questions']) . ' question(s)', (int)$s['family_id']);
+                        flash(count($res['questions']) . ' question(s) générée(s) par l\'IA. Relisez-les : vous pouvez les modifier ou les supprimer.');
+                    }
+                    $anchor = '#quiz-' . $chapter['id'];
                     break;
                 case 'question_del':
                     q('DELETE cq FROM chapter_questions cq JOIN subject_chapters c ON c.id=cq.chapter_id JOIN student_subjects ss ON ss.id=c.subject_id WHERE cq.id=? AND ss.student_id=?', [post_int('question_id'), $sid]);

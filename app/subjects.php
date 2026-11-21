@@ -79,6 +79,18 @@ function chapter_questions(int $chapterId): array
     return array_map(fn($q) => $q + ['options' => json_decode($q['options_json'], true) ?: []], all('SELECT * FROM chapter_questions WHERE chapter_id=? ORDER BY id', [$chapterId]));
 }
 
+/** Réponses saisies (opt[] + bonne réponse cochée) : [options, index] ou message d'erreur. */
+function quiz_options_from_post(): array|string
+{
+    $raw = array_map(fn($x) => mb_substr(trim((string)$x), 0, 200), (array)($_POST['opt'] ?? []));
+    $correct = $raw[post_int('answer')] ?? '';
+    $opts = array_values(array_filter($raw, fn($x) => $x !== ''));
+    if (post_str('question', 500) === '' || count($opts) < 2) return 'Une question et au moins deux réponses sont nécessaires.';
+    $idx = $correct === '' ? false : array_search($correct, $opts, true);
+    if ($idx === false) return 'Cochez la bonne réponse parmi les réponses remplies.';
+    return [$opts, (int)$idx];
+}
+
 /** Corrige un quiz : renvoie [score, total, détail]. */
 function quiz_grade(array $questions, array $answers): array
 {

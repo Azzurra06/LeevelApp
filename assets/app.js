@@ -152,6 +152,15 @@
     document.addEventListener('click', e => { if (acct.open && !acct.contains(e.target)) acct.open = false; });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && acct.open) { acct.open = false; acct.querySelector('summary').focus(); } });
   }
+  // Quiz (tutrice) : modifier une question sur place ; attente pendant la génération par IA
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-qa-edit]'); if (!b) return;
+    const item = b.closest('.qa-item'); const f = $('.qa-edit', item), v = $('.qa-view', item);
+    f.hidden = !f.hidden; v.hidden = !f.hidden ? true : false; if (!f.hidden) $('input[name=question]', f).focus();
+  });
+  $$('[data-ai-form]').forEach(f => f.addEventListener('submit', () => {
+    const b = $('.ai-btn', f); b.disabled = true; b.classList.add('loading'); $('span', b).textContent = 'Génération en cours… (jusqu\'à 1 min)';
+  }));
   // Dépôt de fichier : envoi dès que le fichier est choisi
   $$('[data-autosubmit-file]').forEach(i => i.addEventListener('change', () => { if (i.files.length) { const l = i.closest('label'); if (l) l.classList.add('loading'); i.form.submit(); } })); // partout : ordre gauche → droite, hauteurs libres
 

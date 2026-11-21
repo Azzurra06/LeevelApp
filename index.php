@@ -8,6 +8,7 @@ require APP_ROOT . '/app/analysis.php';
 require APP_ROOT . '/app/profile.php';
 require APP_ROOT . '/app/reports.php';
 require APP_ROOT . '/app/subjects.php';
+require APP_ROOT . '/app/ai.php';
 require APP_ROOT . '/app/routes.php';
 
 boot();

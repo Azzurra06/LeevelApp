@@ -123,7 +123,22 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
     </div>
     <?php endif ?>
 
-    <?php if ($isTutor): ?>
+    <?php if ($isTutor): $aiKey = ai_api_key(); $aiFromConfig = (string)(config('anthropic_api_key') ?? '') !== ''; ?>
+    <div class="card editable span-2">
+      <div class="ed-head"><h2><?= icon('sparkles') ?> Intelligence artificielle</h2><?= $aiFromConfig ? '' : $editBtn($aiKey ? 'Changer la clé' : 'Ajouter une clé') ?></div>
+      <div class="view">
+        <p><?= $aiKey ? '<span class="badge ok">Activée</span> Clé enregistrée (se termine par <code>…' . e(substr($aiKey, -4)) . '</code>)' . ($aiFromConfig ? ', définie dans le fichier de configuration du serveur.' : '.') : '<span class="badge">Non configurée</span>' ?></p>
+        <p class="muted"><small>Sert à générer les quiz de révision (Fiche élève › Matières). Seuls la matière, le titre du chapitre et la classe sont envoyés au service d'IA (Anthropic), jamais le nom de l'élève ni ses réponses.</small></p>
+      </div>
+      <?php if (!$aiFromConfig): ?>
+      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="ai_key">
+        <label>Clé API Anthropic<input type="password" name="ai_key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></label>
+        <p class="muted"><small>À créer sur console.anthropic.com (rubrique API Keys). Elle est conservée sur le serveur, jamais affichée en entier.</small></p>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><?php if ($aiKey): ?><button class="btn ghost sm" name="remove" value="1" formnovalidate data-confirm="Supprimer la clé API ?"><?= icon('trash-2') ?> Supprimer la clé</button><?php endif ?><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+      </form>
+      <?php endif ?>
+    </div>
+
     <div class="card editable span-2">
       <div class="ed-head"><h2><?= icon('target') ?> Tarifs</h2><?= $editBtn() ?></div>
       <div class="view">

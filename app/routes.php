@@ -137,6 +137,15 @@ function dispatch(string $r, string $method): void
                 flash('Ton profil est enregistré.');
                 redirect('account');
             }
+            if ($isPost && $act === 'ai_key' && $u['role'] === 'tutor') {
+                if (!empty($_POST['remove'])) { ai_save_key(null); audit('ai_key_removed'); flash('Clé API supprimée.'); }
+                else {
+                    $key = trim((string)($_POST['ai_key'] ?? ''));
+                    if (!preg_match('/^sk-ant-[A-Za-z0-9_\-]{20,}$/', $key)) flash('Cette clé ne ressemble pas à une clé API Anthropic (elle commence par « sk-ant- »).', 'err');
+                    else { ai_save_key($key); audit('ai_key_saved'); flash('Clé API enregistrée : la génération de quiz par IA est activée.'); }
+                }
+                redirect('account');
+            }
             if ($isPost && $act === 'rates' && $u['role'] === 'tutor') {
                 $money = function (string $k): ?string {
                     $v = str_replace([',', '€', ' '], ['.', '', ''], post_str($k, 20));

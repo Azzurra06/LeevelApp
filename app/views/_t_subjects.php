@@ -47,14 +47,44 @@ $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
             <button class="btn ghost sm" title="Enregistrer"><?= icon('save') ?></button>
           </form>
           <details class="quiz-admin" id="quiz-<?= (int)$c['id'] ?>"><summary><?= icon('brain') ?> Quiz · <?= count($qs) ?> question<?= count($qs) > 1 ? 's' : '' ?><?= $att ? ' · dernier essai ' . (int)$att['score'] . '/' . (int)$att['total'] : '' ?></summary>
-            <ol class="qa-list"><?php foreach ($qs as $q): ?><li><div><strong><?= e($q['question']) ?></strong><br><small class="muted"><?= implode(' · ', array_map(fn($o, $i) => $i === (int)$q['answer'] ? '✓ ' . e($o) : e($o), $q['options'], array_keys($q['options']))) ?></small></div>
-              <form method="post" action="<?= $act() ?>"><?= $h(['action' => 'question_del', 'question_id' => $q['id'], 'chapter_id' => $c['id']]) ?><button class="edit-btn" aria-label="Supprimer la question"><?= icon('trash-2') ?></button></form></li><?php endforeach ?></ol>
+            <?php if (ai_available()): ?>
+            <form method="post" action="<?= $act() ?>" class="ai-gen" data-ai-form><?= $h(['action' => 'question_ai', 'chapter_id' => $c['id']]) ?>
+              <div class="ai-gen-row">
+                <label>Questions<select name="count"><?php foreach ([3, 5, 8, 10] as $n): ?><option value="<?= $n ?>" <?= $n === 5 ? 'selected' : '' ?>><?= $n ?></option><?php endforeach ?></select></label>
+                <label class="ai-focus">Consigne (facultatif)<input name="focus" maxlength="300" placeholder="ex. insister sur les fractions décimales"></label>
+              </div>
+              <button class="btn sm ai-btn"><?= icon('sparkles') ?> <span>Générer avec l'IA</span></button>
+              <small class="muted">Adapté au chapitre et à la classe (<?= e(CLASSES[$s['grade']] ?? $s['grade']) ?>). Vous pourrez relire, modifier ou supprimer chaque question.</small>
+            </form>
+            <?php else: ?><p class="muted ai-off"><small><?= icon('sparkles') ?> Génération par IA : ajoutez une clé API dans <a href="<?= e(url('account')) ?>">Mon compte</a>.</small></p><?php endif ?>
+
+            <ol class="qa-list"><?php foreach ($qs as $q): ?>
+              <li class="qa-item">
+                <div class="qa-view"><div><strong><?= e($q['question']) ?></strong><?php if (($q['source'] ?? '') === 'ai'): ?> <span class="badge sage ai-badge">IA</span><?php endif ?>
+                  <ul class="qa-opts-view"><?php foreach ($q['options'] as $i => $o): ?><li class="<?= $i === (int)$q['answer'] ? 'ok' : '' ?>"><?= $i === (int)$q['answer'] ? icon('check') : '' ?><?= e($o) ?></li><?php endforeach ?></ul>
+                  <?php if ($q['explanation']): ?><small class="muted"><?= e($q['explanation']) ?></small><?php endif ?></div>
+                  <div class="qa-actions">
+                    <button type="button" class="edit-btn" data-qa-edit title="Modifier" aria-label="Modifier la question"><?= icon('pencil') ?></button>
+                    <form method="post" action="<?= $act() ?>" data-confirm="Supprimer cette question ?"><?= $h(['action' => 'question_del', 'question_id' => $q['id'], 'chapter_id' => $c['id']]) ?><button class="edit-btn" aria-label="Supprimer la question"><?= icon('trash-2') ?></button></form>
+                  </div>
+                </div>
+                <form method="post" action="<?= $act() ?>" class="stack qa-form qa-edit" hidden><?= $h(['action' => 'question_update', 'question_id' => $q['id']]) ?>
+                  <label>Question<input name="question" maxlength="500" required value="<?= e($q['question']) ?>"></label>
+                  <div class="qa-opts"><?php for ($i = 0; $i < 4; $i++): ?><label class="qa-opt"><input type="radio" name="answer" value="<?= $i ?>" <?= $i === (int)$q['answer'] ? 'checked' : '' ?> aria-label="Bonne réponse"><input name="opt[]" maxlength="200" value="<?= e($q['options'][$i] ?? '') ?>" placeholder="Réponse <?= $i + 1 ?><?= $i < 2 ? '' : ' (facultatif)' ?>" <?= $i < 2 ? 'required' : '' ?>></label><?php endfor ?></div>
+                  <small class="muted">Cochez la bonne réponse.</small>
+                  <label>Explication si erreur (facultatif)<input name="explanation" maxlength="500" value="<?= e($q['explanation'] ?? '') ?>"></label>
+                  <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-qa-edit>Annuler</button></div>
+                </form>
+              </li><?php endforeach ?></ol>
+
+            <details class="qa-add"><summary><?= icon('plus') ?> Ajouter une question à la main</summary>
             <form method="post" action="<?= $act() ?>" class="stack qa-form"><?= $h(['action' => 'question_add', 'chapter_id' => $c['id']]) ?>
               <label>Question<input name="question" maxlength="500" required></label>
               <div class="qa-opts"><?php for ($i = 0; $i < 4; $i++): ?><label class="qa-opt"><input type="radio" name="answer" value="<?= $i ?>" <?= $i === 0 ? 'checked' : '' ?> aria-label="Bonne réponse"><input name="opt[]" maxlength="200" placeholder="Réponse <?= $i + 1 ?><?= $i < 2 ? '' : ' (facultatif)' ?>" <?= $i < 2 ? 'required' : '' ?>></label><?php endfor ?></div>
               <small class="muted">Cochez la bonne réponse.</small>
               <label>Explication si erreur (facultatif)<input name="explanation" maxlength="500"></label>
               <button class="btn sm"><?= icon('plus') ?> Ajouter la question</button></form>
+            </details>
           </details>
           <form method="post" action="<?= $act() ?>" class="chap-del" data-confirm="Supprimer ce chapitre et son quiz ?"><?= $h(['action' => 'chapter_del', 'chapter_id' => $c['id']]) ?><button class="more-btn">Supprimer le chapitre</button></form>
         </div>
