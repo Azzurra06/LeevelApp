@@ -10,6 +10,8 @@ $next = $upcoming[0] ?? null; ?>
       <?php foreach ($reports as $rp): ?>
         <div class="report-item"><span class="badge"><?= e(fdatetime($rp['starts_at'])) ?></span>
           <p data-clamp="120"><?= nl2br(e($rp['parent_summary'])) ?></p>
+          <?php $fb = session_feedback_of((int)$rp['session_id']); if ($fb): ?><div class="fb-box"><strong><?= ['good' => '😄', 'ok' => '😐', 'hard' => '😣'][$fb['mood']] ?? '🙂' ?> Ressenti de <?= e($s['first_name']) ?><?= $fb['mood'] ? ' : ' . e(mb_strtolower(MOODS[$fb['mood']])) : '' ?></strong>
+            <?php if ($fb['understood']): ?><p><small class="muted">A compris :</small> <?= e($fb['understood']) ?></p><?php endif ?><?php if ($fb['to_deepen']): ?><p><small class="muted">À approfondir :</small> <?= e($fb['to_deepen']) ?></p><?php endif ?></div><?php endif ?>
           <?php if ($rp['next_focus']): ?><p class="muted"><small><strong>Prochaine séance :</strong> <?= e($rp['next_focus']) ?></small></p><?php endif ?></div>
       <?php endforeach ?>
     </div>
@@ -23,6 +25,15 @@ $next = $upcoming[0] ?? null; ?>
     </div>
     <?php require __DIR__ . '/_tests.php' ?>
     <?php require __DIR__ . '/_year_goals.php' ?>
+    <?php if ($subjects): ?>
+    <div class="card">
+      <h2><?= icon('book-open') ?> Matières suivies</h2>
+      <ul class="list subj-sum"><?php foreach ($subjects as $sub): $acq = count(array_filter($sub['chapters'], fn($c) => $c['status'] === 'acquired')); ?>
+        <li><div><strong><?= e($sub['name']) ?></strong><br><small class="muted"><?= count($sub['chapters']) ? $acq . ' / ' . count($sub['chapters']) . ' chapitre(s) acquis' : 'Pas encore de chapitre' ?></small></div>
+          <div class="subj-sum-r"><?= grades_sparkline($sub['grades'], 120, 34) ?><span class="grade-pill"><?= fmt_grade($sub['avg']) ?><small>/20</small></span><?php if ($sub['trend']): ?><span class="trend <?= $sub['trend'] > 0 ? 'up' : 'down' ?>"><?= $sub['trend'] > 0 ? '↗' : '↘' ?></span><?php endif ?></div></li>
+      <?php endforeach ?></ul>
+    </div>
+    <?php endif ?>
     <?php if ($monthly): ?>
     <div class="card accent">
       <h2><?= icon('chart-column') ?> Bilan du mois · <?= e(month_label($monthly['month'])) ?></h2>

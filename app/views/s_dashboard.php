@@ -15,37 +15,26 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
 <?php require __DIR__ . '/_s_hero.php' ?>
 <?php require __DIR__ . '/_onboarding.php' ?>
 <?php $awaiting = session_awaiting_feedback((int)$s['id']); if ($awaiting): ?>
-<div class="card feedback-card">
-  <h2><?= icon('smile') ?> Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2>
-  <p class="muted">3 petites questions pour que la prochaine séance soit encore plus utile.</p>
-  <form method="post" action="<?= e(url('s_feedback')) ?>" class="stack"><?= csrf_field() ?><input type="hidden" name="session_id" value="<?= (int)$awaiting['id'] ?>">
-    <div><span class="ql">Comment ça s'est passé ?</span>
-      <div class="pills"><?php foreach (['good' => 'Bien 🙂', 'ok' => 'Moyen 😐', 'hard' => 'Difficile 😕'] as $k => $l): ?><label class="pill"><input type="radio" name="mood" value="<?= $k ?>"><span><?= $l ?></span></label><?php endforeach ?></div></div>
-    <label>Qu'est-ce que tu as compris ou réussi ?<textarea name="understood" maxlength="1000" rows="2"></textarea></label>
-    <label>Qu'est-ce que tu dois encore approfondir, ou que tu n'as pas compris ?<textarea name="to_deepen" maxlength="1000" rows="2"></textarea></label>
-    <label>De quoi as-tu besoin pour la prochaine séance ?<input name="needs_next" maxlength="1000" placeholder="ex. revoir l'exercice 3, préparer le contrôle de jeudi"></label>
-    <button class="btn"><?= icon('send') ?> Envoyer à ma tutrice</button>
-  </form>
-</div><br>
+<a class="card tone-pink nudge" href="<?= e(url('s_subjects')) ?>#recap"><span class="nudge-emoji">💬</span><div><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small></div><?= icon('chevron-right', 'go') ?></a>
 <?php endif ?>
 
 <div class="s-tiles">
   <div class="tile tone-violet">
-    <span class="tile-label"><?= icon('target') ?> Mon objectif principal</span>
+    <h2><?= icon('target') ?> Mon objectif principal</h2>
     <?php if ($main): ?>
       <div class="tile-row"><div class="mini-ring" style="--p:<?= (int)$main['progress'] ?>"><span><?= (int)$main['progress'] ?>%</span></div>
         <div><strong><?= e($main['title']) ?></strong><small><?= e(GOAL_STATUS[$main['status']]) ?></small></div></div>
     <?php else: ?><div class="tile-row"><span class="tile-emoji">🎯</span><div><strong>À choisir ensemble</strong><small>On le fixe à la prochaine séance.</small></div></div><?php endif ?>
   </div>
   <div class="tile tone-blue">
-    <span class="tile-label"><?= icon('calendar') ?> Prochaine séance</span>
+    <h2><?= icon('calendar') ?> Prochaine séance</h2>
     <?php if ($next): $ts = strtotime($next['starts_at']); ?>
       <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>
         <div><strong><?= date('H\hi', $ts) ?> · <?= fdur((int)$next['duration_min']) ?></strong><small><?= icon($next['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$next['mode']]) ?></small></div></div>
     <?php else: ?><div class="tile-row"><span class="tile-emoji">📅</span><div><strong>Pas encore prévue</strong><small>Ta tutrice la planifie bientôt.</small></div></div><?php endif ?>
   </div>
   <div class="tile tone-pink">
-    <span class="tile-label"><?= icon('smile') ?> Mon humeur de la semaine</span>
+    <h2><?= icon('smile') ?> Mon humeur de la semaine</h2>
     <form method="post" action="<?= e(url('s_feeling')) ?>" class="mood-row"><?= csrf_field() ?>
       <?php foreach ($moods as $k => [$emo, $lbl]): ?><button name="mood" value="<?= $k ?>" class="mood <?= $lastMood === $k ? 'on' : '' ?>" title="<?= e($lbl) ?>"><span><?= $emo ?></span><small><?= e($lbl) ?></small></button><?php endforeach ?>
     </form>
@@ -53,7 +42,7 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
 </div>
 
 <div class="card missions-card">
-  <h2><span class="h-ico tone-violet"><?= icon('rocket') ?></span> Mes missions</h2>
+  <h2><?= icon('rocket') ?> Mes missions</h2>
   <?php if (!$missions): ?>
     <div class="empty-ill"><span>🚀</span><p>Pas de mission pour l'instant.<br><small class="muted">Ta tutrice t'en proposera bientôt : de petits défis à relever entre deux séances.</small></p></div>
   <?php endif ?>

@@ -1,5 +1,5 @@
 <?php $title = 'Fiche - ' . $s['first_name']; $sidp = ['sid' => $s['id']];
-$tabs = ['profil' => 'Profil', 'parent' => 'Questionnaire parent', 'eleve' => 'Questionnaire élève', 'analyse' => 'Analyse pédagogique', 'objectifs' => 'Objectifs', 'seances' => 'Séances', 'bilans' => 'Bilans', 'progression' => 'Progression'];
+$tabs = ['profil' => 'Profil', 'parent' => 'Questionnaire parent', 'eleve' => 'Questionnaire élève', 'analyse' => 'Analyse pédagogique', 'objectifs' => 'Objectifs', 'matieres' => 'Matières', 'seances' => 'Séances', 'bilans' => 'Bilans', 'progression' => 'Progression'];
 if (!isset($tabs[$tab])) $tab = 'profil';
 $hidden = fn() => csrf_field() . '<input type="hidden" name="sid" value="' . (int)$s['id'] . '">';
 $catOpts = fn($cur) => implode('', array_map(fn($a, $l) => '<option value="' . e($a) . '"' . ($cur === $a ? ' selected' : '') . '>' . e($l) . '</option>', array_keys(AXES), AXES)); ?>
@@ -107,6 +107,8 @@ $goalForm = function (?array $g) use ($hidden, $catOpts) { $g ??= ['id' => 0, 't
     <p class="muted"><small>Élève : <?= $g['student_done_at'] ? 'signalé terminé le ' . e(fdate($g['student_done_at'])) : 'pas encore signalé' ?><?= $g['student_feeling'] ? ' · ressenti : « ' . e(FEELINGS[$g['student_feeling']]) . ' »' : '' ?></small></p>
     <details><summary>Modifier / valider</summary><br><?php $goalForm($g) ?></details></div><br>
 <?php endforeach ?>
+
+<?php elseif ($tab === 'matieres'): require __DIR__ . '/_t_subjects.php'; ?>
 
 <?php elseif ($tab === 'seances'):
 $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' => '', 'starts_at' => date('Y-m-d 17:00:00'), 'duration_min' => 120, 'mode' => 'presentiel', 'status' => 'planned', 'objectives' => '']; ?>

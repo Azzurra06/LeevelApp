@@ -75,6 +75,7 @@ function tutor_route(string $r, bool $isPost): never
                 'goals' => all('SELECT * FROM goals WHERE student_id=? AND status<>"acquired" ORDER BY target_date IS NULL, target_date LIMIT 6', [$sid]),
                 'goalStats' => one('SELECT COUNT(*) n, SUM(status="acquired") acq, ROUND(AVG(progress)) avgp FROM goals WHERE student_id=?', [$sid]),
                 'help' => all('SELECT p.*, g.title goal FROM progress_entries p LEFT JOIN goals g ON g.id=p.goal_id WHERE p.student_id=? ORDER BY p.id DESC LIMIT 6', [$sid]),
+                'recap' => last_session_recap($sid), 'blockersUnseen' => blockers_unseen($sid),
             ]);
 
         case 't_student':
@@ -88,6 +89,10 @@ function tutor_route(string $r, bool $isPost): never
                 'sessions' => all('SELECT * FROM sessions WHERE student_id=? ORDER BY starts_at', [$sid]),
                 'goals' => all('SELECT * FROM goals WHERE student_id=? ORDER BY FIELD(status,"in_progress","rework","todo","acquired"), target_date', [$sid]),
                 'entries' => all('SELECT p.*, g.title goal FROM progress_entries p LEFT JOIN goals g ON g.id=p.goal_id WHERE p.student_id=? ORDER BY p.id DESC LIMIT 30', [$sid]),
+                'subjects' => $tab === 'matieres' ? subjects_of($sid) : [],
+                'suggestions' => $tab === 'matieres' && subjects_available() ? subject_suggestions($sid) : [],
+                'files' => $tab === 'matieres' ? student_files($sid, null, 40) : [],
+                'blockers' => $tab === 'matieres' ? student_blockers($sid, null, 30) : [],
             ]);
 
         case 't_rdv':
@@ -112,6 +117,81 @@ function tutor_route(string $r, bool $isPost): never
             usort($threads, fn($a, $b) => ($b['unread'] <=> $a['unread']) ?: strcmp($b['last']['created_at'] ?? '', $a['last']['created_at'] ?? ''));
             $parent = one('SELECT u.id, u.display_name, u.phone, u.email, u.avatar FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE u.role="parent" ORDER BY u.id LIMIT 1', [$s['family_id']]);
             render('t_messages', ['s' => $s, 'threads' => $threads, 'messages' => family_messages((int)$s['family_id']), 'parent' => $parent]);
+
+        case 't_subjects':
+            if (!$isPost || !subjects_available()) redirect('t_student', ['sid' => $sid, 'tab' => 'matieres']);
+            $act = (string)($_POST['action'] ?? '');
+            $subject = post_int('subject_id') ? subject_of_student(post_int('subject_id'), $sid) : null;
+            $chapter = post_int('chapter_id') ? chapter_of_student(post_int('chapter_id'), $sid) : null;
+            $anchor = $subject ? '#subj-' . $subject['id'] : ($chapter ? '#subj-' . $chapter['subject_id'] : '');
+            switch ($act) {
+                case 'subject_add':
+                    $name = post_str('name', 80) ?: post_str('custom', 80);
+                    if ($name !== '') { q('INSERT IGNORE INTO student_subjects (student_id, name, position) VALUES (?,?,?)', [$sid, $name, (int)(one('SELECT COUNT(*) n FROM student_subjects WHERE student_id=?', [$sid])['n'] ?? 0)]); flash("Matière « $name » ajoutée."); }
+                    break;
+                case 'subject_del':
+                    if ($subject) { q('DELETE FROM student_subjects WHERE id=?', [$subject['id']]); flash('Matière retirée.'); $anchor = ''; }
+                    break;
+                case 'grade_add':
+                    if ($subject) { $err = grade_add_from_post($subject, $u); flash($err ?? 'Note ajoutée.', $err ? 'err' : 'ok'); $anchor = '#notes-' . $subject['id']; }
+                    break;
+                case 'grade_del':
+                    q('DELETE g FROM subject_grades g JOIN student_subjects ss ON ss.id=g.subject_id WHERE g.id=? AND ss.student_id=?', [post_int('grade_id'), $sid]);
+                    flash('Note supprimée.'); if ($subject) $anchor = '#notes-' . $subject['id'];
+                    break;
+                case 'chapter_add':
+                    if ($subject && post_str('title', 160) !== '') {
+                        q('INSERT INTO subject_chapters (subject_id, title, status) VALUES (?,?,?)', [$subject['id'], post_str('title', 160), post_enum('status', CHAPTER_STATUS, 'in_progress')]);
+                        flash('Chapitre ajouté.');
+                    }
+                    break;
+                case 'chapter_save':
+                    if ($chapter) {
+                        $isCur = !empty($_POST['is_current']);
+                        if ($isCur) q('UPDATE subject_chapters SET is_current=0 WHERE subject_id=?', [$chapter['subject_id']]);
+                        q('UPDATE subject_chapters SET title=?, status=?, is_current=? WHERE id=?', [post_str('title', 160) ?: $chapter['title'], post_enum('status', CHAPTER_STATUS, $chapter['status']), (int)$isCur, $chapter['id']]);
+                        flash('Chapitre mis à jour.');
+                    }
+                    break;
+                case 'chapter_del':
+                    if ($chapter) { q('DELETE FROM subject_chapters WHERE id=?', [$chapter['id']]); flash('Chapitre supprimé.'); }
+                    break;
+                case 'question_add':
+                    $opts = array_values(array_filter(array_map(fn($x) => mb_substr(trim((string)$x), 0, 200), (array)($_POST['opt'] ?? [])), fn($x) => $x !== ''));
+                    $ans = post_int('answer');
+                    if (!$chapter || post_str('question', 500) === '' || count($opts) < 2) flash('Une question et au moins deux réponses sont nécessaires.', 'err');
+                    else {
+                        // la bonne réponse est repérée sur les champs saisis (avant filtrage des réponses vides)
+                        $raw = array_map(fn($x) => trim((string)$x), (array)($_POST['opt'] ?? []));
+                        $correct = $raw[$ans] ?? '';
+                        $idx = array_search(mb_substr($correct, 0, 200), $opts, true);
+                        if ($idx === false) flash('Cochez la bonne réponse parmi les réponses remplies.', 'err');
+                        else {
+                            q('INSERT INTO chapter_questions (chapter_id, question, options_json, answer, explanation) VALUES (?,?,?,?,?)', [$chapter['id'], post_str('question', 500), json_encode($opts, JSON_UNESCAPED_UNICODE), $idx, post_str('explanation', 500) ?: null]);
+                            flash('Question ajoutée au quiz.'); $anchor = '#quiz-' . $chapter['id'];
+                        }
+                    }
+                    break;
+                case 'question_del':
+                    q('DELETE cq FROM chapter_questions cq JOIN subject_chapters c ON c.id=cq.chapter_id JOIN student_subjects ss ON ss.id=c.subject_id WHERE cq.id=? AND ss.student_id=?', [post_int('question_id'), $sid]);
+                    flash('Question supprimée.'); if ($chapter) $anchor = '#quiz-' . $chapter['id'];
+                    break;
+                case 'blocker_seen':
+                    q('UPDATE subject_blockers SET seen_at=NOW() WHERE id=? AND student_id=?', [post_int('blocker_id'), $sid]);
+                    $anchor = '#blocages';
+                    break;
+                case 'file_upload':
+                    $err = save_student_file($sid, $subject['id'] ?? null, $u, $_FILES['file'] ?? [], post_str('note', 300));
+                    flash($err ?? 'Fichier ajouté.', $err ? 'err' : 'ok'); $anchor = '#fichiers';
+                    break;
+                case 'file_del':
+                    $f = one('SELECT * FROM student_files WHERE id=? AND student_id=?', [post_int('file_id'), $sid]);
+                    if ($f) { delete_student_file($f); flash('Fichier supprimé.'); }
+                    $anchor = '#fichiers';
+                    break;
+            }
+            header('Location: ' . url('t_student', ['sid' => $sid, 'tab' => 'matieres']) . $anchor, true, 303);
+            exit;
 
         case 't_report':
             if (!$isPost) $back();

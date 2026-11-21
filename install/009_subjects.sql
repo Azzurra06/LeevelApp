@@ -1,0 +1,92 @@
+-- Migration 009 — matières suivies : notes, chapitres, quiz, fichiers, blocages (idempotente)
+CREATE TABLE IF NOT EXISTS student_subjects (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  student_id INT UNSIGNED NOT NULL,
+  name VARCHAR(80) NOT NULL,
+  position SMALLINT NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_ss (student_id, name),
+  CONSTRAINT fk_ss_st FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS subject_grades (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  subject_id INT UNSIGNED NOT NULL,
+  value DECIMAL(5,2) NOT NULL,
+  out_of DECIMAL(5,2) NOT NULL DEFAULT 20,
+  coef DECIMAL(4,2) NOT NULL DEFAULT 1,
+  label VARCHAR(120) NULL,
+  graded_on DATE NOT NULL,
+  created_by INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY k_sg (subject_id, graded_on),
+  CONSTRAINT fk_sg_ss FOREIGN KEY (subject_id) REFERENCES student_subjects(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sg_u FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS subject_chapters (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  subject_id INT UNSIGNED NOT NULL,
+  title VARCHAR(160) NOT NULL,
+  status ENUM('todo','in_progress','reinforce','acquired') NOT NULL DEFAULT 'todo',
+  is_current TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_sc_ss FOREIGN KEY (subject_id) REFERENCES student_subjects(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS chapter_questions (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  chapter_id INT UNSIGNED NOT NULL,
+  question VARCHAR(500) NOT NULL,
+  options_json TEXT NOT NULL,
+  answer TINYINT UNSIGNED NOT NULL,
+  explanation VARCHAR(500) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_cq_sc FOREIGN KEY (chapter_id) REFERENCES subject_chapters(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS chapter_attempts (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  chapter_id INT UNSIGNED NOT NULL,
+  user_id INT UNSIGNED NULL,
+  score SMALLINT UNSIGNED NOT NULL,
+  total SMALLINT UNSIGNED NOT NULL,
+  answers_json TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_ca_sc FOREIGN KEY (chapter_id) REFERENCES subject_chapters(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ca_u FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS student_files (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  student_id INT UNSIGNED NOT NULL,
+  subject_id INT UNSIGNED NULL,
+  user_id INT UNSIGNED NULL,
+  stored VARCHAR(60) NOT NULL,
+  original VARCHAR(160) NOT NULL,
+  mime VARCHAR(80) NOT NULL,
+  size INT UNSIGNED NOT NULL,
+  note VARCHAR(300) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY k_sf (student_id, created_at),
+  CONSTRAINT fk_sfi_st FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sfi_ss FOREIGN KEY (subject_id) REFERENCES student_subjects(id) ON DELETE SET NULL,
+  CONSTRAINT fk_sfi_u FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS subject_blockers (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  student_id INT UNSIGNED NOT NULL,
+  subject_id INT UNSIGNED NULL,
+  chapter_id INT UNSIGNED NULL,
+  user_id INT UNSIGNED NULL,
+  body VARCHAR(1000) NOT NULL,
+  seen_at DATETIME NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY k_sb (student_id, created_at),
+  CONSTRAINT fk_sb_st FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sb_ss FOREIGN KEY (subject_id) REFERENCES student_subjects(id) ON DELETE SET NULL,
+  CONSTRAINT fk_sb_sc FOREIGN KEY (chapter_id) REFERENCES subject_chapters(id) ON DELETE SET NULL,
+  CONSTRAINT fk_sb_u FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

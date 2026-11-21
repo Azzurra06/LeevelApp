@@ -2,7 +2,7 @@
 $nav = match ($role) {
     'tutor' => [['t', 'house', 'Tableau de bord', 'Accueil'], ['t_rdv', 'clipboard-list', 'Premier rendez-vous', '1er RDV'], ['t_student', 'user', 'Fiche élève', 'Élève'], ['t_messages', 'message-circle', 'Échanges', 'Échanges'], ['t_users', 'users', 'Comptes', 'Comptes']],
     'parent' => [['p', 'house', 'Suivi', 'Suivi'], ['p_planning', 'calendar', 'Planning', 'Planning'], ['p_messages', 'message-circle', 'Échanges', 'Échanges'], ['q', 'clipboard-list', 'Mon questionnaire', 'Questionnaire']],
-    'student' => [['s', 'house', 'Mon espace', 'Accueil'], ['s_tools', 'lightbulb', 'Mes outils', 'Outils'], ['q', 'clipboard-list', 'Mon questionnaire', 'Questionnaire']],
+    'student' => [['s', 'house', 'Mon espace', 'Accueil'], ['s_subjects', 'book-open', 'Mes matières', 'Matières'], ['s_tools', 'lightbulb', 'Mes outils', 'Outils'], ['q', 'clipboard-list', 'Mon questionnaire', 'Questionnaire']],
     default => [],
 };
 $unread = in_array($role, ['tutor', 'parent'], true) ? unread_count($me) : 0; ?>

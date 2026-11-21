@@ -65,6 +65,9 @@ function dispatch(string $r, string $method): void
         case 'avatar':
             serve_avatar(require_login(), (int)($_GET['u'] ?? 0));
 
+        case 'file':
+            serve_student_file(require_login(), (int)($_GET['id'] ?? 0));
+
         case 'privacy':
             render('privacy', [], current_user() && !in_passation() ? 'layout' : 'layout_min');
 
@@ -333,8 +336,9 @@ function family_route(string $r, bool $isPost): never
                 [$se['id'], $mood ?: null, post_str('understood', 1000) ?: null, post_str('to_deepen', 1000) ?: null, post_str('needs_next', 1000) ?: null]);
             flash('Merci ! Ta tutrice verra ton retour avant la prochaine séance.');
         }
-        redirect('s');
+        ($_POST['back'] ?? '') === 's_subjects' ? redirect('s_subjects', ['subj' => post_int('subj')]) : redirect('s');
     }
+    if ($r === 's_subjects') student_subjects_route($u, $s, $isPost);
     if ($r === 's_help' && $isPost) {
         if (!(int)($s['perm_help_requests'] ?? 1)) { flash("Le bouton d'aide n'est pas activé pour ton compte.", 'err'); redirect('s'); }
         q('INSERT INTO progress_entries (student_id, user_id, entry_type, comment) VALUES (?,?,?,?)', [$s['id'], $u['id'], 'help_request', post_str('comment', 1000) ?: null]);
@@ -369,5 +373,65 @@ function family_view_data(array $s): array
         'reports' => sent_reports((int)$s['id']),
         'monthly' => monthly_published((int)$s['id'])[0] ?? null,
         'yearGoals' => year_goals((int)$s['id']),
+        'subjects' => subjects_of((int)$s['id']),
+        'recap' => last_session_recap((int)$s['id']),
     ];
+}
+
+
+/** Élève : « Mes matières » (notes, chapitres, quiz, fichiers, blocages, dernière séance). */
+function student_subjects_route(array $u, array $s, bool $isPost): never
+{
+    $sid = (int)$s['id'];
+    $subj = (int)($_GET['subj'] ?? $_POST['subj'] ?? 0);
+    $back = fn(string $anchor = '') => redirect('s_subjects', ['subj' => $subj]) ;
+    if ($isPost && subjects_available()) {
+        $act = (string)($_POST['action'] ?? '');
+        $subject = $subj ? subject_of_student($subj, $sid) : null;
+        if ($act === 'grade_add' && $subject) {
+            $err = grade_add_from_post($subject, $u);
+            flash($err ?? 'Note ajoutée. Bravo de suivre tes résultats !', $err ? 'err' : 'ok');
+        } elseif ($act === 'grade_del') {
+            q('DELETE g FROM subject_grades g JOIN student_subjects ss ON ss.id=g.subject_id WHERE g.id=? AND ss.student_id=? AND g.created_by=?', [post_int('grade_id'), $sid, $u['id']]);
+            flash('Note supprimée.');
+        } elseif ($act === 'file_upload') {
+            $err = save_student_file($sid, $subject['id'] ?? null, $u, $_FILES['file'] ?? [], post_str('note', 300));
+            if (!$err) audit('file_uploaded', null, (int)$s['family_id']);
+            flash($err ?? 'Fichier envoyé à ta tutrice.', $err ? 'err' : 'ok');
+        } elseif ($act === 'file_del') {
+            $f = one('SELECT * FROM student_files WHERE id=? AND student_id=? AND user_id=?', [post_int('file_id'), $sid, $u['id']]);
+            if ($f) { delete_student_file($f); flash('Fichier supprimé.'); }
+        } elseif ($act === 'blocker') {
+            $body = post_str('body', 1000);
+            $ch = post_int('chapter_id') ? chapter_of_student(post_int('chapter_id'), $sid) : null;
+            if ($body === '') flash('Explique en quelques mots ce qui te bloque.', 'err');
+            else {
+                q('INSERT INTO subject_blockers (student_id, subject_id, chapter_id, user_id, body) VALUES (?,?,?,?,?)', [$sid, $subject['id'] ?? null, $ch['id'] ?? null, $u['id'], $body]);
+                audit('blocker_reported', null, (int)$s['family_id']);
+                flash('C\'est noté ! Ta tutrice le verra et vous en parlerez à la prochaine séance.');
+            }
+        } elseif ($act === 'quiz') {
+            $ch = chapter_of_student(post_int('chapter_id'), $sid);
+            $qs = $ch ? chapter_questions((int)$ch['id']) : [];
+            if ($qs) {
+                [$score, $total, $detail] = quiz_grade($qs, (array)($_POST['q'] ?? []));
+                q('INSERT INTO chapter_attempts (chapter_id, user_id, score, total, answers_json) VALUES (?,?,?,?,?)', [$ch['id'], $u['id'], $score, $total, json_encode($detail)]);
+                $_SESSION['quiz_result'] = ['chapter_id' => (int)$ch['id'], 'score' => $score, 'total' => $total, 'detail' => $detail];
+            }
+        }
+        $back();
+    }
+    $subjects = subjects_of($sid);
+    $cur = null;
+    foreach ($subjects as $x) if ((int)$x['id'] === $subj) $cur = $x;
+    $cur ??= $subjects[0] ?? null;
+    $quizResult = $_SESSION['quiz_result'] ?? null; unset($_SESSION['quiz_result']);
+    $current = null;
+    if ($cur) foreach ($cur['chapters'] as $c) if ($c['is_current']) { $current = $c; break; }
+    if ($cur && !$current) foreach ($cur['chapters'] as $c) if ($c['status'] !== 'acquired') { $current = $c; break; }
+    render('s_subjects', ['u' => $u, 's' => $s, 'subjects' => $subjects, 'cur' => $cur, 'current' => $current,
+        'questions' => $current ? chapter_questions((int)$current['id']) : [],
+        'lastAttempt' => $current ? one('SELECT * FROM chapter_attempts WHERE chapter_id=? AND user_id=? ORDER BY id DESC LIMIT 1', [$current['id'], $u['id']]) : null,
+        'quizResult' => $quizResult, 'recap' => last_session_recap($sid),
+        'files' => $cur ? student_files($sid, (int)$cur['id'], 12) : [], 'blockers' => $cur ? student_blockers($sid, (int)$cur['id'], 5) : []]);
 }

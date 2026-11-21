@@ -138,7 +138,14 @@
     if ('ResizeObserver' in window) { const ro = new ResizeObserver(fit); [...grid.children].forEach(c => ro.observe(c)); }
     window.addEventListener('resize', fit);
   };
-  $$('.grid:not(.stat-grid), .grid-2').forEach(masonry); // partout : ordre gauche → droite, hauteurs libres
+  $$('.grid:not(.stat-grid), .grid-2').forEach(masonry);
+  // Retour sur un bloc précis après enregistrement : on rouvre les volets qui le contiennent
+  if (location.hash.length > 1) {
+    const tgt = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (tgt) { let d = tgt; while (d) { if (d.tagName === 'DETAILS') d.open = true; d = d.parentElement; } setTimeout(() => tgt.scrollIntoView({ block: 'start' }), 60); }
+  }
+  // Dépôt de fichier : envoi dès que le fichier est choisi
+  $$('[data-autosubmit-file]').forEach(i => i.addEventListener('change', () => { if (i.files.length) { const l = i.closest('label'); if (l) l.classList.add('loading'); i.form.submit(); } })); // partout : ordre gauche → droite, hauteurs libres
 
   // ---------- Mes outils : chrono de travail ----------
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };

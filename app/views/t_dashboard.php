@@ -16,10 +16,11 @@ $todoHelp = array_filter($help, fn($h) => $h['entry_type'] === 'help_request' &&
 $todoUnread = unread_count(current_user(), (int)$s['family_id']);
 $tests = tests_upcoming((int)$s['id'], 5);
 $w = [
-  'todo' => function () use ($todoMissing, $todoHelp, $todoUnread, $sidp, $s) { ?>
+  'todo' => function () use ($todoMissing, $todoHelp, $todoUnread, $sidp, $s, $blockersUnseen) { ?>
     <div class="card todo-card"><h2><?= icon('list-checks') ?> À faire</h2>
-      <?php if (!$todoMissing && !$todoHelp && !$todoUnread): ?><p class="muted">Rien en attente. 👍</p><?php endif ?>
+      <?php if (!$todoMissing && !$todoHelp && !$todoUnread && !$blockersUnseen): ?><p class="muted">Rien en attente. 👍</p><?php endif ?>
       <ul class="list">
+        <?php if ($blockersUnseen): ?><li class="li-link"><a href="<?= e(url('t_student', $sidp + ['tab' => 'matieres'])) ?>#blocages"><?= icon('circle-help') ?><div><strong><?= $blockersUnseen ?></strong> blocage(s) signalé(s) par <?= e($s['first_name']) ?></div><?= icon('chevron-right', 'go') ?></a></li><?php endif ?>
         <?php foreach (array_slice($todoMissing, 0, 4) as $se): ?><li class="li-link"><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>#sess-<?= (int)$se['id'] ?>"><?= icon('file-text') ?><div>Rédiger le bilan · <strong><?= e(session_label($se)) ?></strong><br><small class="muted"><?= e(fdatetime($se['starts_at'])) ?></small></div><?= icon('chevron-right', 'go') ?></a></li><?php endforeach ?>
         <?php if ($todoUnread): ?><li class="li-link"><a href="<?= e(url('t_messages', $sidp)) ?>"><?= icon('message-circle') ?><div><strong><?= $todoUnread ?></strong> message(s) non lu(s)</div><?= icon('chevron-right', 'go') ?></a></li><?php endif ?>
         <?php if ($todoHelp): ?><li class="li-link"><a href="<?= e(url('t_student', $sidp + ['tab' => 'progression'])) ?>"><?= icon('circle-help') ?><div><strong><?= count($todoHelp) ?></strong> demande(s) d'aide de <?= e($s['first_name']) ?> cette semaine</div><?= icon('chevron-right', 'go') ?></a></li><?php endif ?>
@@ -57,7 +58,8 @@ $w = [
   <?php },
 ];
 // Priorité motivation/autonomie → retours élève et objectifs remontent ; méthodo/évaluations → planning d'abord
-$order = ['todo', 'tests', 'needs', 'quest'];
+$w['recap'] = function () use ($recap, $sidp, $s) { require __DIR__ . '/_recap_card.php'; };
+$order = ['todo', 'recap', 'tests', 'needs', 'quest'];
 foreach ($prio['axes'] as $a) $order = array_merge($order, match ($a) { 'motivation', 'autonomie' => ['activity', 'goals'], 'methodo', 'evaluations' => ['sessions', 'goals'], default => ['goals'] });
 $order = array_unique(array_merge($order, array_keys($w)));
 ?>
