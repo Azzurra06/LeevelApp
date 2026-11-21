@@ -1,6 +1,6 @@
 <?php $me = current_user(); $r = $_GET['r'] ?? 'home'; $role = $me['role'] ?? ''; $sidQ = isset($s['id']) ? ['sid' => $s['id']] : [];
 $nav = match ($role) {
-    'tutor' => [['t', 'house', 'Tableau de bord', 'Accueil'], ['t_rdv', 'clipboard-list', 'Premier rendez-vous', '1er RDV'], ['t_student', 'user', 'Fiche élève', 'Élève'], ['t_messages', 'message-circle', 'Échanges', 'Échanges'], ['t_users', 'users', 'Comptes', 'Comptes']],
+    'tutor' => [['t', 'house', 'Tableau de bord', 'Accueil'], ['t_rdv', 'clipboard-list', 'Premier rendez-vous', '1er RDV'], ['t_student', 'user', 'Fiche élève', 'Élève'], ['t_messages', 'message-circle', 'Échanges', 'Échanges'], ['t_users', 'users', 'Familles', 'Familles']],
     'parent' => [['p', 'house', 'Suivi', 'Suivi'], ['p_planning', 'calendar', 'Planning', 'Planning'], ['p_messages', 'message-circle', 'Échanges', 'Échanges'], ['q', 'clipboard-list', 'Mon questionnaire', 'Questionnaire']],
     'student' => [['s', 'house', 'Mon espace', 'Accueil'], ['s_subjects', 'book-open', 'Mes matières', 'Matières'], ['s_tools', 'lightbulb', 'Mes outils', 'Outils'], ['s_messages', 'message-circle', 'Messages', 'Messages'], ['q', 'clipboard-list', 'Mon questionnaire', 'Questionnaire']],
     default => [],

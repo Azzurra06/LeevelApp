@@ -9,6 +9,6 @@
       <div class="copy-row"><input type="text" readonly value="<?= e($ir['link']) ?>" aria-label="Lien d'invitation"><button type="button" class="btn soft sm" data-copy><?= icon('file-text') ?> Copier</button></div>
     </div>
   <?php endforeach ?>
-  <p class="muted"><small>Ce lien est personnel, à usage unique et valable 7 jours. Il ne sera plus affiché ; vous pourrez en générer un nouveau depuis « Comptes ».</small></p>
+  <p class="muted"><small>Ce lien est personnel, à usage unique et valable 7 jours. Il ne sera plus affiché ; vous pourrez en générer un nouveau depuis « Familles ».</small></p>
 </div>
 <?php endif ?>

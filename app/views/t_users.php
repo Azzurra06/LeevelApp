@@ -1,5 +1,5 @@
-<?php $title = 'Comptes'; $old = $_SESSION['old'] ?? []; unset($_SESSION['old']); ?>
-<div class="page-head"><div><h1><?= icon('users') ?> Comptes et dossiers</h1><p>Chaque dossier relie un parent, un élève et vous.</p></div>
+<?php $title = 'Familles'; $old = $_SESSION['old'] ?? []; unset($_SESSION['old']); ?>
+<div class="page-head"><div><h1><?= icon('users') ?> Familles et dossiers</h1><p>Chaque dossier relie un parent, un élève et vous.</p></div>
   <div class="row"><?php if (!array_filter($families, fn($f) => $f['is_demo'])): ?><form method="post" action="<?= e(url('t_demo')) ?>"><?= csrf_field() ?><button class="btn ghost"><?= icon('sparkles') ?> Créer le dossier démo</button></form><?php endif ?>
   <button class="btn" data-toggle="newfam"><?= icon('plus') ?> Nouveau dossier</button></div></div>
 <div class="card" id="newfam" <?= $families && !$old ? 'hidden' : '' ?>>

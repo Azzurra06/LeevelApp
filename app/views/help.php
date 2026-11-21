@@ -21,7 +21,7 @@ $faq = [
         ['file-text', 'Rédiger et envoyer un bilan de séance', "Fiche élève > onglet « Séances » : après une séance, rédigez le bilan. « Envoyer » le publie dans le suivi du parent et dans « Échanges »."],
         ['message-circle', 'Deux discussions par famille', "Dans « Échanges », chaque famille a deux fils : « Parent » et celui de l'élève. Le parent peut lire la discussion de l'élève, sans y écrire."],
         ['lock', 'Faire passer un questionnaire sur un seul appareil', "Écran « Premier rendez-vous » : lancez la passation. Votre session se ferme, seul le questionnaire est accessible, puis vous vous reconnectez à la fin."],
-        ['users', 'Inviter un parent ou un élève', "Page « Comptes » : créez les comptes vous-même ou envoyez un lien d'invitation par e-mail."],
+        ['users', 'Inviter un parent ou un élève', "Page « Familles » : créez les comptes vous-même ou envoyez un lien d'invitation par e-mail."],
     ],
 ][$role];
 $common = [
