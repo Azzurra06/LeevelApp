@@ -1,0 +1,373 @@
+<?php
+declare(strict_types=1);
+
+function dispatch(string $r, string $method): void
+{
+    $isPost = $method === 'POST';
+    if ($isPost) check_csrf();
+
+    // En passation, seules les routes du questionnaire sont autorisées.
+    if (in_passation() && !in_array($r, ['q', 'q_save', 'q_submit', 'q_recap', 'consent', 'passation_end'], true)) {
+        http_response_code(403);
+        render('error', ['msg' => 'Mode passation : seul le questionnaire est accessible.'], 'layout_min');
+    }
+
+    switch ($r) {
+        case 'home':
+            $u = current_user();
+            if (in_passation()) redirect('q');
+            if (!$u) redirect('login');
+            redirect(['tutor' => 't', 'parent' => 'p', 'student' => 's'][$u['role']]);
+
+        case 'login':
+            if (current_user() && !in_passation()) redirect('home');
+            $err = null;
+            if ($isPost) {
+                $res = attempt_login((string)($_POST['username'] ?? ''), (string)($_POST['password'] ?? ''));
+                if ($res === true) redirect('home');
+                $err = $res;
+            }
+            render('login', ['err' => $err, 'prefill' => $_GET['u'] ?? ''], 'layout_min');
+
+        case 'logout':
+            if (!$isPost) redirect('home');
+            audit('logout');
+            logout();
+            flash('Vous êtes déconnecté·e.');
+            redirect('login');
+
+        case 'invite':
+            require APP_ROOT . '/app/invitations.php';
+            $token = (string)($_GET['token'] ?? '');
+            $inv = find_invitation($token);
+            if (!$inv) render('error', ['msg' => "Ce lien d'invitation n'est plus valable (déjà utilisé ou expiré). Demandez un nouveau lien à votre tutrice."], 'layout_min');
+            $err = null; $old = [];
+            if ($isPost) {
+                $old = ['username' => mb_strtolower(post_str('username', 60)), 'display_name' => post_str('display_name', 100)];
+                $pw = (string)($_POST['password'] ?? '');
+                $err = validate_username($old['username']) ?? validate_password($pw);
+                if (!$err && $pw !== ($_POST['password2'] ?? '')) $err = 'Les deux mots de passe ne correspondent pas.';
+                if (!$err && $old['display_name'] === '') $err = 'Indiquez votre nom.';
+                if (!$err && one('SELECT 1 FROM users WHERE username=?', [$old['username']])) $err = 'Cet identifiant est déjà pris, choisissez-en un autre.';
+                if (!$err && $inv['role'] === 'parent' && !$inv['guardian_consent_at'] && empty($_POST['agree'])) $err = "Merci de valider l'autorisation pour continuer.";
+                if (!$err) {
+                    accept_invitation($inv, $old['username'], $pw, $old['display_name'], !empty($_POST['agree']));
+                    flash('Bienvenue sur leevel.app ! Votre compte est créé.');
+                    redirect('home');
+                }
+            }
+            render('invite', ['inv' => $inv, 'err' => $err, 'old' => $old, 'token' => $token], 'layout_min');
+
+        case 'test':
+            if (!$isPost) redirect('home');
+            handle_test_action(require_login());
+
+        case 'avatar':
+            serve_avatar(require_login(), (int)($_GET['u'] ?? 0));
+
+        case 'privacy':
+            render('privacy', [], current_user() && !in_passation() ? 'layout' : 'layout_min');
+
+        case 'account':
+            $u = require_login();
+            $act = $_POST['action'] ?? 'password';
+            if ($isPost && $u['role'] === 'student') {
+                $perm = one('SELECT perm_edit_contacts, perm_edit_photo FROM students WHERE user_id=?', [$u['id']]) ?? [];
+                if (($act === 'profile' && !(int)($perm['perm_edit_contacts'] ?? 1)) || (in_array($act, ['avatar', 'avatar_remove'], true) && !(int)($perm['perm_edit_photo'] ?? 1))) {
+                    http_response_code(403); flash('Cette modification est gérée par ton parent.', 'err'); redirect('account');
+                }
+            }
+            if ($isPost && in_array($act, ['child_contacts', 'child_perms'], true)) {
+                if ($u['role'] !== 'parent') { http_response_code(403); render('error', ['msg' => 'Action réservée au parent.']); }
+                $ch = student_for($u, post_int('sid'));
+                if ($act === 'child_contacts') {
+                    $email = post_str('email', 120); $phone = preg_replace('/[^0-9+ ().-]/', '', post_str('phone', 30));
+                    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) { flash('Adresse e-mail invalide.', 'err'); redirect('account'); }
+                    q('UPDATE students SET student_phone=?, student_email=? WHERE id=?', [$phone ?: null, $email ?: null, $ch['id']]);
+                    if ($ch['user_id']) q('UPDATE users SET phone=?, email=? WHERE id=?', [$phone ?: null, $email ?: null, $ch['user_id']]);
+                    flash('Coordonnées de ' . $ch['first_name'] . ' enregistrées.');
+                } else {
+                    q('UPDATE students SET perm_edit_contacts=?, perm_edit_photo=?, perm_help_requests=? WHERE id=?',
+                        [(int)!empty($_POST['perm_edit_contacts']), (int)!empty($_POST['perm_edit_photo']), (int)!empty($_POST['perm_help_requests']), $ch['id']]);
+                    audit('student_permissions', null, (int)$ch['family_id']);
+                    flash('Autorisations de ' . $ch['first_name'] . ' enregistrées.');
+                }
+                redirect('account');
+            }
+            if ($isPost && $act === 'profile') {
+                $name = post_str('display_name', 100); $email = post_str('email', 120);
+                $phone = preg_replace('/[^0-9+ ().-]/', '', post_str('phone', 30));
+                if ($name === '') flash('Le nom ne peut pas être vide.', 'err');
+                elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) flash('Adresse e-mail invalide.', 'err');
+                else {
+                    q('UPDATE users SET display_name=?, phone=?, email=? WHERE id=?', [$name, $phone ?: null, $email ?: null, $u['id']]);
+                    if ($u['role'] !== 'student') {
+                        try { q('UPDATE users SET notify_messages=? WHERE id=?', [(int)!empty($_POST['notify_messages']), $u['id']]); } catch (PDOException) { /* base pas encore migrée */ }
+                    }
+                    $address = post_str('address', 255);
+                    try { q('UPDATE users SET address=? WHERE id=?', [$address ?: null, $u['id']]); } catch (PDOException) { /* base pas encore migrée */ }
+                    if ($u['role'] === 'parent' && $address !== '') {
+                        q('UPDATE students s JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? SET s.parent_address=?', [$u['id'], $address]);
+                    }
+                    if ($u['role'] === 'parent') { // les coordonnées du parent alimentent la fiche élève de la tutrice
+                        q('UPDATE students s JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? SET s.parent_phone=?, s.parent_email=?', [$u['id'], $phone ?: null, $email ?: null]);
+                    } elseif ($u['role'] === 'student') {
+                        q('UPDATE students SET student_phone=?, student_email=? WHERE user_id=?', [$phone ?: null, $email ?: null, $u['id']]);
+                    }
+                    audit('profile_updated');
+                    flash('Informations enregistrées.');
+                }
+                redirect('account');
+            }
+            if ($isPost && $act === 'student_profile' && $u['role'] === 'student') {
+                $st = one('SELECT s.*, f.guardian_consent_at FROM students s JOIN families f ON f.id=s.family_id WHERE s.user_id=?', [$u['id']]);
+                if (!$st || !$st['guardian_consent_at']) { flash("Ton profil sera modifiable dès que ton parent aura validé l'autorisation d'utilisation.", 'err'); redirect('account'); }
+                $in = ['s_first_name' => post_str('s_first_name', 80), 's_last_name' => post_str('s_last_name', 80), 's_age' => post_str('s_age', 3),
+                       's_class' => post_str('s_class', 10), 's_school' => post_str('s_school', 120),
+                       's_interests' => array_values(array_filter((array)($_POST['s_interests'] ?? []), 'is_string')), 's_memory' => array_values(array_filter((array)($_POST['s_memory'] ?? []), 'is_string'))];
+                qn_save(qn_submission('student', (int)$st['id'], (int)$u['id']), 'student', $in);
+                student_profile_sync((int)$st['id'], $in);
+                audit('student_profile_updated', null, (int)$st['family_id']);
+                flash('Ton profil est enregistré.');
+                redirect('account');
+            }
+            if ($isPost && $act === 'rates' && $u['role'] === 'tutor') {
+                $money = function (string $k): ?string {
+                    $v = str_replace([',', '€', ' '], ['.', '', ''], post_str($k, 20));
+                    return $v !== '' && is_numeric($v) && (float)$v >= 0 && (float)$v < 100000 ? number_format((float)$v, 2, '.', '') : null;
+                };
+                $rows = [];
+                $types = (array)($_POST['d_type'] ?? []); $conds = (array)($_POST['d_cond'] ?? []); $vals = (array)($_POST['d_value'] ?? []);
+                foreach ($types as $i => $type) {
+                    $cond = mb_substr(trim((string)($conds[$i] ?? '')), 0, 100); $val = mb_substr(trim((string)($vals[$i] ?? '')), 0, 60);
+                    if ($cond === '' && $val === '') continue;
+                    $rows[] = ['type' => in_array($type, ['children', 'pack', 'other'], true) ? $type : 'other', 'condition' => $cond, 'value' => $val];
+                    if (count($rows) >= 10) break;
+                }
+                q('UPDATE users SET rate_presentiel=?, rate_visio=?, discounts_json=? WHERE id=?', [$money('rate_presentiel'), $money('rate_visio'), $rows ? json_encode($rows, JSON_UNESCAPED_UNICODE) : null, $u['id']]);
+                audit('rates_updated');
+                flash('Tarifs enregistrés.');
+                redirect('account');
+            }
+            if ($isPost && $act === 'avatar') {
+                $m = save_avatar((int)$u['id'], $_FILES['avatar'] ?? []);
+                flash($m ?? 'Photo de profil mise à jour.', $m ? 'err' : 'ok');
+                redirect('account');
+            }
+            if ($isPost && $act === 'avatar_remove') {
+                remove_avatar((int)$u['id']);
+                flash('Photo supprimée.');
+                redirect('account');
+            }
+            if ($isPost) {
+                $full = one('SELECT password_hash FROM users WHERE id=?', [$u['id']]);
+                $new = (string)($_POST['new_password'] ?? '');
+                if (!password_verify((string)($_POST['current_password'] ?? ''), $full['password_hash'])) flash('Mot de passe actuel incorrect.', 'err');
+                elseif ($new !== ($_POST['new_password2'] ?? '')) flash('Les deux mots de passe ne correspondent pas.', 'err');
+                elseif ($m = validate_password($new)) flash($m, 'err');
+                else {
+                    q('UPDATE users SET password_hash=? WHERE id=?', [password_hash($new, PASSWORD_DEFAULT), $u['id']]);
+                    session_regenerate_id(true);
+                    audit('password_changed');
+                    flash('Mot de passe modifié.');
+                }
+                redirect('account');
+            }
+            render('account', ['u' => $u]);
+
+        // ---------------- Questionnaires ----------------
+        case 'q': case 'q_save': case 'q_submit': case 'q_recap': case 'consent':
+            questionnaire_route($r, $isPost);
+
+        case 'passation_end':
+            if (!$isPost) redirect('home');
+            $p = $_SESSION['passation'] ?? null;
+            if ($p) audit('passation_end', $p['code'] . " student={$p['student_id']}");
+            $tutorName = $p['tutor_username'] ?? '';
+            logout();
+            render('passation_end', ['tutor' => $tutorName], 'layout_min');
+
+        // ---------------- Tutrice ----------------
+        default:
+            if (str_starts_with($r, 't')) { require APP_ROOT . '/app/tutor.php'; tutor_route($r, $isPost); }
+            if ($r === 'p' || $r === 's' || str_starts_with($r, 's_') || str_starts_with($r, 'p_')) { family_route($r, $isPost); }
+            http_response_code(404);
+            render('error', ['msg' => 'Page introuvable.'], current_user() ? 'layout' : 'layout_min');
+    }
+}
+
+/** Contexte questionnaire : [user, student, code] selon passation ou connexion. */
+function questionnaire_context(): array
+{
+    if (in_passation()) {
+        $p = $_SESSION['passation'];
+        if ($p['expires'] < time()) { logout(); flash('Passation expirée.', 'err'); redirect('login'); }
+        $u = current_user();
+        $s = student_for($u, (int)$p['student_id']);
+        return [$u, $s, $p['code'], null];
+    }
+    $u = require_login();
+    if ($u['role'] === 'tutor') {
+        // Remplissage par la tutrice, pour le compte du répondant (même soumission que la passation)
+        $code = in_array($_GET['code'] ?? '', ['parent', 'student'], true) ? $_GET['code'] : 'parent';
+        $s = student_for($u, (int)($_GET['sid'] ?? 0));
+        $resp = $code === 'student'
+            ? one('SELECT id, username, display_name, role FROM users WHERE id=? AND is_active=1', [(int)$s['user_id']])
+            : one('SELECT u.id, u.username, u.display_name, u.role FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE u.role="parent" AND u.is_active=1 ORDER BY u.id LIMIT 1', [$s['family_id']]);
+        if (!$resp) { flash('Aucun compte ' . ($code === 'parent' ? 'parent' : 'élève') . ' actif pour ce dossier.', 'err'); redirect('t_rdv', ['sid' => $s['id']]); }
+        return [$resp, $s, $code, $u];
+    }
+    $s = pick_student($u);
+    if (!$s) render('error', ['msg' => 'Aucun dossier associé à ce compte.']);
+    return [$u, $s, $u['role'] === 'parent' ? 'parent' : 'student', null];
+}
+
+function questionnaire_route(string $r, bool $isPost): never
+{
+    [$u, $s, $code, $tutor] = questionnaire_context();
+    $layout = in_passation() ? 'layout_min' : 'layout';
+    $qp = $tutor ? ['sid' => (int)$s['id'], 'code' => $code] : []; // paramètres conservés en mode tutrice
+    $ctx = ['qp' => $qp, 'tutor' => $tutor, 'respondent' => $u];
+
+    // Consentement du représentant légal (avant tout usage par le mineur)
+    if ($r === 'consent') {
+        if (!$isPost || $u['role'] !== 'parent') redirect('q', $qp);
+        if (!empty($_POST['agree'])) {
+            q('UPDATE families SET guardian_consent_at=NOW(), guardian_consent_user_id=? WHERE id=?', [$u['id'], $s['family_id']]);
+            audit($tutor ? 'guardian_consent_recorded_by_tutor' : 'guardian_consent', null, (int)$s['family_id']);
+        }
+        redirect('q', $qp);
+    }
+    if (!$s['guardian_consent_at']) {
+        if ($u['role'] === 'parent') render('consent', ['s' => $s] + $ctx, $layout);
+        if ($tutor) { flash("L'autorisation du représentant légal doit d'abord être validée (questionnaire parent).", 'err'); redirect('t_rdv', ['sid' => $s['id']]); }
+        render('error', ['msg' => "Ton espace sera disponible dès que ton parent aura validé l'autorisation d'utilisation."], $layout);
+    }
+
+    $cfg = qn_config($code);
+    $sub = qn_submission($code, (int)$s['id'], (int)$u['id']);
+
+    if ($r === 'q_save') {
+        header('Content-Type: application/json');
+        $raw = json_decode((string)file_get_contents('php://input'), true);
+        $answers = is_array($raw['answers'] ?? null) ? $raw['answers'] : [];
+        qn_save($sub, $code, $answers, isset($raw['step']) ? (int)$raw['step'] : null);
+        if ($code === 'parent' && isset($answers['p_class']) && isset(CLASSES[$answers['p_class']])) q('UPDATE students SET grade=? WHERE id=?', [$answers['p_class'], $s['id']]);
+        if ($code === 'student') student_profile_sync((int)$s['id'], $answers);
+        exit(json_encode(['ok' => true, 'saved_at' => date('H:i')]));
+    }
+    if ($r === 'q_submit') {
+        if (!$isPost) redirect('q');
+        qn_save($sub, $code, (array)($_POST['a'] ?? []), count($cfg['steps']));
+        if ($code === 'parent' && isset(CLASSES[$_POST['a']['p_class'] ?? ''])) q('UPDATE students SET grade=? WHERE id=?', [$_POST['a']['p_class'], $s['id']]);
+        if ($code === 'student') student_profile_sync((int)$s['id'], (array)($_POST['a'] ?? []));
+        qn_complete($sub);
+        audit('questionnaire_completed', $code . ($tutor ? ' (rempli par la tutrice)' : ''), (int)$s['family_id']);
+        run_analysis((int)$s['id'], $tutor ? (int)$tutor['id'] : null);
+        redirect('q_recap', $qp + ['done' => 1]);
+    }
+    $answers = qn_answers((int)$sub['id']);
+    if ($r === 'q_recap') {
+        render('q_recap', ['cfg' => $cfg, 'answers' => $answers, 'sub' => $sub, 's' => $s, 'done' => !empty($_GET['done'])] + $ctx, $layout);
+    }
+    $step = isset($_GET['step']) ? (int)$_GET['step'] : ($sub['status'] === 'completed' ? -1 : (int)$sub['current_step']);
+    if ($step < 0) redirect('q_recap', $qp);
+    if ($code === 'student') $answers = student_profile_defaults($s, $answers);
+    render('q_form', ['cfg' => $cfg, 'answers' => $answers, 'sub' => $sub, 's' => $s, 'step' => min($step, count($cfg['steps']) - 1), 'code' => $code] + $ctx, $layout);
+}
+
+// ---------------- Parent & élève ----------------
+function family_route(string $r, bool $isPost): never
+{
+    if ($r === 'p_planning') {
+        $u = require_login('parent');
+        $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
+        render('p_planning', ['u' => $u, 's' => $s] + family_view_data($s));
+    }
+    if ($r === 'p_messages') {
+        $u = require_login('parent');
+        $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
+        if ($isPost) {
+            if (send_message((int)$s['family_id'], $u, (string)($_POST['body'] ?? ''))) flash('Message envoyé.');
+            redirect('p_messages', ['sid' => $s['id']]);
+        }
+        mark_messages_read((int)$s['family_id'], $u);
+        render('p_messages', ['u' => $u, 's' => $s, 'tutor' => family_tutor((int)$s['family_id']), 'messages' => family_messages((int)$s['family_id'])]);
+    }
+    if ($r === 'p') {
+        $u = require_login('parent');
+        $s = pick_student($u);
+        if (!$s) render('error', ['msg' => 'Aucun dossier associé.']);
+        render('p_dashboard', ['u' => $u, 's' => $s] + family_view_data($s));
+    }
+    $u = require_login('student');
+    $s = pick_student($u);
+    if (!$s) render('error', ['msg' => 'Aucun dossier associé.']);
+    if (!$s['guardian_consent_at']) render('error', ['msg' => "Ton espace sera disponible dès que ton parent aura validé l'autorisation d'utilisation."]);
+    if ($r === 's_tools') {
+        $ssub = qn_latest('student', (int)$s['id']);
+        render('s_tools', ['u' => $u, 's' => $s, 'memory' => $ssub ? (qn_answers((int)$ssub['id'])['s_memory'] ?? []) : []] + family_view_data($s));
+    }
+    if ($r === 's_goal' && $isPost) {
+        $g = one('SELECT * FROM goals WHERE id=? AND student_id=?', [post_int('goal_id'), $s['id']]);
+        if ($g) {
+            $feeling = post_enum('feeling', FEELINGS, '');
+            if ($feeling) {
+                q('UPDATE goals SET student_feeling=? WHERE id=?', [$feeling, $g['id']]);
+                q('INSERT INTO progress_entries (student_id, user_id, goal_id, entry_type, value) VALUES (?,?,?,?,?)', [$s['id'], $u['id'], $g['id'], 'self_eval', $feeling]);
+            }
+            if (!empty($_POST['done'])) {
+                q('UPDATE goals SET student_done_at=NOW() WHERE id=?', [$g['id']]);
+                q('INSERT INTO progress_entries (student_id, user_id, goal_id, entry_type) VALUES (?,?,?,?)', [$s['id'], $u['id'], $g['id'], 'task_done']);
+            }
+            flash('Merci, c\'est noté !');
+        }
+        redirect('s');
+    }
+    if ($r === 's_feedback' && $isPost) {
+        $se = one('SELECT * FROM sessions WHERE id=? AND student_id=? AND starts_at < NOW()', [post_int('session_id'), $s['id']]);
+        if ($se) {
+            $mood = post_enum('mood', MOODS, '');
+            q('INSERT INTO session_feedback (session_id, mood, understood, to_deepen, needs_next) VALUES (?,?,?,?,?)
+               ON DUPLICATE KEY UPDATE mood=VALUES(mood), understood=VALUES(understood), to_deepen=VALUES(to_deepen), needs_next=VALUES(needs_next)',
+                [$se['id'], $mood ?: null, post_str('understood', 1000) ?: null, post_str('to_deepen', 1000) ?: null, post_str('needs_next', 1000) ?: null]);
+            flash('Merci ! Ta tutrice verra ton retour avant la prochaine séance.');
+        }
+        redirect('s');
+    }
+    if ($r === 's_help' && $isPost) {
+        if (!(int)($s['perm_help_requests'] ?? 1)) { flash("Le bouton d'aide n'est pas activé pour ton compte.", 'err'); redirect('s'); }
+        q('INSERT INTO progress_entries (student_id, user_id, entry_type, comment) VALUES (?,?,?,?)', [$s['id'], $u['id'], 'help_request', post_str('comment', 1000) ?: null]);
+        audit('help_request', null, (int)$s['family_id']);
+        flash('Ta demande est envoyée à ta tutrice. Elle en parlera avec toi très vite.');
+        redirect('s');
+    }
+    if ($r === 's_feeling' && $isPost) {
+        q('INSERT INTO progress_entries (student_id, user_id, entry_type, value, comment) VALUES (?,?,?,?,?)', [$s['id'], $u['id'], 'feeling', post_enum('mood', ['good' => 1, 'ok' => 1, 'hard' => 1], 'ok'), post_str('comment', 500) ?: null]);
+        flash('Merci pour ton ressenti !');
+        redirect('s');
+    }
+    render('s_dashboard', ['u' => $u, 's' => $s] + family_view_data($s) + [
+        'missions' => all('SELECT * FROM goals WHERE student_id=? AND is_mission=1 AND status<>"acquired" ORDER BY student_done_at IS NOT NULL, target_date IS NULL, target_date LIMIT 3', [$s['id']]),
+        'wins' => all('SELECT title, updated_at FROM goals WHERE student_id=? AND (status="acquired" OR student_done_at IS NOT NULL) ORDER BY updated_at DESC LIMIT 4', [$s['id']]),
+        'studentSub' => qn_latest('student', (int)$s['id']),
+    ]);
+}
+
+/** Données partageables avec la famille (aucune réponse privée). */
+function family_view_data(array $s): array
+{
+    $an = latest_analysis((int)$s['id']);
+    $prio = effective_priorities((int)$s['id'], $an);
+    return [
+        'sessions' => all('SELECT * FROM sessions WHERE student_id=? ORDER BY starts_at', [$s['id']]),
+        'goals' => all('SELECT * FROM goals WHERE student_id=? ORDER BY FIELD(status,"in_progress","rework","todo","acquired"), target_date', [$s['id']]),
+        'prio' => $prio,
+        'reco' => recommendations($prio['axes'], $an),
+        'sharedObs' => all('SELECT content, created_at FROM tutor_observations WHERE student_id=? AND visibility="shared" ORDER BY id DESC LIMIT 5', [$s['id']]),
+        'tests' => tests_upcoming((int)$s['id']),
+        'reports' => sent_reports((int)$s['id']),
+        'monthly' => monthly_published((int)$s['id'])[0] ?? null,
+        'yearGoals' => year_goals((int)$s['id']),
+    ];
+}

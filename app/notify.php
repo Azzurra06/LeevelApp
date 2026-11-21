@@ -1,0 +1,83 @@
+<?php
+declare(strict_types=1);
+// Notifications e-mail des messages non lus, différées et regroupées (anti-spam) :
+//  - un message n'est signalé que s'il est encore non lu après NOTIFY_DELAY_MIN minutes ;
+//  - tous les messages non lus d'un fil sont regroupés dans un seul e-mail ;
+//  - un même destinataire reçoit au plus un e-mail toutes les NOTIFY_COOLDOWN_MIN minutes ;
+//  - chacun peut désactiver ces e-mails dans « Mon compte ».
+
+const NOTIFY_DELAY_MIN = 30;
+const NOTIFY_COOLDOWN_MIN = 120;
+
+/** Envoi d'un e-mail texte. Hors production : écrit dans storage/outbox.log au lieu d'envoyer. */
+function send_app_mail(string $to, string $subject, string $body, string $host): bool
+{
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+    $host = preg_replace('/^www\./', '', preg_replace('/[^a-z0-9.-]/i', '', $host));
+    $from = config('mail_from') ?: 'no-reply@' . $host;
+    if (config('env') !== 'prod') {
+        $dir = APP_ROOT . '/storage';
+        if (!is_dir($dir)) mkdir($dir, 0750, true);
+        file_put_contents($dir . '/outbox.log', json_encode(['to' => $to, 'subject' => $subject, 'body' => $body, 'at' => date('c')], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
+        return true;
+    }
+    $headers = implode("\r\n", ['From: leevel.app <' . $from . '>', 'Reply-To: ' . $from, 'MIME-Version: 1.0', 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: 8bit']);
+    try { return @mail($to, mb_encode_mimeheader($subject, 'UTF-8'), $body, $headers, '-f' . $from); }
+    catch (Throwable) { return false; }
+}
+
+/** Traite les notifications dues. $host : domaine public de l'application (pour les liens). */
+function run_message_notifications(string $host, int $delayMin = NOTIFY_DELAY_MIN, int $cooldownMin = NOTIFY_COOLDOWN_MIN): array
+{
+    $stats = ['groups' => 0, 'sent' => 0, 'deferred' => 0, 'skipped' => 0];
+    $base = 'https://' . preg_replace('/[^a-z0-9.:-]/i', '', $host) . rtrim((string)config('base_url'), '/') . '/index.php';
+    if (config('env') !== 'prod') $base = 'http://' . preg_replace('/[^a-z0-9.:-]/i', '', $host) . '/index.php';
+
+    // Messages non lus, non signalés, plus vieux que le délai ; « côté » = qui doit être prévenu
+    $rows = all('SELECT m.id, m.family_id, m.body, m.created_at, u.role sender_role, u.display_name sender_name
+                 FROM messages m JOIN users u ON u.id=m.sender_id
+                 WHERE m.read_at IS NULL AND m.notified_at IS NULL AND m.created_at <= NOW() - INTERVAL ? MINUTE
+                 ORDER BY m.family_id, m.created_at', [$delayMin]);
+    $groups = [];
+    foreach ($rows as $r) $groups[$r['family_id'] . ':' . ($r['sender_role'] === 'tutor' ? 'family' : 'tutor')][] = $r;
+
+    foreach ($groups as $key => $msgs) {
+        [$fid, $side] = explode(':', $key);
+        $fid = (int)$fid;
+        $stats['groups']++;
+        $student = one('SELECT id, first_name, parent_email FROM students WHERE family_id=? ORDER BY id LIMIT 1', [$fid]);
+        if (!$student) continue;
+        $recipients = $side === 'family'
+            ? all('SELECT u.id, u.display_name, u.email, u.notify_messages, u.last_notified_at FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE u.role="parent" AND u.is_active=1', [$fid])
+            : all('SELECT u.id, u.display_name, u.email, u.notify_messages, u.last_notified_at FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE fm.member_role="tutor" AND u.is_active=1', [$fid]);
+        $allHandled = true;
+        foreach ($recipients as $rc) {
+            $email = $rc['email'] ?: ($side === 'family' ? $student['parent_email'] : null);
+            if (!(int)$rc['notify_messages'] || !$email) { $stats['skipped']++; continue; }
+            if ($rc['last_notified_at'] && strtotime($rc['last_notified_at']) > time() - $cooldownMin * 60) { $stats['deferred']++; $allHandled = false; continue; }
+            // Total des non-lus du fil (y compris ceux déjà signalés mais toujours pas lus)
+            $n = (int)one('SELECT COUNT(*) n FROM messages m JOIN users u ON u.id=m.sender_id WHERE m.family_id=? AND m.read_at IS NULL AND ' . ($side === 'family' ? 'u.role="tutor"' : 'u.role<>"tutor"'), [$fid])['n'];
+            $last = end($msgs);
+            $excerpt = mb_strimwidth(preg_replace('/\s+/', ' ', $last['body']), 0, 160, '…');
+            $link = $base . '?' . http_build_query(['r' => $side === 'family' ? 'p_messages' : 't_messages', 'sid' => $student['id']]);
+            $subject = $n > 1 ? "$n nouveaux messages sur leevel.app" : 'Nouveau message sur leevel.app';
+            $body = "Bonjour {$rc['display_name']},\n\n"
+                . ($n > 1 ? "Vous avez $n messages non lus" : 'Vous avez un message non lu')
+                . ($side === 'family' ? ' de votre tutrice' : ' au sujet de ' . $student['first_name']) . " sur leevel.app.\n\n"
+                . "Dernier message de {$last['sender_name']} :\n« $excerpt »\n\n"
+                . "Pour lire et répondre : $link\n\n"
+                . "Vous recevez cet e-mail car ce message n'a pas été lu depuis plus de $delayMin minutes. Vous pouvez désactiver ces notifications dans « Mon compte ».";
+            if (send_app_mail($email, $subject, $body, $host)) {
+                q('UPDATE users SET last_notified_at=NOW() WHERE id=?', [$rc['id']]);
+                $stats['sent']++;
+            } else {
+                $allHandled = false; // nouvel essai au prochain passage
+            }
+        }
+        if ($allHandled) {
+            $ids = array_map(fn($m) => (int)$m['id'], $msgs);
+            q('UPDATE messages SET notified_at=NOW() WHERE id IN (' . implode(',', $ids) . ')');
+        }
+    }
+    return $stats;
+}
