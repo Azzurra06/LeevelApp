@@ -125,7 +125,7 @@
     });
   }
   $$('[data-print]').forEach(b => b.addEventListener('click', () => window.print()));
-  $$('[data-toggle]').forEach(b => b.addEventListener('click', () => { const t = document.getElementById(b.dataset.toggle); if (t) t.hidden = !t.hidden; }));
+  $$('[data-toggle]').forEach(b => b.addEventListener('click', () => { const t = document.getElementById(b.dataset.toggle); if (t) { t.hidden = !t.hidden; if (!t.hidden) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); const f = t.querySelector('textarea,input:not([type=hidden]),select'); if (f) setTimeout(() => f.focus({ preventScroll: true }), 350); } } }));
 
   // ---------- Grille masonry (gauche à droite) ----------
   const masonry = grid => {

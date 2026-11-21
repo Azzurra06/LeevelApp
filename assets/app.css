@@ -340,3 +340,98 @@ body.student .bar>i{background:linear-gradient(90deg,#7c5cff,#b39cff)}
 .tools-banner .tb-emoji{font-size:2rem;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:rgba(255,255,255,.2)}
 .tools-banner .go{margin-left:auto}.tools-banner:hover{filter:brightness(1.05)}
 .quote-card{border-left:4px solid var(--accent-d)}
+
+/* ================= Mobile : expérience « application » ================= */
+html{-webkit-tap-highlight-color:transparent}
+body{overflow-x:clip}
+.nav-main .lbl-s{display:none}
+.nav-ic{position:relative;display:inline-flex}
+.nav-side{display:flex;gap:4px;align-items:center}
+@media (hover:none){
+  .li-link a:hover,.nav a:hover,.nav button:hover,.btn.ghost:hover,.pill-btn:hover,.mood:hover{background:inherit;transform:none}
+  .btn:active,.pill:active span,.mood:active,.nav-main a:active,.li-link a:active,.tile:active{transform:scale(.97)}
+}
+@media (max-width:720px){
+  :root{--r:18px}
+  body{font-size:15.5px}
+  input,select,textarea{font-size:16px!important} /* évite le zoom automatique sur iPhone */
+  /* En-tête compact */
+  .top{padding-top:env(safe-area-inset-top);backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg)}
+  .top-in{padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left));flex-wrap:nowrap;gap:6px}
+  .logo{font-size:1.15rem}
+  .nav-side a,.nav-side button{padding:8px;min-width:40px;min-height:40px;justify-content:center}
+  .nav-side .avatar.xs{width:30px;height:30px}
+  .nav-side .hide-mobile{display:none}
+  /* Barre d'onglets en bas */
+  .nav-main{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;
+    padding:6px max(6px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
+    background:rgba(255,253,249,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--beige);box-shadow:0 -4px 20px rgba(60,45,30,.06)}
+  .nav-main a{flex-direction:column;gap:3px;padding:4px 2px;border-radius:12px;font-size:.68rem;font-weight:600;color:var(--muted);min-height:52px;justify-content:center;background:none!important}
+  .nav-main .nav-ic{padding:4px 18px;border-radius:999px;transition:background .2s}
+  .nav-main .nav-ic .ic{width:22px;height:22px}
+  .nav-main a.on{color:var(--accent-d)}
+  .nav-main a.on .nav-ic{background:var(--accent-l)}
+  .nav-main .lbl{display:none}.nav-main .lbl-s{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .nav-main .nav-badge{position:absolute;top:-2px;right:8px;margin:0}
+  body:not(.min){padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+  /* Contenu */
+  main.wrap{padding:16px max(14px,env(safe-area-inset-left)) 24px}
+  h1{font-size:1.3rem}h2{font-size:1.08rem}
+  .page-head{margin-bottom:14px;align-items:flex-start}
+  .page-head>.row{width:100%}
+  .page-head .row .btn,.page-head .student-pick,.page-head .student-pick select{flex:1;min-width:0;width:100%}
+  .card{padding:16px;border-radius:var(--r)}
+  .btn{min-height:44px;justify-content:center}
+  .btn.sm{min-height:38px}
+  .pill span{padding:10px 15px}
+  .list li{padding:11px 0}
+  .footer{padding:18px 16px}
+  /* Onglets (fiche élève) collés sous l'en-tête, défilement horizontal */
+  .tabs{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:9;background:var(--bg);margin:0 -14px 16px;padding:0 14px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .tabs a{scroll-snap-align:start;padding:12px 12px}
+  .seg{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  /* Formulaires empilés */
+  .form-grid{grid-template-columns:1fr}
+  .edit-form .row .btn,.stack>.row .btn{flex:1}
+  .copy-row{flex-wrap:wrap}
+  /* Bouton d'aide flottant (élève) */
+  .help-btn{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(84px + env(safe-area-inset-bottom));z-index:25;border-radius:999px;box-shadow:0 6px 20px rgba(224,123,57,.45);padding:12px 18px}
+  /* Questionnaire : navigation toujours accessible en bas */
+  .q-nav{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom));z-index:8;margin:20px -16px -16px;padding:12px 16px;background:rgba(255,253,249,.96);backdrop-filter:blur(10px);border-top:1px solid var(--beige);border-radius:0 0 var(--r) var(--r)}
+  body.min .q-nav{bottom:env(safe-area-inset-bottom)}
+  .q-nav .saved{order:3;flex-basis:100%;text-align:center}
+  .q-nav .btn{flex:1}
+  .q-head h1{font-size:1.25rem}
+  /* Messagerie : familles en pastilles défilantes, zone de saisie collée en bas */
+  .thread-list{padding:12px}
+  .thread-list h2{display:none}
+  .thread-list .list{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .thread-list .list li{border:0;flex:none;padding:0}
+  .thread-list .li-link a{margin:0;padding:8px 14px;border-radius:999px;background:var(--bg);border:1px solid var(--beige)}
+  .thread-list .li-link.current a{background:var(--accent-d);color:#fff;border-color:var(--accent-d)}
+  .thread-list .li-link a small,.thread-list .li-link a br{display:none}
+  .thread{max-height:none;min-height:40vh}
+  .msg{max-width:88%}
+  .msg-form{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom));background:var(--surface);padding:10px 0 4px;margin-bottom:-4px}
+  .thread-head{gap:8px}.thread-head .row{width:100%}.thread-head .row .btn{flex:1}
+  /* Élève */
+  .s-hero{gap:16px;padding:18px;justify-content:center}
+  .s-ring{width:108px;height:108px}.s-ring>div{width:84px;height:84px}.s-ring strong{font-size:1.45rem}
+  .s-hero-body{min-width:0;flex-basis:100%}.s-cheer{text-align:center}
+  .s-stats{grid-template-columns:repeat(2,1fr)}
+  .badge-grid{grid-template-columns:repeat(3,1fr);gap:8px}.bdg{padding:10px 4px}.bdg small{display:none}.bdg strong{font-size:.76rem}
+  .tile{padding:16px}
+  .tools-banner{padding:16px}
+  /* Tableaux : défilement horizontal propre */
+  .table-wrap{margin:0 -16px;padding:0 16px}
+  table{font-size:.88rem}
+  /* Planning / calendrier */
+  .cal-grid{gap:2px}
+  /* Pages de connexion */
+  .auth-card{margin-top:4vh}
+}
+@media (max-width:380px){
+  .nav-main a{font-size:.62rem}.nav-main .nav-ic{padding:4px 12px}
+  .badge-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (display-mode:standalone){.footer{display:none}}
