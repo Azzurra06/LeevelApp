@@ -525,3 +525,54 @@ body.student .s-badges h2{margin:0}
 }
 .acct-menu a,.acct-menu button{justify-content:flex-start;min-width:0}
 @media (max-width:720px){.msg-layout .contact-card{order:2}.contact-head .avatar.lg{width:56px;height:56px;font-size:1.4rem}.contact-head{margin:0 0 8px}}
+
+/* ===== Élève : un seul style de carte (fond blanc, même bordure, même ombre, même titre) ===== */
+.tone-teal{--tb:#e6f6f3;--tc:#0f8a7e}
+body.student .card[class*="tone-"],body.student .tile{background:var(--surface);border:1px solid var(--beige);box-shadow:var(--sh);border-radius:var(--r);padding:20px}
+body.student .tile{gap:14px}
+body.student .mini-ring{background:conic-gradient(var(--tc) calc(var(--p)*1%),var(--tb) 0)}body.student .mini-ring span{background:var(--surface)}
+body.student .tile-emoji,body.student .empty-ill.sm>span{background:var(--tb)}
+body.student .mood{background:var(--tb)}body.student .mood.on,body.student .mood-pick .mood:has(input:checked){background:var(--surface)}
+body.student .trophies li{background:var(--tb)}
+body.student .card[class*="tone-"] .bar{background:var(--tb)}
+body.student .card[class*="tone-"] .year-goals li{background:var(--bg)}
+body.student .s-badges h2{margin:0}
+.link-card{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;margin-bottom:16px}
+.link-card h2{margin:0 0 2px!important}.link-card small{color:var(--muted)}.link-card .go{margin-left:auto;color:var(--tc,var(--muted))}
+.lc-emoji{font-size:1.5rem;width:48px;height:48px;border-radius:14px;background:var(--tb,var(--accent-l));display:grid;place-items:center;flex:none}
+.link-card:hover{border-color:var(--beige-2)}
+.help-btn,#helpbox{display:none!important}
+
+/* ===== Messagerie ===== */
+.chat-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.chat-head>div{display:flex;flex-direction:column;min-width:0;flex:1}.chat-head small{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:4px}
+.chat-call{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--accent-l);color:var(--accent-d)}
+.msg-form textarea{resize:none;min-height:46px;max-height:140px;line-height:1.4}
+.msg-form .btn{flex:none}
+@media (max-width:720px){
+  .page-chat .page-head,.page-chat .contact-card,.page-chat .footer{display:none}
+  .page-chat main.wrap{padding-top:0;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  .page-chat .msg-layout{display:block}
+  .page-chat .chat-card,.page-chat .thread-list{background:none;border:0;box-shadow:none;padding:0;border-radius:0;animation:none}
+  .page-chat .thread-list{margin:10px 0 6px}
+  .page-chat .chat-head,.page-chat .thread-head{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:8;background:var(--bg);margin:0 -14px;padding:10px 14px;border-bottom:1px solid var(--beige)}
+  .page-chat .thread-head{margin-top:0;flex-wrap:nowrap}.page-chat .thread-head h2{font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .page-chat .thread-head .row{width:auto;flex-wrap:nowrap}.page-chat .thread-head .btn{flex:none;min-height:36px;padding:6px 10px;font-size:.8rem}
+  .page-chat .seg{margin:10px 0 4px;width:100%;display:flex}.page-chat .seg a{flex:1;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .page-chat .ro-note{margin:8px 0;font-size:.85rem}
+  .page-chat .thread{border:0;background:none;padding:8px 0;min-height:0;max-height:none;overflow:visible;border-radius:0}
+  .page-chat .msg{max-width:86%}.page-chat .bubble{padding:8px 12px}
+  .page-chat .msg-form{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:29;margin:0;
+    padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));background:rgba(250,247,242,.97);border-top:1px solid var(--beige);align-items:flex-end;gap:8px}
+  .page-chat .msg-form textarea{min-height:44px;border-radius:22px;padding:11px 16px;margin:0}
+  .page-chat .msg-form .btn{width:44px;height:44px;min-height:44px;padding:0;border-radius:50%}
+  .page-chat .msg-form .btn .lbl{display:none}
+  .page-chat .msg-form .btn .ic{width:20px;height:20px}
+  .page-chat .alert:not(.ro-note){margin:10px 0 0}
+}
+
+@media (max-width:720px){
+  .page-chat .chat-head,.page-chat .thread-head{position:static;margin:0;padding:0;border:0;background:none}
+  .page-chat .chat-top{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:8;background:var(--bg);margin:0 -14px;padding:10px 14px 2px;border-bottom:1px solid var(--beige)}
+  .page-chat .chat-top .seg{margin:8px 0 6px}
+}

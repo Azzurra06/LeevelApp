@@ -8,5 +8,7 @@
       <li><span>👀</span><div><small>Ton parent peut lire cette discussion.</small></div></li>
     </ul>
   </aside>
-  <section class="card"><h2><?= icon('message-circle') ?> Discussion avec ta tutrice</h2><?php require __DIR__ . '/_thread.php' ?></section>
+  <section class="card chat-card">
+    <div class="chat-head"><?= $tutor ? avatar_html($tutor, 'sm') : '' ?><div><strong><?= e($tutor['display_name'] ?? 'Ta tutrice') ?></strong><small><?= icon('eye') ?> Ton parent peut lire cette discussion</small></div></div>
+    <?php require __DIR__ . '/_thread.php' ?></section>
 </div>

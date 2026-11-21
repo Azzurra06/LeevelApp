@@ -6,7 +6,7 @@ $faq = [
         ['plus', 'Comment ajouter une note ?', "Dans « Matières », carte « Mes notes », touche « Ajouter une note ». Tu peux supprimer une note que tu as ajoutée toi-même."],
         ['brain', 'Comment faire le quiz du chapitre ?', "Dans « Matières », carte « Je teste mes connaissances ». Réponds à toutes les questions puis valide : tu vois tout de suite tes erreurs et la bonne réponse. Tu peux recommencer autant que tu veux."],
         ['download', "Comment envoyer la photo d'un exercice ?", "Dans « Matières », carte « Mes fichiers » : touche « Envoyer une photo ou un PDF », puis prends la photo ou choisis-la dans ta galerie. Ta tutrice la verra."],
-        ['circle-help', 'Je bloque sur quelque chose, je fais quoi ?', "Utilise « Là où je bloque » dans « Matières », ou écris directement à ta tutrice dans « Messages ». Pour un souci urgent, le bouton orange « J'ai besoin d'aide » de l'accueil la prévient."],
+        ['circle-help', 'Je bloque sur quelque chose, je fais quoi ?', "Utilise « Là où je bloque » dans « Matières », ou écris directement à ta tutrice dans « Messages ». Pour une question rapide, l'onglet « Messages » est fait pour ça."],
         ['eye', 'Qui voit quoi ?', "Tes réponses au questionnaire ne sont vues que par ta tutrice. Tes messages avec ta tutrice peuvent être lus par ton parent. Tes notes et ton ressenti de séance sont visibles par ta tutrice et ton parent."],
     ],
     'parent' => [

@@ -34,7 +34,7 @@ $unlocked = count(array_filter($badges, fn($b) => $b['on'])); ?>
     </div>
   </div>
 </div>
-<div class="card s-badges">
+<div class="card tone-violet s-badges">
   <div class="row between"><h2><?= icon('sparkles') ?> Mes badges</h2><span class="badge sage"><?= $unlocked ?> / <?= count($badges) ?></span></div>
   <div class="badge-grid">
     <?php foreach ($badges as $b): ?>

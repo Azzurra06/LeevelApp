@@ -73,6 +73,8 @@
   }));
   // Messagerie : afficher le dernier message
   $$('[data-thread]').forEach(t => { t.scrollTop = t.scrollHeight; });
+  if (document.body.classList.contains('page-chat') && matchMedia('(max-width:720px)').matches) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  $$('textarea[data-autogrow]').forEach(t => { const fit = () => { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px'; }; t.addEventListener('input', fit); });
   // Recadrage de la photo (canvas, sans bibliothèque) : glisser pour placer, curseur pour zoomer
   const cropInput = $('[data-crop-input]');
   if (cropInput) {

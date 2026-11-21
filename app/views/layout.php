@@ -7,7 +7,7 @@ $nav = match ($role) {
 };
 $unread = $role ? unread_count($me) : 0; ?>
 <?php require __DIR__ . '/_head.php' ?>
-<body class="<?= e($role) ?>">
+<body class="<?= e($role) ?> page-<?= e(preg_replace('/[^a-z_]/', '', $r)) ?><?= in_array($r, ['s_messages', 'p_messages', 't_messages'], true) ? ' page-chat' : '' ?>">
 <header class="top no-print"><div class="top-in">
   <a class="brand" href="<?= e(url('home')) ?>"><span class="logo">leevel<span>.app</span></span></a>
   <nav class="nav nav-main" aria-label="Navigation principale">

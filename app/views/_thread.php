@@ -16,7 +16,7 @@ $readonly ??= false; $channel ??= 'family'; ?>
 </div>
 <?php if (!$readonly): ?>
 <form method="post" action="<?= e($postUrl) ?>" class="msg-form"><?= csrf_field() ?><?php if ($channel === 'student'): ?><input type="hidden" name="ch" value="student"><?php endif ?>
-  <textarea name="body" required maxlength="4000" rows="2" placeholder="Écrire un message…" aria-label="Message"></textarea>
-  <button class="btn"><?= icon('send') ?> Envoyer</button>
+  <textarea name="body" required maxlength="4000" rows="1" placeholder="Écrire un message…" aria-label="Message" data-autogrow></textarea>
+  <button class="btn" aria-label="Envoyer"><?= icon('send') ?><span class="lbl">Envoyer</span></button>
 </form>
 <?php endif ?>

@@ -7,33 +7,29 @@ $days = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 $months = ['', 'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 $lastMood = one('SELECT value FROM progress_entries WHERE student_id=? AND entry_type="feeling" AND created_at > NOW() - INTERVAL 7 DAY ORDER BY id DESC LIMIT 1', [$s['id']])['value'] ?? null;
 $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' => ['😣', "C'est dur"]]; ?>
-<div class="page-head"><div><h1 class="hello">Salut <?= e($s['first_name']) ?> 👋</h1><p>Voici ce qui t'attend cette semaine.</p></div>
-  <?php if ((int)($s['perm_help_requests'] ?? 1)): ?><button class="btn help-btn" data-toggle="helpbox"><?= icon('circle-help') ?> J'ai besoin d'aide</button><?php endif ?></div>
-<div class="card" id="helpbox" hidden><form method="post" action="<?= e(url('s_help')) ?>" class="stack"><?= csrf_field() ?>
-  <label>Sur quoi tu bloques ? (facultatif)<textarea name="comment" maxlength="1000" placeholder="Ex. : l'exercice 3 sur les fractions"></textarea></label>
-  <button class="btn"><?= icon('message-circle') ?> Prévenir ma tutrice</button></form></div>
+<div class="page-head"><div><h1 class="hello">Salut <?= e($s['first_name']) ?> 👋</h1><p>Voici ce qui t'attend cette semaine.</p></div></div>
 <?php require __DIR__ . '/_s_hero.php' ?>
 <?php require __DIR__ . '/_onboarding.php' ?>
 <?php $awaiting = session_awaiting_feedback((int)$s['id']); if ($awaiting): ?>
-<a class="card tone-pink nudge" href="<?= e(url('s_subjects')) ?>#recap"><span class="nudge-emoji">💬</span><div><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small></div><?= icon('chevron-right', 'go') ?></a>
+<a class="card tone-pink link-card" href="<?= e(url('s_subjects')) ?>#recap"><span class="lc-emoji">💬</span><div><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small></div><?= icon('chevron-right', 'go') ?></a>
 <?php endif ?>
 
 <div class="s-tiles">
-  <div class="tile tone-violet">
+  <div class="card tile tone-violet">
     <h2><?= icon('target') ?> Mon objectif principal</h2>
     <?php if ($main): ?>
       <div class="tile-row"><div class="mini-ring" style="--p:<?= (int)$main['progress'] ?>"><span><?= (int)$main['progress'] ?>%</span></div>
         <div><strong><?= e($main['title']) ?></strong><small><?= e(GOAL_STATUS[$main['status']]) ?></small></div></div>
     <?php else: ?><div class="tile-row"><span class="tile-emoji">🎯</span><div><strong>À choisir ensemble</strong><small>On le fixe à la prochaine séance.</small></div></div><?php endif ?>
   </div>
-  <div class="tile tone-blue">
+  <div class="card tile tone-blue">
     <h2><?= icon('calendar') ?> Prochaine séance</h2>
     <?php if ($next): $ts = strtotime($next['starts_at']); ?>
       <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>
         <div><strong><?= date('H\hi', $ts) ?> · <?= fdur((int)$next['duration_min']) ?></strong><small><?= icon($next['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$next['mode']]) ?></small></div></div>
     <?php else: ?><div class="tile-row"><span class="tile-emoji">📅</span><div><strong>Pas encore prévue</strong><small>Ta tutrice la planifie bientôt.</small></div></div><?php endif ?>
   </div>
-  <div class="tile tone-pink">
+  <div class="card tile tone-pink">
     <h2><?= icon('smile') ?> Mon humeur de la semaine</h2>
     <form method="post" action="<?= e(url('s_feeling')) ?>" class="mood-row"><?= csrf_field() ?>
       <?php foreach ($moods as $k => [$emo, $lbl]): ?><button name="mood" value="<?= $k ?>" class="mood <?= $lastMood === $k ? 'on' : '' ?>" title="<?= e($lbl) ?>"><span><?= $emo ?></span><small><?= e($lbl) ?></small></button><?php endforeach ?>
@@ -41,7 +37,7 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
   </div>
 </div>
 
-<div class="card missions-card">
+<div class="card tone-violet missions-card">
   <h2><?= icon('rocket') ?> Mes missions</h2>
   <?php if (!$missions): ?>
     <div class="empty-ill"><span>🚀</span><p>Pas de mission pour l'instant.<br><small class="muted">Ta tutrice t'en proposera bientôt : de petits défis à relever entre deux séances.</small></p></div>
@@ -72,6 +68,6 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
   </div>
 </div><br>
 
-<a class="tools-banner" href="<?= e(url('s_tools')) ?>"><span class="tb-emoji">🧰</span><div><strong>Mes outils</strong><small>Chrono de travail, méthodes pour retenir à ta façon, fiches méthode…</small></div><?= icon('chevron-right', 'go') ?></a><br>
-<?php if ($s['shared_message']): ?><div class="card quote-card"><h2><?= icon('message-circle') ?> Le mot de ta tutrice</h2><p><?= nl2br(e($s['shared_message'])) ?></p></div><br><?php endif ?>
+<a class="card tone-teal link-card" href="<?= e(url('s_tools')) ?>"><span class="lc-emoji">🧰</span><div><h2>Mes outils</h2><small>Chrono de travail, méthodes pour retenir à ta façon, fiches méthode…</small></div><?= icon('chevron-right', 'go') ?></a><br>
+<?php if ($s['shared_message']): ?><div class="card tone-violet"><h2><?= icon('message-circle') ?> Le mot de ta tutrice</h2><p><?= nl2br(e($s['shared_message'])) ?></p></div><br><?php endif ?>
 <div class="card"><h2><?= icon('calendar') ?> Mon planning</h2><?php require __DIR__ . '/_planning.php' ?></div>
