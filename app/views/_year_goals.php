@@ -1,6 +1,6 @@
 <?php // Objectifs de l'année : présentation simple. $yearGoals
 $isKid = (current_user()['role'] ?? '') === 'student'; ?>
-<div class="card">
+<div class="card <?= e($tone ?? '') ?>">
   <h2><?= icon('target') ?> <?= $isKid ? 'Mes objectifs de l\'année' : 'Objectifs de l\'année' ?></h2>
   <?php if (!$yearGoals): ?><p class="muted">Ils seront fixés avec la tutrice dans les premières semaines.</p><?php endif ?>
   <ul class="year-goals"><?php foreach ($yearGoals as $g): $st = $g['status'] === 'acquired' ? 'done' : (in_array($g['status'], ['in_progress', 'rework'], true) ? 'going' : 'todo'); ?>

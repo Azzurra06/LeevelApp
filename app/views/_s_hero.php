@@ -17,7 +17,7 @@ $badges = [
     ['icon' => 'clipboard-list', 'title' => 'Je me présente', 'desc' => 'Questionnaire terminé', 'on' => $qDone],
     ['icon' => 'calendar', 'title' => 'Première séance', 'desc' => '1 séance réalisée', 'on' => $sessDone >= 1],
     ['icon' => 'rocket', 'title' => 'En mission', 'desc' => '1re mission terminée', 'on' => $missionsDone >= 1],
-    ['icon' => 'smile', 'title' => "À l'écoute de moi", 'desc' => '3 ressentis partagés', 'on' => $selfEvals >= 3],
+    ['icon' => 'smile', 'title' => "Je m'exprime", 'desc' => '3 ressentis partagés', 'on' => $selfEvals >= 3],
     ['icon' => 'flag', 'title' => 'Régulier', 'desc' => '5 séances réalisées', 'on' => $sessDone >= 5],
     ['icon' => 'sparkles', 'title' => 'Objectif atteint', 'desc' => '1 objectif acquis', 'on' => $acquired >= 1],
 ];

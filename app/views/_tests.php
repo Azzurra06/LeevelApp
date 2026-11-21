@@ -3,7 +3,7 @@ $me = current_user(); $isKid = $me['role'] === 'student';
 $lvSubjects = array_map(fn($x) => $x[0], (require APP_ROOT . '/app/questionnaires/_levels.php')['subjects']);
 $cyc = grade_cycle($s['grade'] ?? null);
 $lvMap = (require APP_ROOT . '/app/questionnaires/_levels.php')['subjects']; ?>
-<div class="card">
+<div class="card <?= e($tone ?? '') ?>">
   <h2><?= icon('flag') ?> <?= $isKid ? 'Mes contrôles à venir' : 'Contrôles à venir' ?></h2>
   <?php if (!$tests): ?><p class="muted"><?= $isKid ? 'Aucun contrôle noté. Ajoute-les dès que tu les connais !' : 'Aucun contrôle noté pour l\'instant.' ?></p><?php endif ?>
   <ul class="list"><?php foreach ($tests as $t): $days = (int)floor((strtotime($t['test_date']) - strtotime('today')) / 86400); ?>

@@ -1,7 +1,12 @@
 <?php $title = 'Mon espace';
 $next = null; foreach ($sessions as $se) if (strtotime($se['starts_at']) >= time() - 3600 && in_array($se['status'], ['planned', 'postponed'], true)) { $next = $se; break; }
 $main = $goals[0] ?? null; foreach ($goals as $g) if ($g['status'] === 'in_progress') { $main = $g; break; }
-$progressing = array_filter($goals, fn($g) => in_array($g['status'], ['in_progress', 'rework', 'acquired'], true)); ?>
+$progressing = array_filter($goals, fn($g) => in_array($g['status'], ['in_progress', 'rework', 'acquired'], true));
+$tests = tests_upcoming((int)$s['id'], 4);
+$days = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+$months = ['', 'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+$lastMood = one('SELECT value FROM progress_entries WHERE student_id=? AND entry_type="feeling" AND created_at > NOW() - INTERVAL 7 DAY ORDER BY id DESC LIMIT 1', [$s['id']])['value'] ?? null;
+$moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' => ['😣', "C'est dur"]]; ?>
 <div class="page-head"><div><h1 class="hello">Salut <?= e($s['first_name']) ?> 👋</h1><p>Voici ce qui t'attend cette semaine.</p></div>
   <?php if ((int)($s['perm_help_requests'] ?? 1)): ?><button class="btn help-btn" data-toggle="helpbox"><?= icon('circle-help') ?> J'ai besoin d'aide</button><?php endif ?></div>
 <div class="card" id="helpbox" hidden><form method="post" action="<?= e(url('s_help')) ?>" class="stack"><?= csrf_field() ?>
@@ -23,37 +28,61 @@ $progressing = array_filter($goals, fn($g) => in_array($g['status'], ['in_progre
   </form>
 </div><br>
 <?php endif ?>
-<div class="grid">
-  <div class="card accent"><h2><?= icon('target') ?> Mon objectif principal</h2>
-    <?php if ($main): ?><p><strong><?= e($main['title']) ?></strong></p><div class="bar"><i data-w="<?= (int)$main['progress'] ?>"></i></div><p class="muted"><small><?= (int)$main['progress'] ?>% · <?= e(GOAL_STATUS[$main['status']]) ?></small></p>
-    <?php else: ?><p class="muted">On le choisit ensemble à la prochaine séance.</p><?php endif ?></div>
-  <div class="card"><h2><?= icon('calendar') ?> Prochaine séance</h2>
-    <?php if ($next): ?><p class="hello"><strong><?= e(fdatetime($next['starts_at'])) ?></strong></p><p><?= icon($next['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$next['mode']]) ?> · <?= fdur((int)$next['duration_min']) ?></p><p class="muted"><?= e(session_label($next)) ?></p>
-    <?php else: ?><p class="muted">Pas de séance prévue pour l'instant.</p><?php endif ?></div>
-</div><br>
-<div class="grid-2 align-start"><?php require __DIR__ . '/_tests.php' ?><?php require __DIR__ . '/_year_goals.php' ?></div><br>
-<div class="card"><h2><?= icon('rocket') ?> Mes missions</h2>
-  <?php if (!$missions): ?><p class="muted">Pas de mission pour l'instant. Ta tutrice t'en proposera bientôt.</p><?php endif ?>
-  <div class="grid"><?php foreach ($missions as $m): ?>
-    <div class="mission <?= $m['student_done_at'] ? 'done' : '' ?>"><h3><?= icon($m['student_done_at'] ? 'circle-check' : 'flag') ?> <?= e($m['title']) ?></h3>
+
+<div class="s-tiles">
+  <div class="tile tone-violet">
+    <span class="tile-label"><?= icon('target') ?> Mon objectif principal</span>
+    <?php if ($main): ?>
+      <div class="tile-row"><div class="mini-ring" style="--p:<?= (int)$main['progress'] ?>"><span><?= (int)$main['progress'] ?>%</span></div>
+        <div><strong><?= e($main['title']) ?></strong><small><?= e(GOAL_STATUS[$main['status']]) ?></small></div></div>
+    <?php else: ?><div class="tile-row"><span class="tile-emoji">🎯</span><div><strong>À choisir ensemble</strong><small>On le fixe à la prochaine séance.</small></div></div><?php endif ?>
+  </div>
+  <div class="tile tone-blue">
+    <span class="tile-label"><?= icon('calendar') ?> Prochaine séance</span>
+    <?php if ($next): $ts = strtotime($next['starts_at']); ?>
+      <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>
+        <div><strong><?= date('H\hi', $ts) ?> · <?= fdur((int)$next['duration_min']) ?></strong><small><?= icon($next['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$next['mode']]) ?></small></div></div>
+    <?php else: ?><div class="tile-row"><span class="tile-emoji">📅</span><div><strong>Pas encore prévue</strong><small>Ta tutrice la planifie bientôt.</small></div></div><?php endif ?>
+  </div>
+  <div class="tile tone-pink">
+    <span class="tile-label"><?= icon('smile') ?> Mon humeur de la semaine</span>
+    <form method="post" action="<?= e(url('s_feeling')) ?>" class="mood-row"><?= csrf_field() ?>
+      <?php foreach ($moods as $k => [$emo, $lbl]): ?><button name="mood" value="<?= $k ?>" class="mood <?= $lastMood === $k ? 'on' : '' ?>" title="<?= e($lbl) ?>"><span><?= $emo ?></span><small><?= e($lbl) ?></small></button><?php endforeach ?>
+    </form>
+  </div>
+</div>
+
+<div class="card missions-card">
+  <h2><span class="h-ico tone-violet"><?= icon('rocket') ?></span> Mes missions</h2>
+  <?php if (!$missions): ?>
+    <div class="empty-ill"><span>🚀</span><p>Pas de mission pour l'instant.<br><small class="muted">Ta tutrice t'en proposera bientôt : de petits défis à relever entre deux séances.</small></p></div>
+  <?php endif ?>
+  <div class="grid"><?php foreach ($missions as $i => $m): ?>
+    <div class="mission <?= $m['student_done_at'] ? 'done' : '' ?>"><span class="mission-num"><?= $m['student_done_at'] ? icon('check') : $i + 1 ?></span><h3><?= e($m['title']) ?></h3>
       <?php if ($m['description']): ?><p class="muted"><small><?= e($m['description']) ?></small></p><?php endif ?>
       <form method="post" action="<?= e(url('s_goal')) ?>"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$m['id'] ?>">
         <p><small>Comment ça s'est passé ?</small></p>
         <div class="feel pills"><?php foreach (FEELINGS as $k => $l): ?><label class="pill"><input type="radio" name="feeling" value="<?= $k ?>" <?= $m['student_feeling'] === $k ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div>
         <div class="row"><br><?php if (!$m['student_done_at']): ?><label class="check"><input type="checkbox" name="done" value="1"> C'est fait</label><?php else: ?><span class="badge sage">Terminé - ta tutrice validera</span><?php endif ?>
         <button class="btn sm"><?= icon('check') ?> Envoyer</button></div></form></div>
-  <?php endforeach ?></div></div><br>
-<div class="grid">
-  <div class="card"><h2><?= icon('chart-column') ?> Compétences en progression</h2>
+  <?php endforeach ?></div>
+</div>
+
+<div class="grid-2">
+  <?php $tone = 'tone-orange'; require __DIR__ . '/_tests.php'; ?>
+  <?php $tone = 'tone-green'; require __DIR__ . '/_year_goals.php'; $tone = ''; ?>
+  <div class="card tone-blue">
+    <h2><?= icon('chart-column') ?> Compétences en progression</h2>
     <?php foreach (array_slice($progressing, 0, 5) as $g): ?><div class="axis"><span class="lbl"><?= e($g['title']) ?></span><span class="n"><?= (int)$g['progress'] ?>%</span><div class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></div></div><?php endforeach ?>
-    <?php if (!$progressing): ?><p class="muted">Ça arrive dès les premières séances.</p><?php endif ?></div>
-  <div class="card"><h2><?= icon('sparkles') ?> Mes réussites</h2>
-    <?php if (!$wins): ?><p class="muted">Tes premières réussites apparaîtront ici.</p><?php endif ?>
-    <ul class="list"><?php foreach ($wins as $w): ?><li><?= icon('circle-check') ?><div><?= e($w['title']) ?></div></li><?php endforeach ?></ul></div>
-  <div class="card"><h2><?= icon('smile') ?> Ma semaine</h2><form method="post" action="<?= e(url('s_feeling')) ?>" class="stack"><?= csrf_field() ?>
-    <div class="pills"><?php foreach (['good' => 'Ça va bien', 'ok' => 'Moyen', 'hard' => "C'est dur"] as $k => $l): ?><label class="pill"><input type="radio" name="mood" value="<?= $k ?>" required><span><?= $l ?></span></label><?php endforeach ?></div>
-    <input name="comment" maxlength="500" placeholder="Un mot ? (facultatif)" aria-label="Commentaire"><button class="btn soft sm">Envoyer</button></form></div>
+    <?php if (!$progressing): ?><div class="empty-ill sm"><span>📈</span><p class="muted">Tes compétences apparaîtront ici dès les premières séances.</p></div><?php endif ?>
+  </div>
+  <div class="card tone-gold">
+    <h2><?= icon('sparkles') ?> Mes réussites</h2>
+    <?php if (!$wins): ?><div class="empty-ill sm"><span>🏆</span><p class="muted">Tes premières réussites s'afficheront ici.</p></div><?php endif ?>
+    <ul class="trophies"><?php foreach ($wins as $w): ?><li><span>🏅</span><div><strong><?= e($w['title']) ?></strong><small class="muted"><?= e(fdate($w['updated_at'])) ?></small></div></li><?php endforeach ?></ul>
+  </div>
 </div><br>
-<a class="card tool tools-link" href="<?= e(url('s_tools')) ?>"><span class="ico"><?= icon('lightbulb') ?></span><div><h3>Mes outils</h3><p class="muted"><small>Chrono de travail, méthodes pour retenir à ta façon, fiches méthode…</small></p></div><?= icon('chevron-right', 'go') ?></a><br>
-<?php if ($s['shared_message']): ?><div class="card"><h2><?= icon('message-circle') ?> Le mot de ta tutrice</h2><p><?= nl2br(e($s['shared_message'])) ?></p></div><br><?php endif ?>
+
+<a class="tools-banner" href="<?= e(url('s_tools')) ?>"><span class="tb-emoji">🧰</span><div><strong>Mes outils</strong><small>Chrono de travail, méthodes pour retenir à ta façon, fiches méthode…</small></div><?= icon('chevron-right', 'go') ?></a><br>
+<?php if ($s['shared_message']): ?><div class="card quote-card"><h2><?= icon('message-circle') ?> Le mot de ta tutrice</h2><p><?= nl2br(e($s['shared_message'])) ?></p></div><br><?php endif ?>
 <div class="card"><h2><?= icon('calendar') ?> Mon planning</h2><?php require __DIR__ . '/_planning.php' ?></div>
