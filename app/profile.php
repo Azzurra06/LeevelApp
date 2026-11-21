@@ -80,31 +80,50 @@ function family_tutor(int $familyId): ?array
     return one('SELECT u.id, u.display_name, u.phone, u.email, u.avatar FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE fm.member_role="tutor" ORDER BY u.id LIMIT 1', [$familyId]);
 }
 
-function family_messages(int $familyId): array
+/** Canaux : « family » = parent <-> tutrice ; « student » = élève <-> tutrice (lisible par le parent). */
+const MSG_CHANNELS = ['family', 'student'];
+
+function messages_have_channels(): bool
 {
-    return all('SELECT m.*, u.display_name, u.role, u.avatar, u.id uid FROM messages m LEFT JOIN users u ON u.id=m.sender_id WHERE m.family_id=? ORDER BY m.created_at, m.id', [$familyId]);
+    static $ok = null;
+    if ($ok === null) { try { one('SELECT channel FROM messages LIMIT 1'); $ok = true; } catch (PDOException) { $ok = false; } }
+    return $ok;
+}
+function chan_sql(string $channel, string $alias = 'm'): string
+{
+    if (!messages_have_channels()) return $channel === 'family' ? '' : ' AND 0';
+    return ' AND ' . $alias . '.channel=' . ($channel === 'student' ? '"student"' : '"family"');
 }
 
-function send_message(int $familyId, array $sender, string $body): bool
+function family_messages(int $familyId, string $channel = 'family'): array
+{
+    return all('SELECT m.*, u.display_name, u.role, u.avatar, u.id uid FROM messages m LEFT JOIN users u ON u.id=m.sender_id WHERE m.family_id=?' . chan_sql($channel) . ' ORDER BY m.created_at, m.id', [$familyId]);
+}
+
+function send_message(int $familyId, array $sender, string $body, string $channel = 'family'): bool
 {
     $body = trim(mb_substr($body, 0, 4000));
     if ($body === '') return false;
-    q('INSERT INTO messages (family_id, sender_id, body) VALUES (?,?,?)', [$familyId, $sender['id'], $body]);
+    if (messages_have_channels()) q('INSERT INTO messages (family_id, channel, sender_id, body) VALUES (?,?,?,?)', [$familyId, $channel === 'student' ? 'student' : 'family', $sender['id'], $body]);
+    elseif ($channel === 'family') q('INSERT INTO messages (family_id, sender_id, body) VALUES (?,?,?)', [$familyId, $sender['id'], $body]);
+    else return false;
     return true;
 }
 
-/** Marque comme lus les messages reçus (envoyés par « l'autre côté »). */
-function mark_messages_read(int $familyId, array $viewer): void
+/** Marque comme lus les messages reçus (envoyés par « l'autre côté » du canal). Le parent ne marque jamais le fil de l'élève. */
+function mark_messages_read(int $familyId, array $viewer, string $channel = 'family'): void
 {
+    if ($viewer['role'] === 'parent' && $channel === 'student') return;
     $sideTutor = $viewer['role'] === 'tutor';
-    q('UPDATE messages m JOIN users u ON u.id=m.sender_id SET m.read_at=NOW() WHERE m.family_id=? AND m.read_at IS NULL AND ' . ($sideTutor ? 'u.role<>"tutor"' : 'u.role="tutor"'), [$familyId]);
+    q('UPDATE messages m JOIN users u ON u.id=m.sender_id SET m.read_at=NOW() WHERE m.family_id=? AND m.read_at IS NULL' . chan_sql($channel) . ' AND ' . ($sideTutor ? 'u.role<>"tutor"' : 'u.role="tutor"'), [$familyId]);
 }
 
-/** Messages non lus pour un utilisateur (toutes familles, ou une seule). */
-function unread_count(array $user, ?int $familyId = null): int
+/** Messages non lus pour un utilisateur (toutes familles ou une seule ; tous canaux pour la tutrice, son canal sinon). */
+function unread_count(array $user, ?int $familyId = null, ?string $channel = null): int
 {
     $sideTutor = $user['role'] === 'tutor';
+    $channel ??= match ($user['role']) { 'parent' => 'family', 'student' => 'student', default => null };
     $sql = 'SELECT COUNT(*) n FROM messages m JOIN users u ON u.id=m.sender_id JOIN family_members fm ON fm.family_id=m.family_id AND fm.user_id=?
-            WHERE m.read_at IS NULL AND ' . ($sideTutor ? 'u.role<>"tutor"' : 'u.role="tutor"') . ($familyId ? ' AND m.family_id=' . (int)$familyId : '');
+            WHERE m.read_at IS NULL AND ' . ($sideTutor ? 'u.role<>"tutor"' : 'u.role="tutor"') . ($familyId ? ' AND m.family_id=' . (int)$familyId : '') . ($channel ? chan_sql($channel) : '');
     try { return (int)one($sql, [$user['id']])['n']; } catch (PDOException) { return 0; }
 }

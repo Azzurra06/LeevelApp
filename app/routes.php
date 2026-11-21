@@ -68,6 +68,9 @@ function dispatch(string $r, string $method): void
         case 'file':
             serve_student_file(require_login(), (int)($_GET['id'] ?? 0));
 
+        case 'help':
+            render('help', ['u' => require_login()]);
+
         case 'privacy':
             render('privacy', [], current_user() && !in_passation() ? 'layout' : 'layout_min');
 
@@ -294,8 +297,10 @@ function family_route(string $r, bool $isPost): never
             if (send_message((int)$s['family_id'], $u, (string)($_POST['body'] ?? ''))) flash('Message envoyé.');
             redirect('p_messages', ['sid' => $s['id']]);
         }
-        mark_messages_read((int)$s['family_id'], $u);
-        render('p_messages', ['u' => $u, 's' => $s, 'tutor' => family_tutor((int)$s['family_id']), 'messages' => family_messages((int)$s['family_id'])]);
+        $ch = ($_GET['ch'] ?? '') === 'student' && $s['user_id'] && messages_have_channels() ? 'student' : 'family';
+        mark_messages_read((int)$s['family_id'], $u, $ch);
+        render('p_messages', ['u' => $u, 's' => $s, 'tutor' => family_tutor((int)$s['family_id']), 'ch' => $ch, 'messages' => family_messages((int)$s['family_id'], $ch),
+            'studentCount' => $s['user_id'] && messages_have_channels() ? (int)(one('SELECT COUNT(*) n FROM messages WHERE family_id=? AND channel="student"', [$s['family_id']])['n'] ?? 0) : 0]);
     }
     if ($r === 'p') {
         $u = require_login('parent');
@@ -339,6 +344,14 @@ function family_route(string $r, bool $isPost): never
         ($_POST['back'] ?? '') === 's_subjects' ? redirect('s_subjects', ['subj' => post_int('subj')]) : redirect('s');
     }
     if ($r === 's_subjects') student_subjects_route($u, $s, $isPost);
+    if ($r === 's_messages') {
+        if ($isPost) {
+            if (send_message((int)$s['family_id'], $u, (string)($_POST['body'] ?? ''), 'student')) { audit('message_sent', 'student', (int)$s['family_id']); flash('Message envoyé à ta tutrice.'); }
+            redirect('s_messages');
+        }
+        mark_messages_read((int)$s['family_id'], $u, 'student');
+        render('s_messages', ['u' => $u, 's' => $s, 'tutor' => family_tutor((int)$s['family_id']), 'messages' => family_messages((int)$s['family_id'], 'student')]);
+    }
     if ($r === 's_help' && $isPost) {
         if (!(int)($s['perm_help_requests'] ?? 1)) { flash("Le bouton d'aide n'est pas activé pour ton compte.", 'err'); redirect('s'); }
         q('INSERT INTO progress_entries (student_id, user_id, entry_type, comment) VALUES (?,?,?,?)', [$s['id'], $u['id'], 'help_request', post_str('comment', 1000) ?: null]);

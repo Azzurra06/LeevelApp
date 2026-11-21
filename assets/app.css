@@ -496,3 +496,32 @@ body.student .s-badges h2{margin:0}
 .chap-new{margin-top:8px}.chap-new input{flex:1;margin:0}.chap-new select{width:auto;margin:0}
 .subj-sum li{align-items:center}.subj-sum li>div:first-child{flex:1}.subj-sum-r{display:flex;align-items:center;gap:8px}.subj-sum-r .spark{width:90px;height:30px;margin:0}
 @media (max-width:720px){.subj-sum-r .spark{display:none}.avg-big strong{font-size:1.9rem}.file-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Menu du compte (en-tête) */
+.acct{position:relative}
+.acct>summary{list-style:none;cursor:pointer}.acct>summary::-webkit-details-marker{display:none}
+.acct-btn{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;border:1px solid var(--beige-2);background:var(--surface);color:var(--taupe-d);font-size:.93rem;font-weight:550;user-select:none}
+.acct-btn:hover,.acct[open] .acct-btn,.acct-btn.on{background:var(--accent-l);border-color:#d9cfff;color:var(--accent-d)}
+.acct-ic{display:none}.acct-chev{width:.9em;height:.9em;transform:rotate(90deg);transition:transform .2s;opacity:.7}.acct[open] .acct-chev{transform:rotate(-90deg)}
+.acct-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:40;min-width:250px;background:var(--surface);border:1px solid var(--beige);border-radius:16px;box-shadow:0 12px 32px rgba(60,45,30,.16);padding:8px;animation:fade .18s ease both}
+.acct-head{display:flex;align-items:center;gap:10px;padding:8px 10px 12px;border-bottom:1px solid var(--beige);margin-bottom:6px}
+.acct-head div{display:flex;flex-direction:column;min-width:0}.acct-head small{color:var(--muted);font-size:.78rem}
+.acct-menu a,.acct-menu button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border-radius:10px;border:0;background:none;color:var(--ink);text-decoration:none;font:500 .95rem var(--font);cursor:pointer;text-align:left}
+.acct-menu a:hover,.acct-menu button:hover,.acct-menu a.on{background:var(--accent-l);color:var(--accent-d)}
+.acct-menu .ic{color:var(--accent-d)}.acct-menu .acct-out{color:var(--err)}.acct-menu .acct-out .ic{color:var(--err)}
+.acct-menu form{margin-top:4px;padding-top:4px;border-top:1px solid var(--beige)}
+/* Centre d'aide */
+.faq details{border-bottom:1px solid var(--beige);padding:2px 0}.faq details:last-child{border-bottom:0}
+.faq summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 0;color:var(--ink);font-weight:600}.faq summary::-webkit-details-marker{display:none}
+.faq summary .ic{color:var(--accent-d);opacity:.75}.faq summary::after{content:'+';margin-left:auto;color:var(--muted);font-weight:500;font-size:1.2rem}
+.faq details[open] summary::after{content:'–'}.faq p{margin:0 0 12px 28px;color:var(--taupe-d)}
+.tips li{align-items:center}.tips li>span{font-size:1.2rem}
+@media (max-width:720px){
+  .acct-av,.acct-chev{display:none}.acct-ic{display:inline-flex}
+  .acct-btn{padding:8px 14px;gap:6px;font-size:.88rem;min-height:40px}
+  .acct-lbl{display:inline}
+  .acct-menu{position:fixed;left:12px;right:12px;top:calc(60px + env(safe-area-inset-top));min-width:0}
+  .acct-menu a,.acct-menu button{padding:14px 12px;font-size:1rem}
+}
+.acct-menu a,.acct-menu button{justify-content:flex-start;min-width:0}
+@media (max-width:720px){.msg-layout .contact-card{order:2}.contact-head .avatar.lg{width:56px;height:56px;font-size:1.4rem}.contact-head{margin:0 0 8px}}

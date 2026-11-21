@@ -104,11 +104,12 @@ function tutor_route(string $r, bool $isPost): never
                 'nSessions' => (int)one('SELECT COUNT(*) n FROM sessions WHERE student_id=?', [$sid])['n']]);
 
         case 't_messages':
+            $ch = (($_POST['ch'] ?? $_GET['ch'] ?? '') === 'student' && messages_have_channels()) ? 'student' : 'family';
             if ($isPost) {
-                if (send_message((int)$s['family_id'], $u, (string)($_POST['body'] ?? ''))) { audit('message_sent', null, (int)$s['family_id']); flash('Message envoyé.'); }
-                redirect('t_messages', ['sid' => $sid]);
+                if (send_message((int)$s['family_id'], $u, (string)($_POST['body'] ?? ''), $ch)) { audit('message_sent', $ch, (int)$s['family_id']); flash('Message envoyé.'); }
+                redirect('t_messages', ['sid' => $sid] + ($ch === 'student' ? ['ch' => 'student'] : []));
             }
-            mark_messages_read((int)$s['family_id'], $u);
+            mark_messages_read((int)$s['family_id'], $u, $ch);
             $threads = [];
             foreach (students_of($u) as $x) {
                 $last = one('SELECT body, created_at FROM messages WHERE family_id=? ORDER BY id DESC LIMIT 1', [$x['family_id']]);
@@ -116,7 +117,9 @@ function tutor_route(string $r, bool $isPost): never
             }
             usort($threads, fn($a, $b) => ($b['unread'] <=> $a['unread']) ?: strcmp($b['last']['created_at'] ?? '', $a['last']['created_at'] ?? ''));
             $parent = one('SELECT u.id, u.display_name, u.phone, u.email, u.avatar FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE u.role="parent" ORDER BY u.id LIMIT 1', [$s['family_id']]);
-            render('t_messages', ['s' => $s, 'threads' => $threads, 'messages' => family_messages((int)$s['family_id']), 'parent' => $parent]);
+            $studentU = $s['user_id'] ? one('SELECT id, display_name, avatar FROM users WHERE id=?', [$s['user_id']]) : null;
+            render('t_messages', ['s' => $s, 'threads' => $threads, 'messages' => family_messages((int)$s['family_id'], $ch), 'parent' => $parent, 'ch' => $ch, 'studentU' => $studentU,
+                'unreadCh' => ['family' => unread_count($u, (int)$s['family_id'], 'family'), 'student' => messages_have_channels() ? unread_count($u, (int)$s['family_id'], 'student') : 0]]);
 
         case 't_subjects':
             if (!$isPost || !subjects_available()) redirect('t_student', ['sid' => $sid, 'tab' => 'matieres']);

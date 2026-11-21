@@ -1,4 +1,4 @@
-<?php $title = 'Échanges'; $me = $u; $postUrl = url('p_messages', ['sid' => $s['id']]); ?>
+<?php $title = 'Échanges'; $me = $u; $postUrl = url('p_messages', ['sid' => $s['id']]); $readonly = $ch === 'student'; $channel = $ch; ?>
 <div class="page-head"><div><h1><?= icon('message-circle') ?> Échanges</h1><p>Vos échanges avec la tutrice au sujet de <?= e($s['first_name']) ?>.</p></div></div>
 <div class="msg-layout">
   <aside class="card contact-card">
@@ -12,5 +12,11 @@
     <?php endif ?>
     <p class="muted"><small>Pour une absence ou un imprévu, prévenez de préférence par message ou par téléphone.</small></p>
   </aside>
-  <section class="card"><h2>Messagerie</h2><?php require __DIR__ . '/_thread.php' ?></section>
+  <section class="card">
+    <?php if ($s['user_id'] && messages_have_channels()): ?><div class="seg seg-tight" role="tablist">
+      <a href="<?= e(url('p_messages', ['sid' => $s['id']])) ?>" class="<?= $ch === 'family' ? 'on' : '' ?>" role="tab"><?= icon('message-circle') ?> Avec la tutrice</a>
+      <a href="<?= e(url('p_messages', ['sid' => $s['id'], 'ch' => 'student'])) ?>" class="<?= $ch === 'student' ? 'on' : '' ?>" role="tab"><?= icon('eye') ?> <?= e($s['first_name']) ?> et la tutrice<?= $studentCount ? ' (' . $studentCount . ')' : '' ?></a>
+    </div><?php endif ?>
+    <?php if ($readonly): ?><p class="alert"><?= icon('eye') ?> Discussion entre <?= e($s['first_name']) ?> et la tutrice, en lecture seule. <?= e($s['first_name']) ?> sait que vous pouvez la lire.</p><?php endif ?>
+    <?php require __DIR__ . '/_thread.php' ?></section>
 </div>

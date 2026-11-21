@@ -144,6 +144,12 @@
     const tgt = document.getElementById(decodeURIComponent(location.hash.slice(1)));
     if (tgt) { let d = tgt; while (d) { if (d.tagName === 'DETAILS') d.open = true; d = d.parentElement; } setTimeout(() => tgt.scrollIntoView({ block: 'start' }), 60); }
   }
+  // Menu du compte : se ferme en touchant ailleurs ou avec Échap
+  const acct = $('[data-acct]');
+  if (acct) {
+    document.addEventListener('click', e => { if (acct.open && !acct.contains(e.target)) acct.open = false; });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && acct.open) { acct.open = false; acct.querySelector('summary').focus(); } });
+  }
   // Dépôt de fichier : envoi dès que le fichier est choisi
   $$('[data-autosubmit-file]').forEach(i => i.addEventListener('change', () => { if (i.files.length) { const l = i.closest('label'); if (l) l.classList.add('loading'); i.form.submit(); } })); // partout : ordre gauche → droite, hauteurs libres
 
