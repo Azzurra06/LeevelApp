@@ -159,7 +159,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
     <?php endif ?>
 
     <div class="card editable span-2">
-      <div class="ed-head"><h2><?= icon('key') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
+      <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
       <dl class="fields view">
         <div><dt>Identifiant</dt><dd><code><?= e($u['username']) ?></code></dd></div>
         <div><dt>Mot de passe</dt><dd>•••••••••• <span class="muted"><small>(jamais affiché)</small></span></dd></div>

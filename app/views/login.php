@@ -7,6 +7,6 @@
     <?= csrf_field() ?>
     <label>Identifiant<input name="username" required autocomplete="username" autocapitalize="none" value="<?= e($prefill) ?>" <?= $prefill ? '' : 'autofocus' ?>></label>
     <label>Mot de passe<input name="password" type="password" required autocomplete="current-password" <?= $prefill ? 'autofocus' : '' ?>></label>
-    <button class="btn"><?= icon('key') ?> Se connecter</button>
+    <button class="btn"><?= icon('log-in') ?> Se connecter</button>
   </form>
 </div>

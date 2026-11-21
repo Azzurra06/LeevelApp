@@ -14,7 +14,7 @@
     <?php $pm = $old['parent_mode'] ?? 'create'; $sm = $old['student_mode'] ?? 'create';
     $modeSwitch = function (string $who, string $cur): void { ?>
       <div class="seg seg-tight" role="radiogroup">
-        <label class="seg-opt"><input type="radio" name="<?= $who ?>_mode" value="create" data-switch="<?= $who ?>" <?= $cur === 'create' ? 'checked' : '' ?>><span><?= icon('key') ?> Créer le compte moi-même</span></label>
+        <label class="seg-opt"><input type="radio" name="<?= $who ?>_mode" value="create" data-switch="<?= $who ?>" <?= $cur === 'create' ? 'checked' : '' ?>><span><?= icon('lock') ?> Créer le compte moi-même</span></label>
         <label class="seg-opt"><input type="radio" name="<?= $who ?>_mode" value="invite" data-switch="<?= $who ?>" <?= $cur === 'invite' ? 'checked' : '' ?>><span><?= icon('message-circle') ?> Inviter par e-mail</span></label>
       </div>
     <?php }; ?>
