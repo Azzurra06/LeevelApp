@@ -128,6 +128,8 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       <div class="ed-head"><h2><?= icon('sparkles') ?> Intelligence artificielle</h2><?= $aiFromConfig ? '' : $editBtn($aiKey ? 'Changer la clé' : 'Ajouter une clé') ?></div>
       <div class="view">
         <p><?= $aiKey ? '<span class="badge ok">Activée</span> Clé enregistrée (se termine par <code>…' . e(substr($aiKey, -4)) . '</code>)' . ($aiFromConfig ? ', définie dans le fichier de configuration du serveur.' : '.') : '<span class="badge">Non configurée</span>' ?></p>
+        <?php $aiWs = ai_workspace_id(); ?>
+        <p class="muted"><small>Espace de travail : <?= $aiWs ? '<code>' . e($aiWs) . '</code>' : 'non indiqué (nécessaire seulement si la clé n\'est rattachée à aucun espace de travail)' ?></small></p>
         <p class="muted"><small>Sert à générer les quiz de révision (Fiche élève › Matières). Seuls la matière, le titre du chapitre et la classe sont envoyés au service d'IA (Anthropic), jamais le nom de l'élève ni ses réponses.</small></p>
       </div>
       <?php if (!$aiFromConfig): ?>
@@ -135,6 +137,11 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
         <label>Clé API Anthropic<input type="password" name="ai_key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></label>
         <p class="muted"><small>À créer sur console.anthropic.com (rubrique API Keys). Elle est conservée sur le serveur, jamais affichée en entier.</small></p>
         <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><?php if ($aiKey): ?><button class="btn ghost sm" name="remove" value="1" formnovalidate data-confirm="Supprimer la clé API ?"><?= icon('trash-2') ?> Supprimer la clé</button><?php endif ?><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+      </form>
+      <form method="post" class="stack edit-form ws-form"><?= csrf_field() ?><input type="hidden" name="action" value="ai_key"><input type="hidden" name="only" value="workspace">
+        <label>Identifiant de l'espace de travail (facultatif)<input name="workspace_id" value="<?= e(ai_workspace_id() ?? '') ?>" autocomplete="off" spellcheck="false" placeholder="wrkspc_…"></label>
+        <p class="muted"><small>Seulement si l'application vous le demande. Sur console.anthropic.com : Settings › Workspaces, puis ouvrez l'espace de travail pour copier son identifiant.</small></p>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer l'espace de travail</button></div>
       </form>
       <?php endif ?>
     </div>

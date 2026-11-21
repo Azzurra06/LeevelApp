@@ -591,3 +591,4 @@ body.student .s-badges h2{margin:0}
 .qa-opts-view li.ok{background:#e3f4e8;border-color:#bfe3cb;color:#2c7a45;font-weight:600}.qa-opts-view .ic{width:.9em;height:.9em}
 .qa-edit{padding:10px;border:1px solid #d9cfff;border-radius:12px;background:#fff;margin-top:6px}
 .qa-add{margin-top:6px}.qa-add>summary{font-size:.88rem}.qa-add .qa-form{margin-top:8px}
+.ws-form{margin-top:16px;padding-top:16px;border-top:1px solid var(--beige)}

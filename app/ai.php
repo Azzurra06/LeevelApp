@@ -15,6 +15,20 @@ function ai_api_key(): ?string
     if ($k === '' && is_file(ai_key_file())) $k = (string)(include ai_key_file());
     return $k !== '' ? $k : null;
 }
+/** Identifiant d'espace de travail Anthropic (wrkspc_…), requis pour les clés non rattachées à un espace de travail. */
+function ai_workspace_file(): string { return APP_ROOT . '/storage/ai_workspace.php'; }
+function ai_workspace_id(): ?string
+{
+    $w = (string)(config('anthropic_workspace_id') ?? '');
+    if ($w === '' && is_file(ai_workspace_file())) $w = (string)(include ai_workspace_file());
+    return $w !== '' ? $w : null;
+}
+function ai_save_workspace(?string $id): void
+{
+    if ($id === null || $id === '') { @unlink(ai_workspace_file()); return; }
+    file_put_contents(ai_workspace_file(), "<?php\nreturn " . var_export($id, true) . ";\n", LOCK_EX);
+    @chmod(ai_workspace_file(), 0600);
+}
 function ai_available(): bool { return ai_api_key() !== null && function_exists('curl_init'); }
 
 function ai_save_key(?string $key): void
@@ -109,11 +123,14 @@ function ai_generate_quiz(string $subject, string $chapter, ?string $grade, int 
         $type = (string)($res['error']['type'] ?? ''); $apiMsg = (string)($res['error']['message'] ?? '');
         ai_log_error($att['label'], $status, $type, $apiMsg);
         $credit = stripos($apiMsg, 'credit') !== false || stripos($apiMsg, 'billing') !== false;
-        if ($status !== 400 || $credit || $n === count($attempts) - 1) break;
+        if ($status !== 400 || $credit || stripos($apiMsg, 'workspace') !== false || $n === count($attempts) - 1) break;
     }
     if ($status !== 200 || !is_array($res)) {
         $detail = $apiMsg !== '' ? ' Détail : « ' . mb_strimwidth($apiMsg, 0, 220, '…') . ' »' : '';
         return ['error' => match (true) {
+            stripos($apiMsg, 'workspace') !== false => ai_workspace_id()
+                ? "L'identifiant d'espace de travail enregistré est refusé : vérifiez-le dans « Mon compte » (il commence par « wrkspc_ »)." . $detail
+                : "Votre clé n'est rattachée à aucun espace de travail Anthropic : indiquez l'identifiant de l'espace de travail (« wrkspc_… ») dans « Mon compte › Intelligence artificielle », ou créez une clé depuis un espace de travail.",
             stripos($apiMsg, 'credit') !== false || stripos($apiMsg, 'billing') !== false => "Crédit insuffisant sur votre compte Anthropic : ajoutez du crédit dans « Billing » sur console.anthropic.com, puis réessayez.",
             $status === 401 || $type === 'authentication_error' => "La clé API est refusée : vérifiez-la dans « Mon compte ».",
             $status === 403 || $type === 'permission_error' => "La clé API n'a pas accès à ce modèle." . $detail,
@@ -150,6 +167,7 @@ function ai_http(string $key, array $body, string $version, ?string $beta): arra
 {
     $headers = ['content-type: application/json', 'x-api-key: ' . $key, 'anthropic-version: ' . $version];
     if ($beta) $headers[] = 'anthropic-beta: ' . $beta;
+    if ($ws = ai_workspace_id()) $headers[] = 'anthropic-workspace-id: ' . $ws;
     $ch = curl_init(rtrim((string)(config('anthropic_base_url') ?: 'https://api.anthropic.com'), '/') . '/v1/messages');
     curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 10, CURLOPT_TIMEOUT => 150,
         CURLOPT_HTTPHEADER => $headers, CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE)]);

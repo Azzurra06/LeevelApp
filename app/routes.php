@@ -138,7 +138,12 @@ function dispatch(string $r, string $method): void
                 redirect('account');
             }
             if ($isPost && $act === 'ai_key' && $u['role'] === 'tutor') {
-                if (!empty($_POST['remove'])) { ai_save_key(null); audit('ai_key_removed'); flash('Clé API supprimée.'); }
+                if (!empty($_POST['remove'])) { ai_save_key(null); ai_save_workspace(null); audit('ai_key_removed'); flash('Clé API supprimée.'); }
+                elseif (($_POST['only'] ?? '') === 'workspace') {
+                    $ws = trim((string)($_POST['workspace_id'] ?? ''));
+                    if ($ws !== '' && !preg_match('/^wrkspc_[A-Za-z0-9]{8,}$/', $ws)) flash("L'identifiant d'espace de travail commence par « wrkspc_ ».", 'err');
+                    else { ai_save_workspace($ws); audit('ai_workspace_saved'); flash($ws ? 'Espace de travail enregistré.' : 'Espace de travail retiré.'); }
+                }
                 else {
                     $key = trim((string)($_POST['ai_key'] ?? ''));
                     if (!preg_match('/^sk-ant-[A-Za-z0-9_\-]{20,}$/', $key)) flash('Cette clé ne ressemble pas à une clé API Anthropic (elle commence par « sk-ant- »).', 'err');
