@@ -90,36 +90,37 @@ function ai_generate_quiz(string $subject, string $chapter, ?string $grade, int 
         'messages' => [['role' => 'user', 'content' => $user]],
     ];
 
-    @set_time_limit(180);
-    $ch = curl_init(rtrim((string)(config('anthropic_base_url') ?: 'https://api.anthropic.com'), '/') . '/v1/messages');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_TIMEOUT => 150,
-        CURLOPT_HTTPHEADER => [
-            'content-type: application/json',
-            'x-api-key: ' . $key,
-            'anthropic-version: ' . AI_API_VERSION,
-            'anthropic-beta: server-side-fallback-2026-07-01',
-        ],
-        CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE),
-    ]);
-    $raw = curl_exec($ch);
-    $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    $netErr = curl_error($ch);
-    curl_close($ch);
-
-    if ($raw === false) return ['error' => "Impossible de joindre le service d'IA" . ($netErr ? " ($netErr)" : '') . '. Réessayez dans un instant.'];
-    $res = json_decode((string)$raw, true);
+    @set_time_limit(300);
+    // Tentatives successives : si une option avancée est refusée par le compte (erreur 400), on la retire et on réessaie.
+    $plain = $body; unset($plain['fallbacks']);
+    $noFormat = $plain; unset($noFormat['output_config']['format']);
+    $noFormat['messages'][0]['content'] .= "\n\nRéponds uniquement avec un objet JSON de la forme {\"questions\": [{\"question\": \"…\", \"options\": [\"…\", \"…\", \"…\", \"…\"], \"answer_index\": 0, \"explanation\": \"…\"}]}, sans aucun texte autour.";
+    $attempts = [
+        ['label' => 'complet', 'body' => $body, 'version' => AI_API_VERSION, 'beta' => 'server-side-fallback-2026-07-01'],
+        ['label' => 'sans repli', 'body' => $plain, 'version' => AI_API_VERSION, 'beta' => null],
+        ['label' => 'version stable', 'body' => $plain, 'version' => '2023-06-01', 'beta' => null],
+        ['label' => 'sans format imposé', 'body' => $noFormat, 'version' => '2023-06-01', 'beta' => null],
+    ];
+    $res = null; $status = 0; $apiMsg = ''; $type = '';
+    foreach ($attempts as $n => $att) {
+        [$status, $res, $netErr] = ai_http($key, $att['body'], $att['version'], $att['beta']);
+        if ($status === 0) return ['error' => "Impossible de joindre le service d'IA" . ($netErr ? " ($netErr)" : '') . '. Réessayez dans un instant.'];
+        if ($status === 200 && is_array($res)) break;
+        $type = (string)($res['error']['type'] ?? ''); $apiMsg = (string)($res['error']['message'] ?? '');
+        ai_log_error($att['label'], $status, $type, $apiMsg);
+        $credit = stripos($apiMsg, 'credit') !== false || stripos($apiMsg, 'billing') !== false;
+        if ($status !== 400 || $credit || $n === count($attempts) - 1) break;
+    }
     if ($status !== 200 || !is_array($res)) {
-        $type = $res['error']['type'] ?? '';
+        $detail = $apiMsg !== '' ? ' Détail : « ' . mb_strimwidth($apiMsg, 0, 220, '…') . ' »' : '';
         return ['error' => match (true) {
+            stripos($apiMsg, 'credit') !== false || stripos($apiMsg, 'billing') !== false => "Crédit insuffisant sur votre compte Anthropic : ajoutez du crédit dans « Billing » sur console.anthropic.com, puis réessayez.",
             $status === 401 || $type === 'authentication_error' => "La clé API est refusée : vérifiez-la dans « Mon compte ».",
-            $status === 403 || $type === 'permission_error' => "La clé API n'a pas accès à ce modèle.",
+            $status === 403 || $type === 'permission_error' => "La clé API n'a pas accès à ce modèle." . $detail,
+            $status === 404 || $type === 'not_found_error' => "Le modèle d'IA demandé n'est pas disponible pour ce compte." . $detail,
             $status === 429 || $type === 'rate_limit_error' => "Trop de demandes en même temps : réessayez dans une minute.",
             $status === 529 || $type === 'overloaded_error' || $status >= 500 => "Le service d'IA est momentanément surchargé : réessayez dans un instant.",
-            default => "La génération a échoué (" . ($status ?: 'réseau') . ($type ? ", $type" : '') . ").",
+            default => "La génération a échoué (" . $status . ($type ? ", $type" : '') . ")." . $detail,
         }];
     }
     $stop = $res['stop_reason'] ?? '';
@@ -129,6 +130,7 @@ function ai_generate_quiz(string $subject, string $chapter, ?string $grade, int 
     $text = '';
     foreach ((array)($res['content'] ?? []) as $block) if (($block['type'] ?? '') === 'text') $text .= $block['text'];
     $data = json_decode($text, true);
+    if (!is_array($data) && ($a = strpos($text, '{')) !== false && ($b = strrpos($text, '}')) !== false) $data = json_decode(substr($text, $a, $b - $a + 1), true);
     $out = [];
     foreach ((array)($data['questions'] ?? []) as $q) {
         $opts = array_values(array_filter(array_map(fn($o) => mb_substr(trim((string)$o), 0, 200), (array)($q['options'] ?? [])), fn($o) => $o !== ''));
@@ -141,4 +143,27 @@ function ai_generate_quiz(string $subject, string $chapter, ?string $grade, int 
     }
     if (!$out) return ['error' => "L'IA n'a pas renvoyé de question exploitable. Réessayez."];
     return ['questions' => $out];
+}
+
+/** Appel HTTP à l'API : [statut HTTP (0 = réseau), réponse décodée, erreur réseau]. */
+function ai_http(string $key, array $body, string $version, ?string $beta): array
+{
+    $headers = ['content-type: application/json', 'x-api-key: ' . $key, 'anthropic-version: ' . $version];
+    if ($beta) $headers[] = 'anthropic-beta: ' . $beta;
+    $ch = curl_init(rtrim((string)(config('anthropic_base_url') ?: 'https://api.anthropic.com'), '/') . '/v1/messages');
+    curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 10, CURLOPT_TIMEOUT => 150,
+        CURLOPT_HTTPHEADER => $headers, CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE)]);
+    $raw = curl_exec($ch);
+    $status = $raw === false ? 0 : (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    $err = curl_error($ch);
+    curl_close($ch);
+    return [$status, $raw === false ? null : json_decode((string)$raw, true), $err];
+}
+
+/** Journal des erreurs d'IA (sans la clé ni le contenu des questions), dans storage/ (inaccessible depuis le web). */
+function ai_log_error(string $attempt, int $status, string $type, string $message): void
+{
+    $dir = APP_ROOT . '/storage';
+    if (!is_dir($dir)) @mkdir($dir, 0750, true);
+    @file_put_contents($dir . '/ai_errors.log', date('c') . " | $attempt | $status | $type | " . str_replace(["\n", "\r"], ' ', mb_substr($message, 0, 500)) . "\n", FILE_APPEND | LOCK_EX);
 }
