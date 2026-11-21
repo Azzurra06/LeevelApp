@@ -297,3 +297,8 @@ body.student .bar>i{background:linear-gradient(90deg,#7c5cff,#b39cff)}
 .tool-timer .seg{display:flex;width:max-content;margin:12px auto}
 .mem-card h3{display:flex;align-items:center;gap:8px}.mem-card .ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--accent-l);color:var(--accent-d)}
 .checklist{display:flex;flex-direction:column;gap:8px}.checklist input:checked+*,.checklist label:has(input:checked){color:var(--muted);text-decoration:line-through}
+
+/* Masonry horizontal : ordre de gauche à droite, chaque carte garde sa hauteur */
+.masonry{align-items:start}
+.masonry.js-on{grid-auto-rows:4px;row-gap:0}
+.masonry.js-on>*{margin-bottom:16px}

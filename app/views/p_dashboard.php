@@ -3,7 +3,7 @@ $upcoming = array_values(array_filter($sessions, fn($x) => strtotime($x['starts_
 $next = $upcoming[0] ?? null; ?>
 <div class="page-head"><div><h1>Bonjour <?= e($u['display_name']) ?></h1><p>Le suivi de <?= e($s['first_name']) ?>, simplement.</p></div></div>
 <?php require __DIR__ . '/_onboarding.php' ?>
-<div class="grid-2 align-start">
+<div class="grid-2 masonry">
     <div class="card">
       <h2><?= icon('file-text') ?> Derniers bilans de séance</h2>
       <?php if (!$reports): ?><p class="muted">Après chaque séance, la tutrice vous enverra un court bilan ici.</p><?php endif ?>
@@ -21,13 +21,8 @@ $next = $upcoming[0] ?? null; ?>
       <?php else: ?><p class="muted">Aucune séance à venir.</p><?php endif ?>
       <a class="card-link" href="<?= e(url('p_planning')) ?>">Voir tout le planning →</a>
     </div>
-</div><br>
-<div class="grid-2 align-start">
     <?php require __DIR__ . '/_tests.php' ?>
     <?php require __DIR__ . '/_year_goals.php' ?>
-</div>
-<?php if ($monthly || $s['shared_strengths'] || $s['shared_to_work'] || $s['shared_message'] || $sharedObs): ?><br>
-<div class="grid-2 align-start">
     <?php if ($monthly): ?>
     <div class="card accent">
       <h2><?= icon('chart-column') ?> Bilan du mois · <?= e(month_label($monthly['month'])) ?></h2>
@@ -44,4 +39,3 @@ $next = $upcoming[0] ?? null; ?>
     </div>
     <?php endif ?>
 </div>
-<?php endif ?>

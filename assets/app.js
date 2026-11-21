@@ -127,6 +127,19 @@
   $$('[data-print]').forEach(b => b.addEventListener('click', () => window.print()));
   $$('[data-toggle]').forEach(b => b.addEventListener('click', () => { const t = document.getElementById(b.dataset.toggle); if (t) t.hidden = !t.hidden; }));
 
+  // ---------- Grille masonry (gauche à droite) ----------
+  const masonry = grid => {
+    const ROW = 4, GAP = 16;
+    grid.classList.add('js-on');
+    const fit = () => [...grid.children].forEach(c => {
+      c.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil((c.getBoundingClientRect().height + GAP) / ROW));
+    });
+    fit();
+    if ('ResizeObserver' in window) { const ro = new ResizeObserver(fit); [...grid.children].forEach(c => ro.observe(c)); }
+    window.addEventListener('resize', fit);
+  };
+  $$('.masonry').forEach(masonry);
+
   // ---------- Mes outils : chrono de travail ----------
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
   const today = new Date().toISOString().slice(0, 10);
