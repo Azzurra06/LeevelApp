@@ -592,3 +592,28 @@ body.student .s-badges h2{margin:0}
 .qa-edit{padding:10px;border:1px solid #d9cfff;border-radius:12px;background:#fff;margin-top:6px}
 .qa-add{margin-top:6px}.qa-add>summary{font-size:.88rem}.qa-add .qa-form{margin-top:8px}
 .ws-form{margin-top:16px;padding-top:16px;border-top:1px solid var(--beige)}
+
+/* Sélecteur de l'élève suivi (tutrice) */
+.st-switch{position:relative;display:flex;align-items:center;margin-right:auto;margin-left:6px}
+.st-switch .st-ic{position:absolute;left:12px;color:var(--accent-d);pointer-events:none;width:1em;height:1em}
+.st-switch select{margin:0;width:auto;max-width:240px;padding:8px 34px 8px 34px;border-radius:999px;border-color:#d9cfff;background-color:var(--accent-l);color:var(--accent-d);font-weight:650;font-size:.92rem;cursor:pointer}
+.has-switch .brand{margin-right:0}
+@media (max-width:720px){
+  .st-switch{flex:1;min-width:0;margin:0 4px}
+  .st-switch select{max-width:none;width:100%;font-size:16px!important;padding:8px 30px 8px 32px}
+  .has-switch .acct-lbl{display:none}.has-switch .acct-btn{padding:8px 10px}
+  .has-switch .logo{font-size:1rem}
+}
+@media (max-width:380px){.has-switch .logo span{display:none}}
+@media (min-width:721px){
+  .has-switch .top-in{flex-wrap:nowrap}
+  .has-switch .st-switch select{max-width:210px}
+  .has-switch .nav-main{flex-wrap:nowrap;min-width:0}
+  .has-switch .nav-main a{white-space:nowrap}
+}
+@media (min-width:721px) and (max-width:1240px){
+  .has-switch .nav-main .lbl{display:none}.has-switch .nav-main .lbl-s{display:inline}
+}
+@media (min-width:721px) and (max-width:920px){
+  .has-switch .acct-lbl,.has-switch .acct-chev{display:none}.has-switch .acct-btn{padding:5px 8px 5px 6px}
+}

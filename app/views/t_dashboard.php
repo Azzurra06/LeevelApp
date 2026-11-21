@@ -5,7 +5,6 @@
 <div class="page-head">
   <div><h1><?= e($s['first_name']) ?> <?php if ($s['is_demo']): ?><span class="badge demo">DÉMO</span><?php endif ?></h1><p><?= e($s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?> · <?= e($s['family_name']) ?></p></div>
   <div class="row">
-    <?php if (count($students) > 1): ?><form method="get" action="<?= e(url()) ?>" class="student-pick"><input type="hidden" name="r" value="t"><select name="sid" aria-label="Changer d'élève" data-autosubmit><?php foreach ($students as $x): ?><option value="<?= (int)$x['id'] ?>" <?= $x['id'] == $s['id'] ? 'selected' : '' ?>><?= e($x['first_name']) ?><?= $x['is_demo'] && !str_contains(mb_strtolower($x['first_name']), 'démo') ? ' (démo)' : '' ?></option><?php endforeach ?></select><noscript><button class="btn ghost sm">Ouvrir</button></noscript></form><?php endif ?>
     <a class="btn" href="<?= e(url('t_rdv', $sidp)) ?>"><?= icon('clipboard-list') ?> Premier rendez-vous</a>
   </div>
 </div>

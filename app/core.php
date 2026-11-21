@@ -297,8 +297,11 @@ function students_of(array $user): array
 function pick_student(array $user): ?array
 {
     $sid = (int)($_GET['sid'] ?? $_POST['sid'] ?? 0);
-    if ($sid) return student_for($user, $sid);
-    return students_of($user)[0] ?? null;
+    if ($sid) { $s = student_for($user, $sid); $_SESSION['current_sid'] = (int)$s['id']; return $s; }
+    $list = students_of($user);
+    $remembered = (int)($_SESSION['current_sid'] ?? 0);
+    foreach ($list as $x) if ((int)$x['id'] === $remembered) return student_for($user, $remembered);
+    return $list[0] ?? null;
 }
 function family_users(int $familyId): array
 {
