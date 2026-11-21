@@ -624,3 +624,6 @@ body.student .s-badges h2{margin:0}
   .st-switch .st-ic{left:10px;width:.9em;height:.9em}
 }
 @media (max-width:720px){.st-switch select{max-width:52vw}}
+/* Sélecteur d'élève : texte plus petit (mobile : réduction visuelle pour garder 16 px et éviter le zoom automatique d'iOS) */
+@media (min-width:721px){.st-switch select{font-size:.84rem;padding:7px 32px 7px 32px}}
+@media (max-width:720px){.st-switch{transform:scale(.86);transform-origin:right center;margin-right:6px}}
