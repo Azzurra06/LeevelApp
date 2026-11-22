@@ -13,6 +13,14 @@
     const m = e.target.dataset.confirm || e.submitter?.dataset.confirm;
     if (m && !confirm(m)) e.preventDefault();
   });
+  // Matières en sous-onglets (fiche élève) : une matière visible à la fois, mémorisée dans l'adresse
+  const subjNav = $('[data-subj-tabs]');
+  if (subjNav) {
+    const panes = $$('[data-subj-pane]');
+    const show = id => { panes.forEach(p => p.hidden = p.id !== id); $$('[data-subj-tab]', subjNav).forEach(b => b.classList.toggle('on', b.dataset.subjTab === id)); };
+    $$('[data-subj-tab]', subjNav).forEach(b => b.addEventListener('click', () => { show(b.dataset.subjTab); history.replaceState(null, '', '#' + b.dataset.subjTab); }));
+    if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const pane = t?.closest('[data-subj-pane]'); if (pane) show(pane.id); }
+  }
   // Case « Autre » : affiche le champ associé
   $$('input[data-reveal]').forEach(cb => cb.addEventListener('change', () => { const t = document.querySelector(cb.dataset.reveal); if (t) { t.hidden = !cb.checked; if (cb.checked) t.focus(); else t.value = ''; } }));
   // Parcours d'accueil : volets affichés selon les cases cochées

@@ -17,9 +17,14 @@ $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
     <?php foreach ($suggestions as $n): ?><form method="post" action="<?= $act() ?>" class="inline"><?= $h(['action' => 'subject_add', 'name' => $n]) ?><button class="pill-btn sm-legend"><?= icon('plus') ?> <?= e($n) ?></button></form><?php endforeach ?></p><?php endif ?>
 </div><br>
 
-<div class="grid-2">
-<?php foreach ($subjects as $sub): ?>
-  <div class="card" id="subj-<?= (int)$sub['id'] ?>">
+<?php if ($subjects): ?>
+<nav class="subj-tabs" aria-label="Matières" data-subj-tabs>
+  <?php foreach ($subjects as $i => $sub): ?><button type="button" class="subj-tab<?= $i === 0 ? ' on' : '' ?>" data-subj-tab="subj-<?= (int)$sub['id'] ?>"><?= e($sub['name']) ?><?php if ($sub['avg'] !== null): ?> <small><?= fmt_grade($sub['avg']) ?></small><?php endif ?></button><?php endforeach ?>
+</nav>
+<?php else: ?><div class="card"><div class="empty-ill sm"><span>📚</span><p class="muted">Ajoutez une première matière ci-dessus pour suivre ses notes, ses chapitres et ses quiz.</p></div></div><?php endif ?>
+<div class="subj-panes">
+<?php foreach ($subjects as $i => $sub): ?>
+  <div class="card subj-pane" id="subj-<?= (int)$sub['id'] ?>" data-subj-pane <?= $i === 0 ? '' : 'hidden' ?>>
     <div class="row between"><h2><?= icon('book-open') ?> <?= e($sub['name']) ?></h2>
       <form method="post" action="<?= $act() ?>" data-confirm="Retirer cette matière, ses notes et ses chapitres ?"><?= $h(['action' => 'subject_del', 'subject_id' => $sub['id']]) ?><button class="edit-btn" title="Retirer la matière" aria-label="Retirer la matière"><?= icon('trash-2') ?></button></form></div>
     <div class="avg-row"><div class="avg-big"><strong><?= fmt_grade($sub['avg']) ?></strong><small>/20 · <?= count($sub['grades']) ?> note<?= count($sub['grades']) > 1 ? 's' : '' ?></small></div>
@@ -95,7 +100,10 @@ $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
     </details>
   </div>
 <?php endforeach ?>
+</div>
 
+<h2 class="dash-sec">Suivi de l'élève</h2>
+<div class="grid-2 two-cols dash-row">
   <div class="card<?= $unseen ? ' tone-orange' : '' ?>" id="blocages">
     <h2><?= icon('circle-help') ?> Blocages signalés<?= $unseen ? ' <span class="nav-badge">' . count($unseen) . '</span>' : '' ?></h2>
     <?php if (!$blockers): ?><p class="muted">Aucun blocage signalé par <?= e($s['first_name']) ?>.</p><?php endif ?>
