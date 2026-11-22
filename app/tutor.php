@@ -27,16 +27,29 @@ function tutor_route(string $r, bool $isPost): never
                 flash('Réglages enregistrés.');
             } elseif ($act === 'rate' && ($st = $mine(post_int('sid')))) {
                 q('UPDATE students SET hourly_rate=?, hourly_rate_visio=? WHERE id=?', [$num('hourly_rate'), $num('hourly_rate_visio'), $st['id']]);
+                $pct = $num('discount_pct'); $pct = $pct === null ? null : min(100, $pct);
+                try { q('UPDATE students SET discount_pct=?, discount_label=? WHERE id=?', [$pct ?: null, $pct ? (post_str('discount_label', 80) ?: null) : null, $st['id']]); } catch (PDOException) {}
                 flash('Tarif de ' . $st['first_name'] . ' enregistré.');
             } elseif ($act === 'create' && ($st = $mine(post_int('sid')))) {
                 $b = month_billing($st, $month);
-                $amount = $num('amount') ?? $b['amount'];
+                $manual = !empty($_POST['manual']);
+                if ($manual) {
+                    $gross = $num('amount') ?? 0.0;
+                    $dRaw = trim((string)($_POST['discount'] ?? ''));
+                    $isPct = str_contains($dRaw, '%');
+                    $dVal = $num('discount') ?? 0.0;
+                    if ($isPct) { $dVal = min(100, (float)str_replace([',', '%', ' '], ['.', '', ''], $dRaw)); }
+                    $disc = $isPct ? round($gross * $dVal / 100, 2) : min($gross, $dVal);
+                    $dLabel = post_str('discount_label', 80) ?: null;
+                } else { $gross = $b['gross']; $disc = $b['discount']; $dLabel = $b['discount'] > 0 ? discount_text($b['discount_label'] ?: null, $b['discount_pct']) : null; }
+                $amount = round($gross - $disc, 2);
                 if ($amount <= 0) flash('Montant nul : renseignez le tarif ou le montant.', 'err');
                 else {
                     $label = post_str('label', 160) ?: 'Séances de ' . mb_strtolower(month_label($month));
                     $due = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_str('due_date', 10)) ? post_str('due_date', 10) : date('Y-m-d', strtotime($month . '-01 +1 month +9 days'));
-                    q('INSERT INTO payments (student_id, period, label, minutes, amount, due_date) VALUES (?,?,?,?,?,?)', [$st['id'], $month, $label, empty($_POST['manual']) ? $b['minutes'] : 0, $amount, $due]);
-                    if (!empty($_POST['notify'])) send_message((int)$st['family_id'], $u, "Nouvelle échéance pour " . $st['first_name'] . " : " . $label . " · " . money($amount) . " à régler avant le " . fdate($due) . ".\nLe détail est dans « Finances » (menu Mon compte).");
+                    try { q('INSERT INTO payments (student_id, period, label, minutes, gross, discount, discount_label, amount, due_date) VALUES (?,?,?,?,?,?,?,?,?)', [$st['id'], $month, $label, $manual ? 0 : $b['minutes'], $gross, $disc ?: null, $disc ? ($dLabel ?: 'Remise') : null, $amount, $due]); }
+                    catch (PDOException) { q('INSERT INTO payments (student_id, period, label, minutes, amount, due_date) VALUES (?,?,?,?,?,?)', [$st['id'], $month, $label, $manual ? 0 : $b['minutes'], $amount, $due]); }
+                    if (!empty($_POST['notify'])) send_message((int)$st['family_id'], $u, "Nouvelle échéance pour " . $st['first_name'] . " : " . $label . " · " . money($amount) . ($disc > 0 ? " (après " . mb_strtolower($dLabel ?: 'remise') . " de " . money($disc) . ")" : '') . " à régler avant le " . fdate($due) . ".\nLe détail est dans « Finances » (menu Mon compte).");
                     audit('payment_created', money($amount), (int)$st['family_id']);
                     flash('Échéance créée' . (!empty($_POST['notify']) ? ' et envoyée au parent.' : '.'));
                 }

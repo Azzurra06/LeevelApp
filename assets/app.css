@@ -956,3 +956,12 @@ body.page-t_student .card[class*="tone-"],body.page-t_rdv .card[class*="tone-"]{
 .pc-month{border-top:1px solid var(--beige);padding:10px 0}.pc-month:first-of-type{border-top:0}.pc-month summary{cursor:pointer}.pc-month p{margin:10px 0 0}
 @media (max-width:760px){.pc-cols{grid-template-columns:1fr}}
 body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--tc:var(--accent-d);--tb:var(--accent-l)}
+
+/* Finances : formulaire tarif sur une ligne, sous l'élève */
+.fin-row .fin-rate{justify-content:space-between}
+.fin-row.editable.editing .fin-rate-form{display:grid}
+.fin-rate-form{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,140px)) minmax(0,1fr) auto;gap:10px;align-items:end;background:var(--bg);border-radius:12px;padding:12px;margin-top:4px}
+.fin-rate-form label{min-width:0}
+.fin-rate-btns{display:flex;gap:8px}
+.ok-txt{color:#2f8a57}
+@media (max-width:760px){.fin-rate-form{grid-template-columns:1fr 1fr}.fin-rate-form .wide-l,.fin-rate-btns{grid-column:1/-1}}

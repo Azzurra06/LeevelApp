@@ -25,13 +25,10 @@ $late = fn($p) => $p['status'] === 'pending' && $p['due_date'] && $p['due_date']
   <?php foreach ($rows as ['s' => $st, 'b' => $b, 'pay' => $pay]): ?>
     <div class="fin-row editable">
       <div class="fin-who"><strong><?= e($st['first_name']) ?></strong><small class="muted"><?= e($st['family_name']) ?></small></div>
-      <div class="fin-rate view"><?php if ($st['hourly_rate'] !== null): ?><?= money((float)$st['hourly_rate']) ?>/h<?php if ($st['hourly_rate_visio'] !== null): ?> <small class="muted">· visio <?= money((float)$st['hourly_rate_visio']) ?>/h</small><?php endif ?><?php else: ?><span class="muted">Tarif non défini</span><?php endif ?>
-        <button type="button" class="edit-btn" data-edit title="Modifier le tarif" aria-label="Modifier le tarif"><?= icon('pencil') ?></button></div>
-      <form method="post" class="fin-rate-form edit-form"><?= $hid('rate') ?><input type="hidden" name="sid" value="<?= (int)$st['id'] ?>">
-        <label>Tarif / h<input name="hourly_rate" inputmode="decimal" value="<?= e($st['hourly_rate'] ?? '') ?>" placeholder="ex. 25"></label>
-        <label>Visio / h <small class="muted">(si différent)</small><input name="hourly_rate_visio" inputmode="decimal" value="<?= e($st['hourly_rate_visio'] ?? '') ?>" placeholder="—"></label>
-        <button class="btn sm"><?= icon('save') ?> OK</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></form>
-      <div class="fin-month"><strong><?= $b['missing_rate'] && !$b['amount'] ? '—' : money($b['amount']) ?></strong><small class="muted"><?= fdur($b['minutes']) ?> réalisée<?= $b['minutes'] > 60 ? 's' : '' ?><?= $b['planned_min'] ? ' · ' . fdur($b['planned_min']) . ' encore prévues' : '' ?></small></div>
+      <div class="fin-rate"><div><?php if ($st['hourly_rate'] !== null): ?><?= money((float)$st['hourly_rate']) ?>/h<?php if ($st['hourly_rate_visio'] !== null): ?> <small class="muted">· visio <?= money((float)$st['hourly_rate_visio']) ?>/h</small><?php endif ?><?php else: ?><span class="muted">Tarif non défini</span><?php endif ?>
+        <?php if ((float)($st['discount_pct'] ?? 0) > 0): ?><br><span class="badge sage"><?= e(discount_text($st['discount_label'] ?? null, (float)$st['discount_pct'])) ?></span><?php endif ?></div>
+        <button type="button" class="edit-btn view" data-edit title="Modifier le tarif et la remise" aria-label="Modifier le tarif et la remise"><?= icon('pencil') ?></button></div>
+      <div class="fin-month"><strong><?= $b['missing_rate'] && !$b['amount'] ? '—' : money($b['amount']) ?></strong><?php if ($b['discount'] > 0): ?><small class="muted"><s><?= money($b['gross']) ?></s> − <?= money($b['discount']) ?> de remise</small><?php endif ?><small class="muted"><?= fdur($b['minutes']) ?> réalisée<?= $b['minutes'] > 60 ? 's' : '' ?><?= $b['planned_min'] ? ' · ' . fdur($b['planned_min']) . ' encore prévues' : '' ?></small></div>
       <div class="fin-status">
         <?php if ($pay): ?>
           <?php if ($pay['status'] === 'paid'): ?><span class="badge sage">Payé le <?= e(fdate($pay['paid_at'])) ?></span><?php else: ?><span class="badge <?= $late($pay) ? 'err' : 'warn' ?>"><?= $late($pay) ? 'En retard' : 'À régler' ?> · <?= money((float)$pay['amount']) ?></span><?php endif ?>
@@ -40,6 +37,12 @@ $late = fn($p) => $p['status'] === 'pending' && $p['due_date'] && $p['due_date']
             <button class="btn sm"><?= icon('send') ?> Demander <?= money($b['amount']) ?></button></form>
         <?php else: ?><span class="muted"><small><?= $st['hourly_rate'] === null ? 'Définissez un tarif' : 'Rien à régler' ?></small></span><?php endif ?>
       </div>
+      <form method="post" class="fin-rate-form edit-form"><?= $hid('rate') ?><input type="hidden" name="sid" value="<?= (int)$st['id'] ?>">
+        <label>Tarif / h (€)<input name="hourly_rate" inputmode="decimal" value="<?= e($st['hourly_rate'] ?? '') ?>" placeholder="ex. 25"></label>
+        <label>Visio / h <small class="muted">si différent</small><input name="hourly_rate_visio" inputmode="decimal" value="<?= e($st['hourly_rate_visio'] ?? '') ?>" placeholder="—"></label>
+        <label>Remise (%)<input name="discount_pct" inputmode="decimal" value="<?= e($st['discount_pct'] ?? '') ?>" placeholder="ex. 10"></label>
+        <label class="wide-l">Motif de la remise<input name="discount_label" maxlength="80" value="<?= e($st['discount_label'] ?? '') ?>" placeholder="ex. fratrie, fidélité, forfait 10 séances"></label>
+        <div class="fin-rate-btns"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
     </div>
   <?php endforeach ?>
   </div>
@@ -50,6 +53,8 @@ $late = fn($p) => $p['status'] === 'pending' && $p['due_date'] && $p['due_date']
         <label>Libellé<input name="label" required maxlength="160" placeholder="ex. Stage de révisions (vacances)"></label>
         <label>Montant (€)<input name="amount" required inputmode="decimal" placeholder="ex. 120"></label>
         <label>À régler avant le<input type="date" name="due_date"></label>
+        <label>Remise <small class="muted">en € ou en % (ex. 10 %)</small><input name="discount" placeholder="ex. 15 ou 10 %"></label>
+        <label>Motif de la remise<input name="discount_label" maxlength="80" placeholder="ex. geste commercial"></label>
       </div>
       <label class="check"><input type="checkbox" name="notify" value="1" checked> Prévenir le parent dans « Échanges »</label>
       <div><button class="btn sm"><?= icon('plus') ?> Créer l'échéance</button></div>
@@ -61,7 +66,7 @@ $late = fn($p) => $p['status'] === 'pending' && $p['due_date'] && $p['due_date']
   <div class="card"><h2><?= icon('clock') ?> En attente de paiement</h2>
     <?php if (!$pending): ?><p class="muted">Tout est réglé. 🎉</p><?php endif ?>
     <ul class="pay-list"><?php foreach ($pending as $p): ?>
-      <li class="editable"><div class="pay-main"><strong><?= e($p['first_name']) ?> · <?= money((float)$p['amount']) ?></strong><small class="muted"><?= e($p['label']) ?><?= $p['due_date'] ? ' · avant le ' . e(fdate($p['due_date'])) : '' ?></small><?php if ($late($p)): ?><span class="badge err">En retard</span><?php endif ?></div>
+      <li class="editable"><div class="pay-main"><strong><?= e($p['first_name']) ?> · <?= money((float)$p['amount']) ?></strong><small class="muted"><?= e($p['label']) ?><?= $p['due_date'] ? ' · avant le ' . e(fdate($p['due_date'])) : '' ?><?= !empty($p['discount']) ? ' · ' . e($p['discount_label'] ?: 'Remise') . ' −' . money((float)$p['discount']) : '' ?></small><?php if ($late($p)): ?><span class="badge err">En retard</span><?php endif ?></div>
         <div class="row view"><button type="button" class="btn sm" data-edit><?= icon('check') ?> Marquer payé</button>
           <form method="post" data-confirm="Supprimer cette échéance ?"><?= $hid('delete') ?><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="btn ghost sm" title="Supprimer" aria-label="Supprimer"><?= icon('trash-2') ?></button></form></div>
         <form method="post" class="edit-form pay-form"><?= $hid('pay') ?><input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
@@ -91,7 +96,7 @@ $late = fn($p) => $p['status'] === 'pending' && $p['due_date'] && $p['due_date']
   </div>
   <div class="card"><h2><?= icon('lightbulb') ?> Comment ça marche</h2>
     <ol class="fin-help">
-      <li>Fixez le tarif horaire de chaque élève (crayon à côté du tarif).</li>
+      <li>Fixez le tarif horaire de chaque élève et, si besoin, une remise en % (fratrie, fidélité…) avec le crayon.</li>
       <li>Le montant du mois se calcule tout seul à partir des séances réalisées.</li>
       <li>« Demander » crée l'échéance : le parent la voit dans « Finances » et reçoit un message.</li>
       <li>Quand vous recevez le paiement, cliquez sur « Marquer payé ».</li>

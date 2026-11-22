@@ -39,10 +39,18 @@ function month_billing(array $s, string $month): array
     unset($x);
     $planned = all('SELECT duration_min, mode FROM sessions WHERE student_id=? AND starts_at >= ? AND starts_at < ? AND status="planned" AND starts_at >= NOW()', [$s['id'], max($start, date('Y-m-d H:i:s')), $end]);
     $plannedAmount = 0.0; foreach ($planned as $x) $plannedAmount += (rate_for($s, $x['mode']) ?? 0) * (int)$x['duration_min'] / 60;
-    return ['sessions' => $rows, 'minutes' => $min, 'amount' => round($amount, 2), 'missing_rate' => $missingRate, 'planned_min' => array_sum(array_column($planned, 'duration_min')), 'planned_amount' => round($plannedAmount, 2)];
+    $pct = (float)($s['discount_pct'] ?? 0);
+    $disc = $pct > 0 ? round($amount * $pct / 100, 2) : 0.0;
+    return ['sessions' => $rows, 'minutes' => $min, 'gross' => round($amount, 2), 'discount' => $disc, 'discount_pct' => $pct, 'discount_label' => (string)($s['discount_label'] ?? ''),
+            'amount' => round($amount - $disc, 2), 'missing_rate' => $missingRate, 'planned_min' => array_sum(array_column($planned, 'duration_min')), 'planned_amount' => round($plannedAmount, 2)];
 }
 function payments_of(int $sid): array
 {
     try { return all('SELECT * FROM payments WHERE student_id=? ORDER BY status="paid", COALESCE(due_date, created_at) DESC, id DESC', [$sid]); } catch (PDOException) { return []; }
+}
+/** « Remise fratrie (-10 %) » */
+function discount_text(?string $label, float $pct = 0): string
+{
+    return 'Remise' . ($label ? ' ' . $label : '') . ($pct > 0 ? ' (−' . rtrim(rtrim(number_format($pct, 2, ',', ''), '0'), ',') . ' %)' : '');
 }
 function tax_credit_on(): bool { return setting('tax_credit', '0') === '1'; }
