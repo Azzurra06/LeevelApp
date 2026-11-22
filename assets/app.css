@@ -1021,3 +1021,8 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 @media (max-width:600px){.wl-lbl{display:none}.wl-card{padding:20px 18px}.wl-card h1{font-size:1.25rem}}
 @media (min-width:721px){.page-account .acc-l{grid-column:1}.page-account .acc-r{grid-column:2}}
 .msg-sys>div{flex:1;min-width:0}.msg-sys .msg-time{text-align:right}
+
+/* Changement de compte */
+.acct-sep{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:10px 12px 4px;border-top:1px solid var(--beige);margin-top:4px}
+.acct-switch{display:flex!important;align-items:center;gap:10px;width:100%;text-align:left}
+.acct-switch span{display:flex;flex-direction:column;line-height:1.25}.acct-switch small{color:var(--muted);font-size:.75rem}

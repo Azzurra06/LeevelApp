@@ -236,12 +236,34 @@ function attempt_login(string $username, string $password): bool|string
     }
     q('DELETE FROM login_attempts WHERE username=?', [$username]);
     session_regenerate_id(true);
-    $_SESSION = ['uid' => (int)$u['id'], 'last' => time()];
+    // comptes déjà connectés dans ce navigateur : conservés pour passer de l'un à l'autre sans se reconnecter
+    $accounts = array_values(array_unique(array_map('intval', array_merge($_SESSION['accounts'] ?? [], isset($_SESSION['uid']) && !in_passation() ? [(int)$_SESSION['uid']] : []))));
+    $accounts = array_values(array_unique(array_merge($accounts, [(int)$u['id']])));
+    $_SESSION = ['uid' => (int)$u['id'], 'last' => time(), 'accounts' => array_slice($accounts, -5)];
     q('UPDATE users SET last_login_at=NOW() WHERE id=?', [$u['id']]);
     audit('login');
     return true;
 }
 
+/** Autres comptes connectés dans ce navigateur (hors compte courant). */
+function linked_accounts(): array
+{
+    $cur = (int)($_SESSION['uid'] ?? 0);
+    $ids = array_values(array_filter(array_map('intval', $_SESSION['accounts'] ?? []), fn($i) => $i !== $cur));
+    if (!$ids || in_passation()) return [];
+    try { return all('SELECT id, username, display_name, role, avatar FROM users WHERE is_active=1 AND id IN (' . implode(',', $ids) . ') ORDER BY FIELD(id,' . implode(',', $ids) . ')'); }
+    catch (PDOException) { return []; }
+}
+/** Passe sur un autre compte déjà connecté dans ce navigateur. */
+function switch_account(int $uid): bool
+{
+    if (in_passation() || !in_array($uid, array_map('intval', $_SESSION['accounts'] ?? []), true)) return false;
+    if (!one('SELECT 1 FROM users WHERE id=? AND is_active=1', [$uid])) return false;
+    session_regenerate_id(true);
+    $keep = ['accounts' => $_SESSION['accounts']];
+    $_SESSION = ['uid' => $uid, 'last' => time()] + $keep;
+    return true;
+}
 function logout(): void
 {
     $_SESSION = [];

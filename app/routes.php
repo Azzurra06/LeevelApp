@@ -23,19 +23,35 @@ function dispatch(string $r, string $method): void
         case 'welcome':
             welcome_route($isPost);
 
+        case 'switch_account':
+            if (!$isPost || !current_user()) redirect('home');
+            if (switch_account(post_int('uid'))) { audit('account_switched'); flash('Vous êtes maintenant connecté·e en tant que ' . (current_user()['display_name'] ?? '') . '.'); }
+            else flash('Ce compte n\'est plus connecté : identifiez-vous à nouveau.', 'err');
+            redirect('home');
+
         case 'login':
-            if (current_user() && !in_passation()) redirect('home');
+            $adding = !empty($_GET['add']) || !empty($_POST['add']);
+            if (current_user() && !in_passation() && !$adding) redirect('home');
             $err = null;
             if ($isPost) {
                 $res = attempt_login((string)($_POST['username'] ?? ''), (string)($_POST['password'] ?? ''));
                 if ($res === true) redirect('home');
                 $err = $res;
             }
-            render('login', ['err' => $err, 'prefill' => $_GET['u'] ?? ''], 'layout_min');
+            render('login', ['err' => $err, 'prefill' => $_GET['u'] ?? '', 'adding' => $adding && current_user()], 'layout_min');
 
         case 'logout':
             if (!$isPost) redirect('home');
             audit('logout');
+            // déconnexion du seul compte courant : on bascule sur un autre compte encore connecté
+            $others = empty($_POST['all']) ? array_column(linked_accounts(), 'id') : [];
+            $name = current_user()['display_name'] ?? '';
+            if ($others) {
+                $_SESSION['accounts'] = array_values(array_filter(array_map('intval', $_SESSION['accounts'] ?? []), fn($i) => $i !== (int)$_SESSION['uid']));
+                switch_account((int)$others[0]);
+                flash($name . ' est déconnecté·e. Vous êtes sur le compte de ' . (current_user()['display_name'] ?? '') . '.');
+                redirect('home');
+            }
             logout();
             flash('Vous êtes déconnecté·e.');
             redirect('login');

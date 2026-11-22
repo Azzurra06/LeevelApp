@@ -45,7 +45,15 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
         <a role="menuitem" href="<?= e(url('account')) ?>" class="<?= $r === 'account' ? 'on' : '' ?>"><?= icon('settings') ?> Mon compte</a>
         <?php if ($role === 'tutor'): ?><a role="menuitem" href="<?= e(url('t_users')) ?>" class="<?= $r === 't_users' ? 'on' : '' ?>"><?= icon('users') ?> Familles et dossiers</a><a role="menuitem" href="<?= e(url('t_finance')) ?>" class="<?= $r === 't_finance' ? 'on' : '' ?>"><?= icon('file-text') ?> Finances</a><?php else: ?><a role="menuitem" href="<?= e(url('q')) ?>" class="<?= in_array($r, ['q', 'q_recap'], true) ? 'on' : '' ?>"><?= icon('clipboard-list') ?> Mon questionnaire</a><?php endif ?>
         <a role="menuitem" href="<?= e(url('help')) ?>" class="<?= $r === 'help' ? 'on' : '' ?>"><?= icon('circle-help') ?> Centre d'aide</a>
-        <form method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><button role="menuitem" class="acct-out"><?= icon('log-out') ?> Se déconnecter</button></form>
+        <?php $others = linked_accounts(); ?>
+        <div class="acct-sep"><?= $others ? 'Changer de compte' : 'Autres comptes' ?></div>
+        <?php foreach ($others as $o): ?>
+          <form method="post" action="<?= e(url('switch_account')) ?>"><?= csrf_field() ?><input type="hidden" name="uid" value="<?= (int)$o['id'] ?>">
+            <button role="menuitem" class="acct-switch"><?= avatar_html($o, 'xs') ?><span><strong><?= e($o['display_name']) ?></strong><small><?= e(ROLE_LABELS[$o['role']] ?? '') ?> · <?= e($o['username']) ?></small></span></button></form>
+        <?php endforeach ?>
+        <a role="menuitem" href="<?= e(url('login', ['add' => 1])) ?>"><?= icon('plus') ?> Ajouter un compte</a>
+        <form method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><button role="menuitem" class="acct-out"><?= icon('log-out') ?> Se déconnecter<?= $others ? ' de ce compte' : '' ?></button></form>
+        <?php if ($others): ?><form method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><input type="hidden" name="all" value="1"><button role="menuitem" class="acct-out"><?= icon('log-out') ?> Se déconnecter de tous les comptes</button></form><?php endif ?>
       </div>
     </details>
   </div>
