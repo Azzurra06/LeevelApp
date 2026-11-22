@@ -36,6 +36,7 @@ $statusTone = ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancel
           <?php if ($kids): ?><div class="wide"><dt>Rattrapage</dt><dd><?= implode(' + ', array_map(fn($k) => e(fdatetime($k['starts_at'])), $kids)) ?></dd></div><?php endif ?>
           <?php if ($from): ?><div class="wide"><dt>Report</dt><dd>Report de la séance du <?= e(fdatetime($from['starts_at'])) ?></dd></div><?php endif ?>
           <?php if ($mergedFrom): ?><div class="wide"><dt>Rattrapage inclus</dt><dd><?= fdur((int)$se['merged_report_min']) ?> reportées de la séance du <?= e(fdatetime($mergedFrom['starts_at'])) ?></dd></div><?php endif ?>
+          <?php if ($rep && report_subjects($rep)): ?><div class="wide"><dt>Matières abordées</dt><dd><?= e(implode(', ', report_subjects($rep))) ?></dd></div><?php endif ?>
           <?php if ($se['objectives']): ?><div class="wide"><dt>Au programme</dt><dd><?= nl2br(e($se['objectives'])) ?></dd></div><?php endif ?>
           <?php if ($rep && $viewerRole === 'parent' && $rep['sent_at'] && $rep['parent_summary']): ?><div class="wide"><dt>Bilan de la tutrice</dt><dd><?= nl2br(e($rep['parent_summary'])) ?></dd></div><?php endif ?>
           <?php if ($rep && $viewerRole === 'student' && $rep['worked_on']): ?><div class="wide"><dt>Le mot de ta tutrice</dt><dd><?= nl2br(e($rep['worked_on'])) ?></dd></div><?php endif ?>

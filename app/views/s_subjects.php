@@ -13,6 +13,7 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
     <p class="recap-date"><span class="badge"><?= e(fdatetime($recap['starts_at'])) ?></span> <span class="muted"><?= e(session_label($recap)) ?></span></p>
     <div class="recap-note">
       <h3 class="mini-h"><?= icon('message-circle') ?> Le mot de ta tutrice</h3>
+      <?= report_subject_chips($rep) ?>
       <?php if ($rep && $rep['worked_on']): ?><p><?= nl2br(e($rep['worked_on'])) ?></p>
       <?php else: ?><p class="muted">Ta tutrice n'a pas encore écrit le bilan de cette séance.</p><?php endif ?>
       <?php if ($rep && $rep['next_focus']): ?><p class="recap-next"><strong>Pour la prochaine fois :</strong> <?= e($rep['next_focus']) ?></p><?php endif ?>

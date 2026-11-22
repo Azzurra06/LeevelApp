@@ -10,6 +10,7 @@ $next = $upcoming[0] ?? null; ?>
       <?php if (!$reports): ?><p class="muted">Après chaque séance, la tutrice vous enverra un court bilan ici.</p><?php endif ?>
       <?php foreach ($reports as $rp): ?>
         <div class="report-item"><span class="badge"><?= e(fdatetime($rp['starts_at'])) ?></span>
+          <?= report_subject_chips($rp) ?>
           <p data-clamp="120"><?= nl2br(e($rp['parent_summary'])) ?></p>
           <?php $fb = session_feedback_of((int)$rp['session_id']); if ($fb): ?><div class="fb-box"><strong><?= ['good' => '😄', 'ok' => '😐', 'hard' => '😣'][$fb['mood']] ?? '🙂' ?> Ressenti de <?= e($s['first_name']) ?><?= $fb['mood'] ? ' : ' . e(mb_strtolower(MOODS[$fb['mood']])) : '' ?></strong>
             <?php if (!empty($fb['note'])): ?><p>« <?= e($fb['note']) ?> »</p><?php endif ?>

@@ -4,6 +4,7 @@ $moodEmo = ['good' => '😄', 'ok' => '😐', 'hard' => '😣']; ?>
   <h2><?= icon('calendar') ?> Dernière séance</h2>
   <?php if (!$recap): ?><p class="muted">Aucune séance passée pour l'instant.</p><?php else: $rep = $recap['report']; $fb = $recap['feedback']; ?>
     <p><strong><?= e(fdatetime($recap['starts_at'])) ?></strong> · <span class="muted"><?= e(session_label($recap)) ?></span></p>
+    <?= report_subject_chips($rep) ?>
     <?php if ($rep && ($rep['worked_on'] || $rep['parent_summary'])): ?><p data-clamp="110"><?= nl2br(e($rep['worked_on'] ?: $rep['parent_summary'])) ?></p>
     <?php else: ?><p class="muted"><small>Bilan pas encore rédigé.</small></p><?php endif ?>
     <?php if ($fb): ?><div class="fb-box"><strong><?= $moodEmo[$fb['mood']] ?? '🙂' ?> Ressenti de <?= e($s['first_name']) ?><?= $fb['mood'] ? ' : ' . e(mb_strtolower(MOODS[$fb['mood']])) : '' ?></strong>

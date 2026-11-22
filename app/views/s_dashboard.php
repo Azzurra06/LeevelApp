@@ -11,7 +11,7 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
 <?php require __DIR__ . '/_s_hero.php' ?>
 <?php require __DIR__ . '/_onboarding.php' ?>
 <?php $awaiting = session_awaiting_feedback((int)$s['id']); if ($awaiting): ?>
-<a class="card tone-pink link-card" href="<?= e(url('s_subjects')) ?>#recap"><span class="lc-emoji">💬</span><div><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small></div><?= icon('chevron-right', 'go') ?></a>
+<a class="card tone-pink link-card fb-cta" href="<?= e(url('s_subjects')) ?>#recap"><span class="lc-emoji">💬</span><div><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small></div><?= icon('chevron-right', 'go') ?></a>
 <?php endif ?>
 
 <div class="s-tiles">
@@ -70,4 +70,4 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
 
 <a class="card tone-teal link-card" href="<?= e(url('s_tools')) ?>"><span class="lc-emoji">🧰</span><div><h2>Mes outils</h2><small>Chrono de travail, méthodes pour retenir à ta façon, fiches méthode…</small></div><?= icon('chevron-right', 'go') ?></a><br>
 <?php if ($s['shared_message']): ?><div class="card tone-violet"><h2><?= icon('message-circle') ?> Le mot de ta tutrice</h2><p><?= nl2br(e($s['shared_message'])) ?></p></div><br><?php endif ?>
-<div class="card"><h2><?= icon('calendar') ?> Mon planning</h2><?php require __DIR__ . '/_planning.php' ?></div>
+

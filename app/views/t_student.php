@@ -196,8 +196,16 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
         <?php if ($fb['to_deepen']): ?><p><small><strong>À approfondir :</strong> <?= e($fb['to_deepen']) ?></small></p><?php endif ?>
         <?php if ($fb['needs_next']): ?><p><small><strong>Besoin pour la prochaine fois :</strong> <?= e($fb['needs_next']) ?></small></p><?php endif ?></div>
       <?php else: ?><p class="muted"><small><?= e($s['first_name']) ?> n'a pas encore donné son retour.</small></p><?php endif ?>
+      <?= report_subject_chips($rep) ?>
       <details <?= $rep ? '' : 'open' ?>><summary><?= $rep ? 'Modifier le bilan' : 'Rédiger le bilan' ?></summary>
         <form method="post" action="<?= e(url('t_report')) ?>" class="stack"><?= $hidden() ?><input type="hidden" name="session_id" value="<?= (int)$se['id'] ?>">
+          <?php $chosen = report_subjects($rep); $choices = report_subject_choices((int)$s['id']); $others = array_diff($chosen, $choices, REPORT_TOPICS); ?>
+          <div class="subj-pick"><span class="ql">Matières abordées</span>
+            <div class="pills sm"><?php foreach ($choices as $x): ?><label class="pill"><input type="checkbox" name="subjects[]" value="<?= e($x) ?>" <?= in_array($x, $chosen, true) ? 'checked' : '' ?>><span><?= e($x) ?></span></label><?php endforeach ?></div>
+            <span class="ql">Et aussi</span>
+            <div class="pills sm"><?php foreach (REPORT_TOPICS as $x): ?><label class="pill topic"><input type="checkbox" name="subjects[]" value="<?= e($x) ?>" <?= in_array($x, $chosen, true) ? 'checked' : '' ?>><span><?= e($x) ?></span></label><?php endforeach ?></div>
+            <input name="subjects_other" maxlength="200" value="<?= e(implode(', ', $others)) ?>" placeholder="Autre (séparer par des virgules)" aria-label="Autre matière ou thème">
+          </div>
           <label>Ce qu'on a travaillé <span class="q-hint"><?= icon('eye') ?> visible par l'élève</span><textarea name="worked_on" maxlength="3000" rows="2"><?= e($rep['worked_on'] ?? '') ?></textarea></label>
           <label><?= icon('lock') ?> Note pour moi (privée)<textarea name="tutor_note" maxlength="3000" rows="2"><?= e($rep['tutor_note'] ?? '') ?></textarea></label>
           <label><?= icon('users') ?> Bilan pour le parent<textarea name="parent_summary" maxlength="3000" rows="3" placeholder="Quelques phrases simples : ce qui a été fait, comment ça s'est passé, sur quoi s'appuyer à la maison."><?= e($rep['parent_summary'] ?? '') ?></textarea></label>
@@ -239,6 +247,7 @@ $draft = $saved['summary'] ?? month_draft($s, $ov, $month); ?>
 <div class="card"><h2><?= icon('file-text') ?> Bilans de séance du mois</h2>
   <?php if (!$ov['reports']): ?><p class="muted">Aucun.</p><?php endif ?>
   <?php foreach ($ov['reports'] as $rp): ?><div class="report-item"><span class="badge"><?= e(fdatetime($rp['date'])) ?></span>
+    <?php if (!empty($rp['subjects'])): ?><p><small><strong>Matières :</strong> <?= e(implode(', ', $rp['subjects'])) ?></small></p><?php endif ?>
     <?php if ($rp['worked_on']): ?><p><small><strong>Travaillé :</strong> <?= e($rp['worked_on']) ?></small></p><?php endif ?>
     <?php if ($rp['summary']): ?><p><small><strong>Bilan parent :</strong> <?= e($rp['summary']) ?></small></p><?php endif ?></div><?php endforeach ?>
 </div>

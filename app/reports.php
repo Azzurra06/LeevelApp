@@ -41,6 +41,29 @@ function session_report(int $sessionId): ?array
 {
     try { return one('SELECT * FROM session_reports WHERE session_id=?', [$sessionId]); } catch (PDOException) { return null; }
 }
+const REPORT_TOPICS = ['Méthodologie', 'Organisation', 'Révisions / contrôle', 'Aide aux devoirs', 'Confiance en soi'];
+const DEFAULT_SUBJECTS = ['Mathématiques', 'Français', 'Anglais', 'Physique-chimie', 'SVT', 'Histoire-géographie'];
+/** Matières proposées dans le bilan : celles suivies par l'élève (sinon une liste courante). */
+function report_subject_choices(int $studentId): array
+{
+    try { $mine = array_column(all('SELECT name FROM student_subjects WHERE student_id=? ORDER BY position, name', [$studentId]), 'name'); } catch (PDOException) { $mine = []; }
+    return $mine ?: DEFAULT_SUBJECTS;
+}
+/** Matières / thèmes abordés pendant la séance. */
+function report_subjects(?array $rep): array
+{
+    if (!$rep || empty($rep['subjects_json'])) return [];
+    $l = json_decode((string)$rep['subjects_json'], true);
+    return is_array($l) ? array_values(array_filter($l, 'is_string')) : [];
+}
+function report_subject_chips(?array $rep, string $class = ''): string
+{
+    $l = report_subjects($rep);
+    if (!$l) return '';
+    $h = '';
+    foreach ($l as $x) $h .= '<span class="ra-chip' . (in_array($x, REPORT_TOPICS, true) ? ' topic' : '') . '">' . e($x) . '</span>';
+    return '<div class="ra-chips subj-chips ' . e($class) . '">' . $h . '</div>';
+}
 function session_feedback_of(int $sessionId): ?array
 {
     try { return one('SELECT * FROM session_feedback WHERE session_id=?', [$sessionId]); } catch (PDOException) { return null; }
@@ -84,7 +107,7 @@ function month_overview(int $studentId, string $month): array
     $reports = []; $moods = ['good' => 0, 'ok' => 0, 'hard' => 0]; $toDeepen = [];
     foreach ($done as $se) {
         $r = session_report((int)$se['id']); $f = session_feedback_of((int)$se['id']);
-        if ($r && ($r['worked_on'] || $r['parent_summary'])) $reports[] = ['date' => $se['starts_at'], 'worked_on' => $r['worked_on'], 'summary' => $r['parent_summary']];
+        if ($r && ($r['worked_on'] || $r['parent_summary'])) $reports[] = ['date' => $se['starts_at'], 'worked_on' => $r['worked_on'], 'summary' => $r['parent_summary'], 'subjects' => report_subjects($r)];
         if ($f && $f['mood']) $moods[$f['mood']]++;
         if ($f && $f['to_deepen']) $toDeepen[] = $f['to_deepen'];
     }

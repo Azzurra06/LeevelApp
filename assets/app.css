@@ -802,3 +802,17 @@ body.parent .link-card{border-top-width:1px!important}
 .mission-grid .feel .pill span{padding:6px 12px;font-size:.85rem}
 .mission-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
 .mission-foot .check{margin:0}
+
+/* Matières abordées (bilan de séance) */
+.subj-pick{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px dashed var(--beige-2);border-radius:12px}
+.subj-pick .ql{margin:0}
+.pills.sm{gap:6px}.pills.sm .pill span{padding:5px 11px;font-size:.85rem}
+.pill.topic input:checked+span{background:var(--sage,#4f8a6b);border-color:var(--sage,#4f8a6b)}
+.subj-chips{margin:6px 0}.ra-chip.topic{background:#e8f3ec;color:#2f6b4b}
+
+/* Élève : rappel « Ta séance du… » bien visible */
+.link-card.fb-cta{background:linear-gradient(120deg,#fde3ef 0%,#f1e8ff 100%)!important;border:1px solid #f4bfd6!important;box-shadow:0 6px 18px rgba(184,50,107,.12)}
+.link-card.fb-cta .lc-emoji{background:#fff}
+.link-card.fb-cta h2{color:#8a2453}
+.link-card.fb-cta .go{color:#b8326b}
+.link-card.fb-cta:hover{box-shadow:0 8px 22px rgba(184,50,107,.2)}

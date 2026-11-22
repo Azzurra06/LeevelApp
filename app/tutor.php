@@ -221,13 +221,23 @@ function tutor_route(string $r, bool $isPost): never
             $send = !empty($_POST['send']);
             $summary = post_str('parent_summary', 3000);
             if ($send && $summary === '') { flash('Écrivez le bilan pour le parent avant de l\'envoyer.', 'err'); redirect('t_student', ['sid' => $sid, 'tab' => 'seances']); }
-            q('INSERT INTO session_reports (session_id, worked_on, tutor_note, parent_summary, next_focus) VALUES (?,?,?,?,?)
-               ON DUPLICATE KEY UPDATE worked_on=VALUES(worked_on), tutor_note=VALUES(tutor_note), parent_summary=VALUES(parent_summary), next_focus=VALUES(next_focus)',
-                [$se['id'], post_str('worked_on', 3000) ?: null, post_str('tutor_note', 3000) ?: null, $summary ?: null, post_str('next_focus', 500) ?: null]);
+            $subj = array_map(fn($x) => mb_substr(trim((string)$x), 0, 60), (array)($_POST['subjects'] ?? []));
+            foreach (preg_split('/[,;]/', post_str('subjects_other', 200)) as $x) $subj[] = mb_substr(trim($x), 0, 60);
+            $subj = array_values(array_unique(array_filter($subj, fn($x) => $x !== '')));
+            $subjJson = $subj ? json_encode($subj, JSON_UNESCAPED_UNICODE) : null;
+            try {
+                q('INSERT INTO session_reports (session_id, subjects_json, worked_on, tutor_note, parent_summary, next_focus) VALUES (?,?,?,?,?,?)
+                   ON DUPLICATE KEY UPDATE subjects_json=VALUES(subjects_json), worked_on=VALUES(worked_on), tutor_note=VALUES(tutor_note), parent_summary=VALUES(parent_summary), next_focus=VALUES(next_focus)',
+                    [$se['id'], $subjJson, post_str('worked_on', 3000) ?: null, post_str('tutor_note', 3000) ?: null, $summary ?: null, post_str('next_focus', 500) ?: null]);
+            } catch (PDOException) {
+                q('INSERT INTO session_reports (session_id, worked_on, tutor_note, parent_summary, next_focus) VALUES (?,?,?,?,?)
+                   ON DUPLICATE KEY UPDATE worked_on=VALUES(worked_on), tutor_note=VALUES(tutor_note), parent_summary=VALUES(parent_summary), next_focus=VALUES(next_focus)',
+                    [$se['id'], post_str('worked_on', 3000) ?: null, post_str('tutor_note', 3000) ?: null, $summary ?: null, post_str('next_focus', 500) ?: null]);
+            }
             if ($se['status'] === 'planned' && strtotime($se['starts_at']) < time()) q('UPDATE sessions SET status="done" WHERE id=?', [$se['id']]);
             if ($send) {
                 $next = post_str('next_focus', 500);
-                send_message((int)$s['family_id'], $u, 'Bilan de la séance du ' . fdatetime($se['starts_at']) . " :\n\n" . $summary . ($next !== '' ? "\n\nPour la prochaine séance : " . $next : ''));
+                send_message((int)$s['family_id'], $u, 'Bilan de la séance du ' . fdatetime($se['starts_at']) . " :\n\n" . ($subj ? 'Matières abordées : ' . implode(', ', $subj) . "\n\n" : '') . $summary . ($next !== '' ? "\n\nPour la prochaine séance : " . $next : ''));
                 q('UPDATE session_reports SET sent_at=NOW() WHERE session_id=?', [$se['id']]);
                 audit('session_report_sent', null, (int)$s['family_id']);
                 flash('Bilan enregistré et envoyé au parent (visible dans « Échanges » et son suivi).');
