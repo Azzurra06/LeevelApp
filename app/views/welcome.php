@@ -35,14 +35,14 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
       <p>Avant de commencer, deux petites étapes :</p>
     <?php endif ?>
     <?php $intro = $isParent ? [
-        'contact' => ['Vos coordonnées', 'Votre téléphone et votre e-mail, pour que la tutrice puisse vous joindre.', '1 min'],
-        'child' => ['Présenter ' . $kidName, 'Prénom, classe, établissement, et ses besoins particuliers s\'il y en a.', '2 min'],
-        'questionnaire' => ['Répondre au questionnaire', 'Ses difficultés, ce qui a déjà été essayé, vos attentes : la base de l\'accompagnement.', '10 min'],
-        'wishes' => ['L\'accompagnement souhaité', 'Le nombre d\'heures, les besoins (matières, devoirs, organisation…) et la formule : présentiel ou visio.', ''],
-        'payment' => ['Modalités de paiement', 'Le tarif, le rythme et le moyen de paiement convenus avec la tutrice.', '1 min'],
+        'contact' => ['Vos coordonnées', 'Pour que la tutrice puisse vous joindre.', '1 min'],
+        'child' => ['Présenter ' . $kidName, 'Sa classe, son établissement, ses besoins éventuels.', '2 min'],
+        'questionnaire' => ['Répondre au questionnaire', 'Sa situation et vos attentes.', '10 min'],
+        'wishes' => ['L\'accompagnement souhaité', 'Volume, besoins et formule.', ''],
+        'payment' => ['Modalités de paiement', 'Tarif et modalités convenus.', '1 min'],
       ] : [
-        'questionnaire' => ['Répondre à ton questionnaire', 'Comment tu travailles, ce que tu aimes, ce qui t\'aide : pour des séances faites pour toi.', '10 min'],
-        'tour' => ['Découvrir ton espace', 'Les onglets de ton espace expliqués en 30 secondes.', '1 min'],
+        'questionnaire' => ['Répondre à ton questionnaire', 'Pour des séances faites pour toi.', '10 min'],
+        'tour' => ['Découvrir ton espace', 'Tes onglets en 30 secondes.', '1 min'],
       ]; ?>
     <ol class="wl-list"><?php $n = 0; foreach (array_slice($steps, 1, -1, true) as $k => [$lb, $ic]): $n++; [$t, $d, $dur] = $intro[$k] ?? [$lb, '', '']; ?>
       <li><span class="wl-li-ic"><?= icon($ic) ?></span><div><strong><?= $n ?>. <?= e($t) ?></strong><?php if ($d): ?><small><?= e($d) ?></small><?php endif ?></div></li>
