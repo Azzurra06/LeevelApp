@@ -1043,3 +1043,9 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .check.consent span{display:flex;flex-direction:column;gap:6px}
 .check.consent .consent-more{margin:0;font-size:.9rem;align-self:flex-start}
 .check.consent{margin:4px 0 6px}
+
+.wl-list li{align-items:flex-start;font-weight:400;padding:12px 14px}
+.wl-list li>div{flex:1;display:flex;flex-direction:column;gap:2px}
+.wl-list li strong{font-weight:700}.wl-list li small{color:var(--muted);font-size:.88rem;line-height:1.4}
+.wl-li-ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--accent-l);display:grid;place-items:center}
+.wl-dur{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);white-space:nowrap;margin-top:2px}.wl-dur .ic{width:13px;height:13px;color:var(--muted)}

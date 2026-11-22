@@ -29,12 +29,23 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
     <h1><?= $isParent ? 'Bienvenue sur leevel.app !' : 'Bienvenue, ' . e($u['display_name']) . ' !' ?></h1>
     <?php if ($isParent): ?>
       <p class="wl-lead">Ici, vous suivez l'accompagnement scolaire de <?= e($kidName) ?> : séances, bilans, progrès et échanges avec <?= !empty($tutor) ? e($tutor['display_name']) : 'la tutrice' ?>.</p>
-      <p>Avant de commencer, quelques étapes rapides (environ <strong>10 minutes</strong>) pour que la tutrice dispose de tout ce qu'il faut :</p>
+      <p>Avant de commencer, quelques étapes rapides (environ <strong>15 minutes</strong>) pour que la tutrice dispose de tout ce qu'il faut :</p>
     <?php else: ?>
       <p class="wl-lead">C'est ton espace pour suivre tes séances, tes missions et tes progrès avec <?= !empty($tutor) ? e($tutor['display_name']) : 'ta tutrice' ?>.</p>
       <p>Avant de commencer, deux petites étapes :</p>
     <?php endif ?>
-    <ul class="wl-list"><?php foreach (array_slice($steps, 1, -1, true) as $k => [$lb, $ic]): ?><li><?= icon($ic) ?> <?= e($lb) ?></li><?php endforeach ?></ul>
+    <?php $intro = $isParent ? [
+        'contact' => ['Vos coordonnées', 'Votre téléphone et votre e-mail, pour que la tutrice puisse vous joindre.', '1 min'],
+        'child' => ['Présenter ' . $kidName, 'Prénom, classe, établissement, et ses besoins particuliers s\'il y en a.', '2 min'],
+        'questionnaire' => ['Répondre au questionnaire', 'Ses difficultés, ce qui a déjà été essayé, vos attentes : la base de l\'accompagnement.', '10 min'],
+        'payment' => ['Découvrir les modalités de paiement', 'Le tarif, le rythme et le moyen de paiement convenus avec la tutrice (simple lecture).', '1 min'],
+      ] : [
+        'questionnaire' => ['Répondre à ton questionnaire', 'Comment tu travailles, ce que tu aimes, ce qui t\'aide : pour des séances faites pour toi.', '10 min'],
+        'tour' => ['Découvrir ton espace', 'Les onglets de ton espace expliqués en 30 secondes.', '1 min'],
+      ]; ?>
+    <ol class="wl-list"><?php $n = 0; foreach (array_slice($steps, 1, -1, true) as $k => [$lb, $ic]): $n++; [$t, $d, $dur] = $intro[$k] ?? [$lb, '', '']; ?>
+      <li><span class="wl-li-ic"><?= icon($ic) ?></span><div><strong><?= $n ?>. <?= e($t) ?></strong><?php if ($d): ?><small><?= e($d) ?></small><?php endif ?></div><?php if ($dur): ?><span class="wl-dur"><?= icon('clock') ?> <?= e($dur) ?></span><?php endif ?></li>
+    <?php endforeach ?></ol>
     <p class="muted"><small>Vous pouvez vous arrêter à tout moment : tout est enregistré au fur et à mesure.</small></p>
     <form method="post"><?= $hid() ?><?= $nav('Commencer') ?></form>
 
