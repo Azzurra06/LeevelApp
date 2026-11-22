@@ -95,14 +95,14 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
             <small><?= $d['ok'] ? '✓ Bonne réponse' : '✗ Réponse attendue : ' . e($q['options'][$q['answer']] ?? '') ?></small>
             <?php if (!$d['ok'] && $q['explanation']): ?><small class="muted"><?= e($q['explanation']) ?></small><?php endif ?></li>
         <?php endforeach ?></ol>
-        <a class="btn ghost sm" href="<?= e(url('s_subjects', ['subj' => $cur['id']])) ?>#quiz"><?= icon('refresh-cw') ?> Recommencer</a>
+        <a class="btn ghost sm" href="<?= e(url('s_subjects', ['subj' => $cur['id'], 'quiz' => 'nouveau'])) ?>#quiz"><?= icon('refresh-cw') ?> Recommencer</a>
       <?php else: ?>
         <?php if ($lastAttempt): ?><p><span class="badge sage">Dernier essai : <?= (int)$lastAttempt['score'] ?> / <?= (int)$lastAttempt['total'] ?></span></p><?php endif ?>
         <form method="post" class="quiz stack"><?= $hiddenSubj() ?><input type="hidden" name="action" value="quiz"><input type="hidden" name="chapter_id" value="<?= (int)$current['id'] ?>">
           <?php foreach ($questions as $i => $q): ?>
-            <fieldset class="quiz-q"><legend><?= $i + 1 ?>. <?= e($q['question']) ?></legend>
+            <div class="quiz-q" role="radiogroup" aria-labelledby="qq-<?= (int)$q['id'] ?>"><p class="quiz-ql" id="qq-<?= (int)$q['id'] ?>"><?= $i + 1 ?>. <?= e($q['question']) ?></p>
               <div class="pills"><?php foreach ($q['options'] as $k => $o): ?><label class="pill"><input type="radio" name="q[<?= (int)$q['id'] ?>]" value="<?= $k ?>" required><span><?= e($o) ?></span></label><?php endforeach ?></div>
-            </fieldset>
+            </div>
           <?php endforeach ?>
           <button class="btn"><?= icon('check') ?> Valider mes réponses</button>
         </form>

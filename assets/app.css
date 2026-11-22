@@ -649,3 +649,12 @@ main.wrap>*:not(.js-masonry){margin-top:0!important;margin-bottom:0!important}
 main.wrap>.js-masonry{margin-top:0!important}
 main.wrap>.btn,main.wrap>.seg,main.wrap>a.card-link{align-self:flex-start}
 main.wrap>.page-head{margin-bottom:4px!important}
+
+/* Quiz élève : espacement régulier entre questions et réponses */
+.quiz .quiz-q{margin:0!important;padding:0 0 18px}
+.quiz .quiz-q+.quiz-q{padding-top:18px;border-top:1px dashed var(--beige-2)}
+.quiz .quiz-q legend{display:block;margin:0 0 10px;line-height:1.4}
+.quiz .quiz-q>.pills{margin-top:0!important}
+.quiz>.btn{margin-top:4px}
+.quiz-review li{padding-bottom:10px;border-bottom:1px dashed var(--beige)}.quiz-review li:last-child{border-bottom:0}
+.quiz .quiz-ql{font-weight:600;color:var(--ink);margin:0 0 10px;line-height:1.4}
