@@ -777,3 +777,4 @@ body.tutor .card[class*="tone-"] .axis:not(.prio) .bar>i{background:var(--tc);op
 .plan-detail{padding:4px 14px 14px 72px}.plan-detail .fields{gap:10px 20px}.plan-detail dd .ic{width:1em;height:1em;color:var(--accent-d)}
 @media (max-width:720px){.plan-detail{padding:4px 14px 14px}.plan-item>summary{gap:10px;padding:10px 12px}}
 .plan-item>summary{color:var(--ink);font-weight:inherit}.plan-item.off .plan-title{color:var(--muted)}
+.stat-grid{align-items:stretch!important}.stat-grid>.card{height:100%}
