@@ -553,7 +553,7 @@ function create_family(array $tutor): void
     unset($_SESSION['old']);
     audit('family_created', $v['family_name'] . ' (' . $modes['parent'] . '/' . $modes['student'] . ')', $fid);
     flash('Dossier créé : ' . implode(', ', $msgs) . '.');
-    redirect('t_rdv', ['sid' => $sid]);
+    $_SESSION['current_sid'] = $sid; redirect('t_users', ['open' => $fid]);
 }
 
 /** Renvoyer (nouveau lien) ou annuler une invitation d'un dossier de la tutrice. */
