@@ -702,3 +702,13 @@ main.wrap>h2 .ic{color:var(--accent-d)}
 .ra-scale{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}.ra-dots{display:inline-flex;gap:4px}
 .ra-dots i{width:10px;height:10px;border-radius:50%;background:var(--beige-2)}.ra-dots i.on{background:var(--accent-d)}
 .recap-actions{justify-content:flex-start}
+
+/* Fiche élève › Bilans : bilan du mois */
+.month-head{margin-bottom:14px}.month-head h2{margin:0}.month-head select{margin:0;width:auto}
+.month-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.month-stats .stat{background:var(--bg);border:1px solid var(--beige);border-radius:12px;padding:12px 14px;gap:4px}
+.month-stats .stat .muted{font-size:.82rem}.month-stats .stat strong{font-size:1.3rem;line-height:1.2}
+.stat-moods{display:flex;gap:12px;flex-wrap:wrap;font-size:1.05rem!important}
+.month-alert{margin:0 0 16px}
+.month-form>*+*{margin-top:14px}
+.field-help{display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin:2px 0 0;line-height:1.35}

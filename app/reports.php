@@ -132,3 +132,16 @@ function month_label(string $month): string
     $names = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
     return $names[(int)substr($month, 5, 2)] . ' ' . substr($month, 0, 4);
 }
+
+/** Libellé lisible d'une entrée du journal de l'élève (type + valeur). */
+function entry_label(array $h): string
+{
+    $type = ['help_request' => "Demande d'aide", 'self_eval' => 'Autoévaluation', 'task_done' => 'Tâche terminée', 'feeling' => 'Humeur de la semaine'][$h['entry_type']] ?? $h['entry_type'];
+    $moods = ['good' => '😄 Ça va bien', 'ok' => '😐 Moyen', 'hard' => '😣 C\'est dur'];
+    $val = $h['value'] ? ($h['entry_type'] === 'feeling' ? ($moods[$h['value']] ?? $h['value']) : (FEELINGS[$h['value']] ?? $moods[$h['value']] ?? $h['value'])) : '';
+    return $type . ($val !== '' ? ' · ' . $val : '');
+}
+function entry_icon(string $type): string
+{
+    return ['help_request' => 'circle-help', 'self_eval' => 'check', 'task_done' => 'flag', 'feeling' => 'smile'][$type] ?? 'check';
+}

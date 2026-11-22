@@ -172,19 +172,19 @@ $month = preg_match('/^\d{4}-\d{2}$/', $_GET['month'] ?? '') ? $_GET['month'] : 
 $ov = month_overview((int)$s['id'], $month);
 $saved = one('SELECT * FROM monthly_reports WHERE student_id=? AND month=?', [$s['id'], $month]);
 $draft = $saved['summary'] ?? month_draft($s, $ov, $month); ?>
-<div class="card">
-  <div class="row between"><h2><?= icon('chart-column') ?> Bilan du mois</h2>
+<div class="card month-card">
+  <div class="row between month-head"><h2><?= icon('chart-column') ?> Bilan du mois</h2>
     <form method="get" action="<?= e(url()) ?>" class="row"><input type="hidden" name="r" value="t_student"><input type="hidden" name="sid" value="<?= (int)$s['id'] ?>"><input type="hidden" name="tab" value="bilans">
       <select name="month" data-autosubmit aria-label="Mois"><?php foreach ($months as $m): ?><option value="<?= e($m) ?>" <?= $m === $month ? 'selected' : '' ?>><?= e(month_label($m)) ?></option><?php endforeach ?></select></form></div>
-  <div class="grid stat-grid">
+  <div class="month-stats">
     <div class="stat"><span class="muted">Séances réalisées</span><strong><?= $ov['count'] ?></strong></div>
     <div class="stat"><span class="muted">Heures</span><strong><?= fdur($ov['minutes']) ?></strong></div>
-    <div class="stat"><span class="muted">Ressenti de <?= e($s['first_name']) ?></span><strong><?= $ov['moods']['good'] ?> 🙂 · <?= $ov['moods']['ok'] ?> 😐 · <?= $ov['moods']['hard'] ?> 😕</strong></div>
+    <div class="stat"><span class="muted">Ressenti de <?= e($s['first_name']) ?></span><strong class="stat-moods"><span>😄 <?= $ov['moods']['good'] ?></span><span>😐 <?= $ov['moods']['ok'] ?></span><span>😣 <?= $ov['moods']['hard'] ?></span></strong></div>
     <div class="stat"><span class="muted">Objectifs atteints</span><strong><?= count($ov['acquired']) ?></strong></div>
   </div>
-  <?php if (!$ov['reports']): ?><p class="alert warn">Aucun bilan de séance ce mois-ci : le brouillon sera plus complet si vous rédigez les bilans après chaque séance (onglet « Séances »).</p><?php endif ?>
-  <form method="post" action="<?= e(url('t_monthly')) ?>" class="stack"><?= $hidden() ?><input type="hidden" name="month" value="<?= e($month) ?>">
-    <label>Bilan pour la famille <small class="muted">(proposé automatiquement à partir des bilans de séance : relisez et complétez)</small><textarea name="summary" rows="10" maxlength="6000"><?= e($draft) ?></textarea></label>
+  <?php if (!$ov['reports']): ?><p class="alert warn month-alert">Aucun bilan de séance ce mois-ci : le brouillon sera plus complet si vous rédigez les bilans après chaque séance (onglet « Séances »).</p><?php endif ?>
+  <form method="post" action="<?= e(url('t_monthly')) ?>" class="stack month-form"><?= $hidden() ?><input type="hidden" name="month" value="<?= e($month) ?>">
+    <label>Bilan pour la famille<span class="field-help">Proposé automatiquement à partir des bilans de séance : relisez et complétez avant de publier.</span><textarea name="summary" rows="8" maxlength="6000"><?= e($draft) ?></textarea></label>
     <div class="row"><button class="btn ghost sm"><?= icon('save') ?> Enregistrer le brouillon</button><button class="btn sm" name="publish" value="1"><?= icon('send') ?> <?= !empty($saved['published_at']) ? 'Republier' : 'Publier pour la famille' ?></button>
       <?php if (!empty($saved['published_at'])): ?><span class="badge sage">Publié le <?= e(fdate($saved['published_at'])) ?></span><?php endif ?></div>
   </form>
@@ -202,7 +202,7 @@ $draft = $saved['summary'] ?? month_draft($s, $ov, $month); ?>
     <?php foreach ($goals as $g): ?><div class="axis"><span class="lbl"><?= e($g['title']) ?> <?php require __DIR__ . '/_goal_status.php' ?></span><span class="n"><?= (int)$g['progress'] ?>%</span><div class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></div></div><?php endforeach ?>
     <?php if (!$goals): ?><p class="muted">Aucun objectif.</p><?php endif ?></div>
   <div class="card"><h2><?= icon('message-circle') ?> Journal de l'élève</h2><ul class="list">
-    <?php foreach ($entries as $h): ?><li><?= icon($h['entry_type'] === 'help_request' ? 'circle-help' : 'check') ?><div><?= e(['help_request' => "Demande d'aide", 'self_eval' => 'Autoévaluation', 'task_done' => 'Tâche terminée', 'feeling' => 'Ressenti'][$h['entry_type']]) ?><?= $h['goal'] ? ' · ' . e($h['goal']) : '' ?><?= $h['value'] ? ' · ' . e(FEELINGS[$h['value']] ?? $h['value']) : '' ?><?= $h['comment'] ? '<br>« ' . e($h['comment']) . ' »' : '' ?><br><small class="muted"><?= e(fdate($h['created_at'], 'd/m/Y H:i')) ?></small></div></li><?php endforeach ?>
+    <?php foreach ($entries as $h): ?><li><?= icon(entry_icon($h['entry_type'])) ?><div><?= e(entry_label($h)) ?><?= $h['goal'] ? ' · ' . e($h['goal']) : '' ?><?= $h['comment'] ? '<br>« ' . e($h['comment']) . ' »' : '' ?><br><small class="muted"><?= e(fdate($h['created_at'], 'd/m/Y H:i')) ?></small></div></li><?php endforeach ?>
     <?php if (!$entries): ?><li class="muted">Aucune entrée.</li><?php endif ?></ul></div>
 </div>
 <?php endif ?>

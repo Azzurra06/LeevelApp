@@ -50,9 +50,8 @@ $w = [
   'activity' => function () use ($help) { ?>
     <div class="card"><h2><?= icon('message-circle') ?> Retours de l'élève</h2>
       <?php if (!$help): ?><p class="muted">Aucun retour pour l'instant.</p><?php endif ?>
-      <ul class="list airy"><?php foreach ($help as $h): ?><li><?= icon($h['entry_type'] === 'help_request' ? 'circle-help' : 'smile') ?><div>
-        <?= e(['help_request' => "Demande d'aide", 'self_eval' => 'Autoévaluation', 'task_done' => 'Tâche terminée', 'feeling' => 'Ressenti'][$h['entry_type']]) ?>
-        <?= $h['goal'] ? '· ' . e($h['goal']) : '' ?> <?= $h['value'] ? '· <strong>' . e(FEELINGS[$h['value']] ?? ['good' => 'Ça va bien', 'ok' => 'Moyen', 'hard' => 'Difficile'][$h['value']] ?? $h['value']) . '</strong>' : '' ?>
+      <ul class="list airy"><?php foreach ($help as $h): ?><li><?= icon(entry_icon($h['entry_type'])) ?><div>
+        <?= e(entry_label($h)) ?><?= $h['goal'] ? ' · ' . e($h['goal']) : '' ?>
         <?= $h['comment'] ? '<br>« ' . e($h['comment']) . ' »' : '' ?><br><small class="muted"><?= e(fdate($h['created_at'], 'd/m H:i')) ?></small></div></li><?php endforeach ?></ul></div>
   <?php },
 ];
