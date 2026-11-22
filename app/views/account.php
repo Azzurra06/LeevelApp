@@ -177,4 +177,34 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
         <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
       </form>
     </div>
+
+    <?php $scope = deletion_scope($u); ?>
+    <div class="card span-2 danger-card editable" id="suppression">
+      <div class="ed-head"><h2><?= icon('trash-2') ?> Supprimer mon compte</h2><button type="button" class="btn ghost sm danger" data-edit>Supprimer mon compte…</button></div>
+      <p class="muted view">Supprime définitivement votre compte et vos données personnelles. Cette action est irréversible.</p>
+      <form method="post" class="stack edit-form" data-confirm="Supprimer définitivement votre compte ? Cette action est irréversible."><?= csrf_field() ?><input type="hidden" name="action" value="delete_account">
+        <div class="alert warn"><?= icon('triangle-alert') ?> <div><strong>Ce qui sera supprimé définitivement :</strong>
+          <ul class="del-list">
+          <?php if ($u['role'] === 'student'): ?>
+            <li>ton compte de connexion et ta photo ;</li><li>tes réponses au questionnaire, tes messages, ton journal, tes retours de séance et tes fichiers déposés.</li>
+            <li class="muted">Ton dossier de suivi (séances, bilans) reste géré par ton parent et ta tutrice.</li>
+          <?php elseif ($u['role'] === 'parent'): ?>
+            <li>votre compte, votre photo, vos messages et vos réponses au questionnaire ;</li>
+            <?php foreach ($scope['families'] as $f): ?><li><?= (int)$f['others'] === 0 ? 'le dossier « ' . e($f['name']) . ' » en entier (enfants, comptes élèves, séances, bilans, fichiers), car vous en êtes le seul responsable' : 'le dossier « ' . e($f['name']) . ' » est conservé pour l\'autre parent, sauf si vous cochez la case ci-dessous' ?></li><?php endforeach ?>
+          <?php else: ?>
+            <li>votre compte, votre photo et vos messages.</li>
+            <?php if ($scope['solo']): ?><li>Vous êtes la seule tutrice : cochez la case ci-dessous pour supprimer aussi toutes les familles et leurs données.</li><?php endif ?>
+          <?php endif ?>
+          </ul></div></div>
+        <?php if (($u['role'] === 'parent' && array_filter($scope['families'], fn($f) => (int)$f['others'] > 0)) || ($u['role'] === 'tutor' && $scope['solo'])): ?>
+          <label class="check"><input type="checkbox" name="with_families" value="1"> <?= $u['role'] === 'tutor' ? 'Supprimer aussi toutes les familles, élèves et leurs données' : 'Supprimer aussi les dossiers partagés avec l\'autre parent' ?></label>
+        <?php endif ?>
+        <p class="muted"><small>Pensez à exporter ce que vous souhaitez garder avant de supprimer.</small></p>
+        <div class="form-grid">
+          <label>Mot de passe<input type="password" name="current_password" required autocomplete="current-password"></label>
+          <label>Tapez SUPPRIMER pour confirmer<input name="confirm" required pattern="SUPPRIMER" autocomplete="off" placeholder="SUPPRIMER"></label>
+        </div>
+        <div class="row"><button class="btn danger sm"><?= icon('trash-2') ?> Supprimer définitivement</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+      </form>
+    </div>
 </div>

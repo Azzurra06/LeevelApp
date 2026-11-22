@@ -179,6 +179,15 @@ function dispatch(string $r, string $method): void
                 flash('Photo supprimée.');
                 redirect('account');
             }
+            if ($isPost && $act === 'delete_account') {
+                $full = one('SELECT password_hash FROM users WHERE id=?', [$u['id']]);
+                if (!password_verify((string)($_POST['current_password'] ?? ''), $full['password_hash'])) { flash('Mot de passe incorrect : le compte n\'a pas été supprimé.', 'err'); redirect('account'); }
+                if (post_str('confirm', 20) !== 'SUPPRIMER') { flash('Tapez SUPPRIMER pour confirmer.', 'err'); redirect('account'); }
+                delete_account($u, !empty($_POST['with_families']));
+                logout();
+                flash('Votre compte et vos données ont été supprimés définitivement.');
+                redirect('login');
+            }
             if ($isPost) {
                 $full = one('SELECT password_hash FROM users WHERE id=?', [$u['id']]);
                 $new = (string)($_POST['new_password'] ?? '');

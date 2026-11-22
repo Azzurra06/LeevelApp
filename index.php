@@ -10,6 +10,7 @@ require APP_ROOT . '/app/reports.php';
 require APP_ROOT . '/app/subjects.php';
 require APP_ROOT . '/app/ai.php';
 require APP_ROOT . '/app/schedule.php';
+require APP_ROOT . '/app/account_delete.php';
 require APP_ROOT . '/app/routes.php';
 
 boot();
