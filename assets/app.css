@@ -1117,3 +1117,4 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .tour-pop h3{margin:2px 0 6px;font-size:1.05rem}.tour-pop p{margin:0 0 14px;font-size:.92rem;line-height:1.5;color:var(--taupe-d)}
 .tour-step{font-size:.75rem;font-weight:700;color:var(--accent-d);text-transform:uppercase;letter-spacing:.04em}
 body.touring .top,body.touring header{z-index:205!important}body.touring .nav a:not(.tour-hl),body.touring .acct-btn:not(.tour-hl){opacity:.45}
+.child-h1{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.child-class{font-size:.9rem;padding:4px 12px;background:var(--accent-l);color:var(--accent-d)}

@@ -10,7 +10,7 @@ $h = fn(string $action) => csrf_field() . '<input type="hidden" name="sid" value
 $perms = ['perm_edit_contacts' => 'Modifier lui-même ses coordonnées', 'perm_edit_photo' => 'Changer sa photo de profil', 'perm_help_requests' => 'Signaler qu\'il bloque et demander de l\'aide']; ?>
 <?php $tab ??= 'profil'; $sidq = ['sid' => $s['id']];
 $childTabs = ['profil' => 'Profil', 'matieres' => 'Matières', 'progression' => 'Progression', 'bilans' => 'Bilans']; ?>
-<div class="page-head"><div><h1><?= e(kid($s['first_name'], true)) ?><?= !empty($s['last_name']) ? ' ' . e($s['last_name']) : '' ?></h1><p><?= e(CLASSES[$s['grade']] ?? $s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?></p></div></div>
+<div class="page-head"><div><h1 class="child-h1"><?= e(kid($s['first_name'], true)) ?><?= !empty($s['last_name']) ? ' ' . e($s['last_name']) : '' ?> <span class="badge child-class"><?= e(CLASSES[$s['grade']] ?? $s['grade']) ?></span></h1><?php if ($s['school']): ?><p><?= e($s['school']) ?></p><?php endif ?></div></div>
 <nav class="tabs" aria-label="Mon enfant"><?php foreach ($childTabs as $k => $l): ?><a href="<?= e(url('p_child', $sidq + ['tab' => $k])) ?>" class="<?= $tab === $k ? 'on' : '' ?>"<?= $tab === $k ? ' aria-current="page"' : '' ?>><?= e($l) ?></a><?php endforeach ?></nav>
 <?php if ($tab !== 'profil') { require __DIR__ . '/_p_child_' . $tab . '.php'; return; } ?>
 <p class="muted child-intro">Les informations de <?= e(kid($s['first_name'])) ?>, visibles par la tutrice. Vous pouvez les compléter à tout moment.</p>
