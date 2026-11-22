@@ -125,8 +125,8 @@ $stat = fn($c) => !$data[$c]['sub'] ? ['Non commencé', 'warn'] : ($data[$c]['su
   $ans = []; $empty = [];
   foreach ($qs as $qq) { $v = qn_display($qq, $d['all'][$qq['key']] ?? null); if ($v === '' || $v === '-' || $v === '—') $empty[] = $qq; else $ans[] = [$qq, $v]; }
   if (!$qs) continue; ?>
-<div class="card qn-step <?= $tones[$n % count($tones)] ?>">
-  <div class="row between"><h2><?= e($st['title']) ?></h2><span class="muted"><small><?= count($ans) ?> / <?= count($qs) ?> répondues</small></span></div>
+<div class="card qn-step">
+  <div class="row between"><h2><span class="qn-num"><?= $n + 1 ?></span> <?= e($st['title']) ?></h2><span class="muted"><small><?= count($ans) ?> / <?= count($qs) ?> répondues</small></span></div>
   <?php if ($ans): ?><dl class="qa-grid"><?php foreach ($ans as [$qq, $v]): ?><div><dt><?= e($qq['label']) ?></dt><dd><?= e($v) ?></dd></div><?php endforeach ?></dl><?php endif ?>
   <?php if ($empty): ?><details class="qa-empty"><summary><?= count($empty) ?> question<?= count($empty) > 1 ? 's' : '' ?> sans réponse</summary><ul><?php foreach ($empty as $qq): ?><li><?= e($qq['label']) ?></li><?php endforeach ?></ul></details><?php endif ?>
 </div>

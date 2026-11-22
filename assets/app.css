@@ -872,3 +872,4 @@ body.tutor .card[class*="tone-"] h3 .ic{color:var(--tc)}
 .goal-main .goal-tags{margin:6px 0 4px}.goal-main .goal-desc{margin:0 0 2px}
 .goal-row .goal-student,.goal-row .goal-comment{margin-top:4px}
 @media (max-width:760px){.goal-row{grid-template-columns:1fr auto}.goal-row .goal-main{grid-column:1/-1}}
+.qn-num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent-l);color:var(--accent-d);font-size:.85rem;font-weight:700;margin-right:6px;vertical-align:2px}
