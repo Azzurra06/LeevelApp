@@ -4,7 +4,7 @@ $scheduleEdit ??= false;
 $slotsForm = $sched['slots'] ?? [['day' => 1, 'time' => '17:00', 'duration' => 120, 'mode' => 'presentiel']];
 $durations = [30, 45, 60, 75, 90, 120, 150, 180]; ?>
 <div class="card schedule-card<?= $scheduleEdit ? ' editable' . ($sched ? '' : ' editing') : '' ?>" id="rythme">
-  <div class="ed-head"><h2><?= icon('calendar') ?> Rythme convenu avec la famille</h2>
+  <div class="ed-head"><h2><?= icon('calendar') ?> Rythme convenu avec <?= $scheduleEdit ? 'la famille' : 'la tutrice' ?></h2>
     <?php if ($scheduleEdit && $sched): ?><button type="button" class="btn ghost sm" data-edit><?= icon('pencil') ?> Modifier</button><?php endif ?></div>
   <div class="view">
     <?php if (!$sched): ?>
