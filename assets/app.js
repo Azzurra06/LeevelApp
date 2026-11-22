@@ -39,7 +39,7 @@
         document.querySelectorAll('.tour-hl').forEach(e => e.classList.remove('tour-hl'));
         if (el) el.classList.add('tour-hl');
         pop.innerHTML = '<div class="tour-step">Étape ' + (i + 1) + ' sur ' + T.steps.length + '</div><h3></h3><p></p>' +
-          '<div class="tour-btns"><button type="button" class="btn ghost sm" data-t="skip">' + (tu ? 'Passer' : 'Passer la visite') + '</button><span>' +
+          '<div class="tour-btns"><button type="button" class="tour-skip" data-t="skip">' + (tu ? 'Passer' : 'Passer la visite') + '</button><span>' +
           (i > 0 ? '<button type="button" class="btn ghost sm" data-t="prev">Précédent</button>' : '') +
           '<button type="button" class="btn sm" data-t="next">' + (i === T.steps.length - 1 ? 'Terminer' : 'Suivant') + '</button></span></div>';
         pop.querySelector('h3').textContent = st.title; pop.querySelector('p').textContent = st.text;
