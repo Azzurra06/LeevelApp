@@ -873,3 +873,14 @@ body.tutor .card[class*="tone-"] h3 .ic{color:var(--tc)}
 .goal-row .goal-student,.goal-row .goal-comment{margin-top:4px}
 @media (max-width:760px){.goal-row{grid-template-columns:1fr auto}.goal-row .goal-main{grid-column:1/-1}}
 .qn-num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent-l);color:var(--accent-d);font-size:.85rem;font-weight:700;margin-right:6px;vertical-align:2px}
+
+/* Fiche élève : style sobre (comme le bilan du mois) */
+body.page-t_student .card[class*="tone-"],body.page-t_rdv .card[class*="tone-"]{border-top:1px solid var(--beige)!important}
+body.page-t_student .card[class*="tone-"] h2 .ic,body.page-t_rdv .card[class*="tone-"] h2 .ic,body.page-t_student .card[class*="tone-"] h3 .ic,body.page-t_rdv .card[class*="tone-"] h3 .ic{color:var(--accent-d)!important}
+body.page-t_student .goal-card{border-left:1px solid var(--beige)!important}
+body.page-t_student .goal-card .bar i{background:var(--accent-d)}
+.glance.month-stats{margin-bottom:0}
+.glance.month-stats>div{box-shadow:none;background:var(--bg);border-radius:12px;padding:12px 14px}
+.glance.month-stats small{text-transform:none;letter-spacing:0;font-weight:400;font-size:.82rem}
+.glance.month-stats strong{font-size:1.15rem}
+body.page-t_student .card[class*="tone-"],body.page-t_rdv .card[class*="tone-"]{--tc:var(--accent-d);--tb:var(--accent-l)}

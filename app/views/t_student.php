@@ -25,12 +25,13 @@ $doneN = (int)(one('SELECT COUNT(*) n FROM sessions WHERE student_id=? AND (stat
 $sched = schedule_available() ? schedule_of($s) : null;
 $hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_work']; ?>
 
-<div class="glance">
+<div class="card"><h2><?= icon('chart-column') ?> En bref</h2><div class="glance month-stats">
   <?php $lastRep = one('SELECT s.starts_at, r.sent_at FROM sessions s LEFT JOIN session_reports r ON r.session_id=s.id WHERE s.student_id=? AND s.status IN ("done","planned") AND s.starts_at < NOW() ORDER BY s.starts_at DESC LIMIT 1', [$s['id']]); ?>
   <div><small>Dernière séance</small><strong><?= $lastRep ? e(fdate($lastRep['starts_at'])) : '—' ?></strong><?php if ($lastRep): ?><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>"><?= $lastRep['sent_at'] ? 'Bilan envoyé' : 'Bilan à envoyer' ?></a><?php endif ?></div>
   <div><small>Rythme</small><strong><?= $sched ? fdur(schedule_minutes_per_week($sched)) . ' / sem.' : '—' ?></strong><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>#rythme"><?= $sched ? 'Voir' : 'À définir' ?></a></div>
   <div><small>Prochaine séance</small><strong><?= $nextSe ? e(fdatetime($nextSe['starts_at'])) : '—' ?></strong><?php if ($nextSe): ?><span class="muted"><?= e(MODES[$nextSe['mode']]) ?></span><?php endif ?></div>
   <div><small>Séances faites</small><strong><?= $doneN ?></strong><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>">Planning</a></div>
+</div>
 </div>
 
 <div class="grid-2 two-cols">
@@ -327,12 +328,12 @@ try { $fbs = all('SELECT f.mood, f.note, s.starts_at FROM session_feedback f JOI
 try { $grades = all('SELECT ss.name, g.value, g.out_of, g.label, g.graded_on FROM subject_grades g JOIN student_subjects ss ON ss.id=g.subject_id WHERE ss.student_id=? ORDER BY ss.position, ss.name, g.graded_on', [$s['id']]); } catch (PDOException) { $grades = []; }
 $bySubj = []; foreach ($grades as $gr) $bySubj[$gr['name']][] = $gr;
 $moodEmo = ['good' => '😄', 'ok' => '😐', 'hard' => '😣']; ?>
-<div class="grid stat-grid">
-  <div class="card stat tone-blue"><span class="muted">Séances réalisées</span><strong><?= count($doneSe) ?></strong><small class="muted"><?= fdur($minutes) ?> au total</small></div>
-  <div class="card stat tone-violet"><span class="muted">Progression moyenne</span><strong><?= $avg ?>%</strong><small class="muted">sur <?= count($goals) ?> objectif<?= count($goals) > 1 ? 's' : '' ?></small></div>
-  <div class="card stat tone-green"><span class="muted">Objectifs acquis</span><strong><?= $acq ?> / <?= count($goals) ?></strong></div>
-  <div class="card stat tone-pink"><span class="muted">Dernier ressenti</span><strong><?= $fbs ? ($moodEmo[$fbs[0]['mood']] ?? '🙂') . ' ' . e(MOODS[$fbs[0]['mood']] ?? '') : '—' ?></strong><?php if ($fbs): ?><small class="muted">séance du <?= e(fdate($fbs[0]['starts_at'])) ?></small><?php endif ?></div>
-</div>
+<div class="card"><h2><?= icon('chart-column') ?> En bref</h2><div class="month-stats">
+  <div class="stat"><span class="muted">Séances réalisées</span><strong><?= count($doneSe) ?></strong><small class="muted"><?= fdur($minutes) ?> au total</small></div>
+  <div class="stat"><span class="muted">Progression moyenne</span><strong><?= $avg ?>%</strong><small class="muted">sur <?= count($goals) ?> objectif<?= count($goals) > 1 ? 's' : '' ?></small></div>
+  <div class="stat"><span class="muted">Objectifs acquis</span><strong><?= $acq ?> / <?= count($goals) ?></strong></div>
+  <div class="stat"><span class="muted">Dernier ressenti</span><strong><?= $fbs ? ($moodEmo[$fbs[0]['mood']] ?? '🙂') . ' ' . e(MOODS[$fbs[0]['mood']] ?? '') : '—' ?></strong><?php if ($fbs): ?><small class="muted">séance du <?= e(fdate($fbs[0]['starts_at'])) ?></small><?php endif ?></div>
+</div></div>
 <div class="grid-2 two-cols">
  <div class="col-stack">
   <div class="card tone-violet"><h2><?= icon('target') ?> Avancement des objectifs</h2>
