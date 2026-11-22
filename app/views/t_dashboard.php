@@ -63,6 +63,6 @@ $order = ['todo', 'sessions', 'recap', 'activity', 'tests', 'goals', 'needs', 'q
   ['chart-column', 'Analyse', ['needs', 'quest']],
 ];
 foreach ($sections as [$ic, $title, $keys]): ?>
-<h2 class="dash-sec"><?= icon($ic) ?> <?= e($title) ?></h2>
+<h2 class="dash-sec"><?= e($title) ?></h2>
 <div class="grid-2 two-cols dash-row"><?php foreach ($keys as $k) $w[$k]() ?></div>
 <?php endforeach ?>
