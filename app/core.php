@@ -18,6 +18,20 @@ const STUDENT_INTERESTS = ['sport' => 'Sport', 'musique' => 'Musique', 'jeux' =>
     'nature' => 'Nature / animaux', 'sciences' => 'Sciences / technologie', 'numerique' => 'Informatique / numérique', 'cuisine' => 'Cuisine', 'mode' => 'Mode / beauté', 'voyages' => 'Voyages / langues', 'autre' => 'Autre'];
 const MEMORY_TYPES = ['visual' => 'Voir (schémas, couleurs, images)', 'auditory' => 'Entendre (écouter, répéter à voix haute)', 'kinesthetic' => 'Faire (écrire, manipuler, bouger)', 'not_sure' => 'Je ne sais pas encore'];
 const CHILD_PLACEHOLDER = 'Élève (à compléter)';
+/** Autorisations que le parent accorde à l'élève : colonne => [libellé, précision]. */
+const CHILD_PERMS = [
+    'perm_edit_photo' => ['Changer sa photo de profil', ''],
+    'perm_edit_contacts' => ['Modifier ses informations et ses coordonnées', ''],
+    'perm_link_email' => ['Relier son adresse e-mail à son compte', 'pour recevoir les notifications et récupérer son mot de passe'],
+    'perm_help_requests' => ['Signaler qu\'il bloque et demander de l\'aide', ''],
+];
+/** Enregistre les autorisations cochées (formulaire) pour un élève. */
+function save_child_perms(int $sid): void
+{
+    $cols = array_keys(CHILD_PERMS);
+    try { q('UPDATE students SET ' . implode('=?, ', $cols) . '=? WHERE id=?', array_merge(array_map(fn($c) => (int)!empty($_POST[$c]), $cols), [$sid])); }
+    catch (PDOException) { q('UPDATE students SET perm_edit_contacts=?, perm_edit_photo=?, perm_help_requests=? WHERE id=?', [(int)!empty($_POST['perm_edit_contacts']), (int)!empty($_POST['perm_edit_photo']), (int)!empty($_POST['perm_help_requests']), $sid]); }
+}
 /** Prénom de l'enfant à afficher au parent : « votre enfant » tant qu'il n'est pas renseigné. */
 function kid(?string $firstName, bool $capital = false): string
 {

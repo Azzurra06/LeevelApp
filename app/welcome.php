@@ -90,6 +90,7 @@ function welcome_route(bool $isPost): never
                 $needs = ['items' => array_values(array_intersect((array)($_POST['needs'] ?? []), ['dys', 'tdah', 'hpi', 'anxiety', 'other'])), 'acc' => array_values(array_intersect((array)($_POST['acc'] ?? []), ['pap', 'pps', 'pai', 'tiers_temps']))];
                 q('UPDATE students SET last_name=?, birth_date=?, needs_json=?, accommodations=?, parent_notes=? WHERE id=?', [post_str('last_name', 80) ?: null, $bd, json_encode($needs), post_str('accommodations', 500) ?: null, post_str('parent_notes', 2000) ?: null, $s['id']]);
             } catch (PDOException) {}
+            save_child_perms((int)$s['id']);
             $sub = qn_latest('parent', (int)$s['id']);
             if ($sub) qn_save($sub, 'parent', ['p_first_name' => $first, 'p_last_name' => post_str('last_name', 80), 'p_class' => $grade, 'p_class_school' => post_str('school', 120)]);
         }

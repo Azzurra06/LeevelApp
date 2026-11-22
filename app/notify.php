@@ -50,7 +50,7 @@ function run_message_notifications(string $host, int $delayMin = NOTIFY_DELAY_MI
         $student = one('SELECT id, first_name, parent_email, student_email FROM students WHERE family_id=? ORDER BY id LIMIT 1', [$fid]);
         if (!$student) continue;
         $recipients = $toStudent
-            ? all('SELECT u.id, u.display_name, u.email, 1 notify_messages, u.last_notified_at FROM users u JOIN students s ON s.user_id=u.id AND s.family_id=? WHERE u.is_active=1', [$fid])
+            ? all('SELECT u.id, u.display_name, u.email, s.perm_link_email notify_messages, u.last_notified_at FROM users u JOIN students s ON s.user_id=u.id AND s.family_id=? WHERE u.is_active=1', [$fid])
             : ($side === 'family'
             ? all('SELECT u.id, u.display_name, u.email, u.notify_messages, u.last_notified_at FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE u.role="parent" AND u.is_active=1', [$fid])
             : all('SELECT u.id, u.display_name, u.email, u.notify_messages, u.last_notified_at FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE fm.member_role="tutor" AND u.is_active=1', [$fid]));

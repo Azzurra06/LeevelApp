@@ -113,8 +113,7 @@ function dispatch(string $r, string $method): void
                     if ($ch['user_id']) q('UPDATE users SET phone=?, email=? WHERE id=?', [$phone ?: null, $email ?: null, $ch['user_id']]);
                     flash('Coordonnées de ' . $ch['first_name'] . ' enregistrées.');
                 } else {
-                    q('UPDATE students SET perm_edit_contacts=?, perm_edit_photo=?, perm_help_requests=? WHERE id=?',
-                        [(int)!empty($_POST['perm_edit_contacts']), (int)!empty($_POST['perm_edit_photo']), (int)!empty($_POST['perm_help_requests']), $ch['id']]);
+                    save_child_perms((int)$ch['id']);
                     audit('student_permissions', null, (int)$ch['family_id']);
                     flash('Autorisations de ' . $ch['first_name'] . ' enregistrées.');
                 }
@@ -122,6 +121,7 @@ function dispatch(string $r, string $method): void
             }
             if ($isPost && $act === 'profile') {
                 $name = post_str('display_name', 100); $email = post_str('email', 120);
+                if ($u['role'] === 'student' && !(int)(one('SELECT perm_link_email FROM students WHERE user_id=?', [$u['id']])['perm_link_email'] ?? 1)) $email = (string)(one('SELECT email FROM users WHERE id=?', [$u['id']])['email'] ?? '');
                 $phone = preg_replace('/[^0-9+ ().-]/', '', post_str('phone', 30));
                 if ($name === '') flash('Le nom ne peut pas être vide.', 'err');
                 elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) flash('Adresse e-mail invalide.', 'err');
@@ -369,8 +369,7 @@ function family_route(string $r, bool $isPost): never
                     q('UPDATE students SET needs_json=?, accommodations=?, parent_notes=? WHERE id=?', [json_encode($needs), post_str('accommodations', 500) ?: null, post_str('parent_notes', 2000) ?: null, $s['id']]);
                     flash('Besoins particuliers enregistrés.');
                 } elseif ($act === 'perms') {
-                    q('UPDATE students SET perm_edit_contacts=?, perm_edit_photo=?, perm_help_requests=? WHERE id=?',
-                        [(int)!empty($_POST['perm_edit_contacts']), (int)!empty($_POST['perm_edit_photo']), (int)!empty($_POST['perm_help_requests']), $s['id']]);
+                    save_child_perms((int)$s['id']);
                     flash('Autorisations enregistrées.');
                 }
                 audit('child_info_' . $act, null, (int)$s['family_id']);

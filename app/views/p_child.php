@@ -7,7 +7,7 @@ $val = fn($v) => ($v ?? '') !== '' ? e($v) : '<span class="muted">Non renseigné
 $editBtn = '<button type="button" class="btn ghost sm" data-edit>' . icon('pencil') . ' Modifier</button>';
 $age = !empty($s['birth_date']) ? (new DateTime($s['birth_date']))->diff(new DateTime('today'))->y : null;
 $h = fn(string $action) => csrf_field() . '<input type="hidden" name="sid" value="' . (int)$s['id'] . '"><input type="hidden" name="action" value="' . $action . '">';
-$perms = ['perm_edit_contacts' => 'Modifier lui-même ses coordonnées', 'perm_edit_photo' => 'Changer sa photo de profil', 'perm_help_requests' => 'Signaler qu\'il bloque et demander de l\'aide']; ?>
+$perms = array_map(fn($x) => $x[0], CHILD_PERMS); ?>
 <?php $tab ??= 'profil'; $sidq = ['sid' => $s['id']];
 $childTabs = ['profil' => 'Profil', 'matieres' => 'Matières', 'progression' => 'Progression', 'bilans' => 'Bilans']; ?>
 <div class="page-head"><div><h1 class="child-h1"><?= e(kid($s['first_name'], true)) ?><?= !empty($s['last_name']) ? ' ' . e($s['last_name']) : '' ?> <span class="badge child-class"><?= e(CLASSES[$s['grade']] ?? $s['grade']) ?></span></h1><?php if ($s['school']): ?><p><?= e($s['school']) ?></p><?php endif ?></div></div>

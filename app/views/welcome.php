@@ -76,6 +76,9 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
         <label>Classe<?= grade_select('grade', $s['grade'] ?? null) ?></label>
       </div>
       <label>Établissement <small class="muted">facultatif</small><input name="school" maxlength="120" value="<?= e($s['school'] ?? '') ?>"></label>
+      <div class="wl-perms"><span class="ql">Ce que <?= e($kidName) ?> peut faire seul dans son espace</span>
+        <?php foreach (CHILD_PERMS as $k => [$l, $hint]): ?><label class="check"><input type="checkbox" name="<?= $k ?>" value="1" <?= (int)($s[$k] ?? 1) ? 'checked' : '' ?>> <span><?= e($l) ?><?php if ($hint): ?> <small class="muted">(<?= e($hint) ?>)</small><?php endif ?></span></label><?php endforeach ?>
+        <p class="muted"><small>Modifiable à tout moment dans « Mon enfant ».</small></p></div>
       <details class="wl-more" <?= $needs['items'] || $needs['acc'] ? 'open' : '' ?>><summary>Besoins particuliers <small class="muted">(facultatif)</small></summary>
         <div class="stack">
           <div><span class="ql">Difficultés ou particularités</span><div class="pills"><?php foreach ($needsList as $k => $l): ?><label class="pill"><input type="checkbox" name="needs[]" value="<?= $k ?>" <?= in_array($k, $needs['items'], true) ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>

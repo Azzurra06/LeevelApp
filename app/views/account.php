@@ -11,6 +11,7 @@ $editBtn = fn(string $label = 'Modifier') => '<button type="button" class="btn g
 $me = $isStudent ? one('SELECT * FROM students WHERE user_id=?', [$u['id']]) : null;
 $canContacts = !$isStudent || (int)($me['perm_edit_contacts'] ?? 1);
 $canPhoto = !$isStudent || (int)($me['perm_edit_photo'] ?? 1);
+$canEmail = !$isStudent || (int)($me['perm_link_email'] ?? 1);
 $children = $isParent ? students_of($u) : [];
 // Élève : profil partagé avec son questionnaire (mêmes réponses)
 $pa = [];
@@ -34,7 +35,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="profile">
         <label>Nom affiché<input name="display_name" required maxlength="100" value="<?= e($full['display_name']) ?>"></label>
         <div class="form-grid"><label>Téléphone<input type="tel" name="phone" maxlength="30" value="<?= e($full['phone'] ?? '') ?>" autocomplete="tel"></label>
-          <label>E-mail<input type="email" name="email" maxlength="120" value="<?= e($full['email'] ?? '') ?>" autocomplete="email"></label></div>
+          <?php if ($canEmail): ?><label>E-mail<input type="email" name="email" maxlength="120" value="<?= e($full['email'] ?? '') ?>" autocomplete="email"></label><?php else: ?><p class="muted"><small>L'e-mail sera relié à ton compte si ton parent l'autorise.</small></p><?php endif ?></div>
         <?php if (!$isStudent): ?>
           <label>Adresse postale<input name="address" maxlength="255" value="<?= e($full['address'] ?? '') ?>" autocomplete="street-address" placeholder="N°, rue, code postal, ville"></label>
           <label class="check"><input type="checkbox" name="notify_messages" value="1" <?= (int)($full['notify_messages'] ?? 1) ? 'checked' : '' ?>> Me prévenir par e-mail des messages non lus</label>
