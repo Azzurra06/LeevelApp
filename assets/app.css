@@ -745,3 +745,10 @@ main.wrap>h2 .ic{color:var(--accent-d)}
 .new-panel{margin-top:14px;padding:16px;border:1px solid #d9cfff;border-radius:14px;background:#faf8ff}
 .new-panel-head h3{display:flex;align-items:center;gap:8px;margin:0}.new-panel-head h3 .ic{color:var(--accent-d)}
 .new-panel .field-help{margin:4px 0 12px}
+
+/* Tableau de bord tutrice : cartes blanches, une couleur par carte (liseré + icône) */
+body.tutor .card[class*="tone-"]{background:var(--surface);border:1px solid var(--beige);border-top:3px solid var(--tc);box-shadow:var(--sh)}
+body.tutor .card[class*="tone-"] h2 .ic{width:1.15em;height:1.15em;padding:0;border-radius:0;background:none;color:var(--tc);opacity:1;vertical-align:-.2em;margin-right:4px}
+body.tutor .card[class*="tone-"] .bar{background:var(--beige)}
+body.tutor .card[class*="tone-"] .add-test>summary{color:var(--accent-d)}
+body.tutor .todo-card{border-color:var(--beige)}

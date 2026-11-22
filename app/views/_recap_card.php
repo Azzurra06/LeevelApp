@@ -1,6 +1,6 @@
 <?php // Dernière séance : bilan + ressenti de l'élève. $recap, $sidp, $s
 $moodEmo = ['good' => '😄', 'ok' => '😐', 'hard' => '😣']; ?>
-<div class="card">
+<div class="card <?= e($tone ?? '') ?>">
   <h2><?= icon('calendar') ?> Dernière séance</h2>
   <?php if (!$recap): ?><p class="muted">Aucune séance passée pour l'instant.</p><?php else: $rep = $recap['report']; $fb = $recap['feedback']; ?>
     <p><strong><?= e(fdatetime($recap['starts_at'])) ?></strong> · <span class="muted"><?= e(session_label($recap)) ?></span></p>

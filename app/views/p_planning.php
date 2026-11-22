@@ -1,6 +1,6 @@
 <?php $title = 'Planning';
 $done = count(array_filter($sessions, fn($x) => $x['status'] === 'done'));
-$upcoming = array_values(array_filter($sessions, fn($x) => strtotime($x['starts_at']) >= time() && in_array($x['status'], ['planned', 'postponed'], true)));
+$upcoming = array_values(array_filter($sessions, fn($x) => strtotime($x['starts_at']) >= time() && $x['status'] === 'planned'));
 $total = array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' ? (int)$x['duration_min'] : 0, $sessions)); ?>
 <div class="page-head"><div><h1><?= icon('calendar') ?> Planning</h1><p>Les séances de <?= e($s['first_name']) ?>.</p></div></div>
 <div class="grid stat-grid">

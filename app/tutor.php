@@ -71,7 +71,7 @@ function tutor_route(string $r, bool $isPost): never
             $prio = effective_priorities($sid, $an);
             render('t_dashboard', ['s' => $s, 'an' => $an, 'prio' => $prio, 'reco' => recommendations($prio['axes'], $an),
                 'students' => students_of($u), 'subs' => ['parent' => qn_latest('parent', $sid), 'student' => qn_latest('student', $sid)],
-                'sessions' => all('SELECT * FROM sessions WHERE student_id=? AND starts_at>=CURDATE() AND status IN ("planned","postponed") ORDER BY starts_at LIMIT 4', [$sid]),
+                'sessions' => all('SELECT * FROM sessions WHERE student_id=? AND starts_at>=CURDATE() AND status="planned" ORDER BY starts_at LIMIT 4', [$sid]),
                 'goals' => all('SELECT * FROM goals WHERE student_id=? AND status<>"acquired" ORDER BY target_date IS NULL, target_date LIMIT 6', [$sid]),
                 'goalStats' => one('SELECT COUNT(*) n, SUM(status="acquired") acq, ROUND(AVG(progress)) avgp FROM goals WHERE student_id=?', [$sid]),
                 'help' => all('SELECT p.*, g.title goal FROM progress_entries p LEFT JOIN goals g ON g.id=p.goal_id WHERE p.student_id=? ORDER BY p.id DESC LIMIT 6', [$sid]),

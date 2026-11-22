@@ -1,5 +1,5 @@
 <?php $title = 'Mon espace';
-$next = null; foreach ($sessions as $se) if (strtotime($se['starts_at']) >= time() - 3600 && in_array($se['status'], ['planned', 'postponed'], true)) { $next = $se; break; }
+$next = null; foreach ($sessions as $se) if (strtotime($se['starts_at']) >= time() - 3600 && $se['status'] === 'planned') { $next = $se; break; }
 $main = $goals[0] ?? null; foreach ($goals as $g) if ($g['status'] === 'in_progress') { $main = $g; break; }
 $progressing = array_filter($goals, fn($g) => in_array($g['status'], ['in_progress', 'rework', 'acquired'], true));
 $tests = tests_upcoming((int)$s['id'], 4);
