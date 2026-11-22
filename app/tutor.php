@@ -63,7 +63,7 @@ function tutor_route(string $r, bool $isPost): never
         render('t_finance', ['month' => $month, 'rows' => $rows,
             'pending' => all("SELECT p.*, s.first_name FROM payments p JOIN students s ON s.id=p.student_id WHERE p.student_id IN ($in) AND p.status='pending' ORDER BY p.due_date"),
             'paid' => all("SELECT p.*, s.first_name FROM payments p JOIN students s ON s.id=p.student_id WHERE p.student_id IN ($in) AND p.status='paid' ORDER BY p.paid_at DESC, p.id DESC LIMIT 15"),
-            'cashed' => (float)(one("SELECT SUM(amount) t FROM payments WHERE student_id IN ($in) AND status='paid' AND DATE_FORMAT(paid_at,'%Y-%m')=?", [$month])['t'] ?? 0)]);
+            'cashed' => (float)(one("SELECT SUM(amount) t FROM payments WHERE student_id IN ($in) AND status='paid' AND paid_at >= ? AND paid_at < ?", [$month . '-01', date('Y-m-d', strtotime($month . '-01 +1 month'))])['t'] ?? 0)]);
     }
     if ($r === 't_demo' && $isPost) {
         if (one('SELECT 1 FROM users WHERE username IN ("demo.parent","demo.eleve")')) {
