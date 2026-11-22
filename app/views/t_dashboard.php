@@ -23,7 +23,7 @@ $w = [
   <?php },
   'tests' => function () use ($tests, $s) { $tone = 'tone-gold'; require __DIR__ . '/_tests.php'; },
   'needs' => function () use ($an, $prio, $reco, $sidp) { ?>
-    <div class="card tone-green"><h2><?= icon('chart-column') ?> Synthèse des besoins</h2><?php require __DIR__ . '/_axes.php' ?><p><small><?= e($reco['summary']) ?></small></p><a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'analyse'])) ?>">Analyse détaillée →</a></div>
+    <div class="card tone-green"><h2><?= icon('chart-column') ?> Synthèse des besoins</h2><?php require __DIR__ . '/_axes.php' ?><a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'analyse'])) ?>">Analyse détaillée →</a></div>
   <?php },
   'quest' => function () use ($subs, $sidp) { ?>
     <div class="card tone-teal"><h2><?= icon('clipboard-list') ?> Questionnaires</h2><ul class="list">
@@ -56,4 +56,13 @@ $w['recap'] = function () use ($recap, $sidp, $s) { $tone = 'tone-violet'; requi
 // Ordre fixe : ce qu'il faut faire, les séances, puis le suivi de l'élève, puis l'analyse
 $order = ['todo', 'sessions', 'recap', 'activity', 'tests', 'goals', 'needs', 'quest'];
 ?>
-<div class="grid"><?php foreach ($order as $k) $w[$k]() ?></div>
+<?php $sections = [
+  ['list-checks', 'À traiter', ['todo', 'activity']],
+  ['calendar', 'Séances', ['sessions', 'recap']],
+  ['target', 'Suivi', ['goals', 'tests']],
+  ['chart-column', 'Analyse', ['needs', 'quest']],
+];
+foreach ($sections as [$ic, $title, $keys]): ?>
+<h2 class="dash-sec"><?= icon($ic) ?> <?= e($title) ?></h2>
+<div class="grid-2 two-cols dash-row"><?php foreach ($keys as $k) $w[$k]() ?></div>
+<?php endforeach ?>
