@@ -160,11 +160,15 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
     <span class="badge <?= ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancelled' => 'err'][$se['status']] ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span></div>
     <h3 class="sess-title"><?= e(session_label($se)) ?></h3>
     <?php $from = !empty($se['rescheduled_from']) ? one('SELECT starts_at FROM sessions WHERE id=?', [$se['rescheduled_from']]) : null;
-      $kids = in_array($se['status'], ['postponed', 'cancelled'], true) && array_key_exists('rescheduled_from', $se) ? all('SELECT id, starts_at, duration_min, mode FROM sessions WHERE rescheduled_from=? ORDER BY starts_at', [$se['id']]) : []; ?>
-    <?php if (!empty($se['status_reason']) || $kids || $from): ?><div class="sess-status-info">
+      $kids = in_array($se['status'], ['postponed', 'cancelled'], true) && array_key_exists('rescheduled_from', $se) ? all('SELECT id, starts_at, duration_min, mode FROM sessions WHERE rescheduled_from=? ORDER BY starts_at', [$se['id']]) : [];
+      $into = $se['status'] === 'postponed' && array_key_exists('merged_report_from', $se) ? all('SELECT id, starts_at, merged_report_min FROM sessions WHERE merged_report_from=? ORDER BY starts_at', [$se['id']]) : [];
+      $mergedFrom = !empty($se['merged_report_from']) ? one('SELECT starts_at FROM sessions WHERE id=?', [$se['merged_report_from']]) : null; ?>
+    <?php if (!empty($se['status_reason']) || $kids || $from || $into || $mergedFrom): ?><div class="sess-status-info">
       <?php if (!empty($se['status_reason'])): ?><p><strong>Raison :</strong> <?= e($se['status_reason']) ?></p><?php endif ?>
       <?php if ($kids): ?><p><strong>Reportée au :</strong> <?= implode(' + ', array_map(fn($k) => '<a href="#sess-' . (int)$k['id'] . '">' . e(fdatetime($k['starts_at'])) . ' (' . fdur((int)$k['duration_min']) . ')</a>', $kids)) ?></p><?php endif ?>
+      <?php if ($into): ?><p><strong>Rattrapée pendant :</strong> <?= implode(' + ', array_map(fn($k) => '<a href="#sess-' . (int)$k['id'] . '">la séance du ' . e(fdatetime($k['starts_at'])) . '</a> (+' . fdur((int)$k['merged_report_min']) . ')', $into)) ?></p><?php endif ?>
       <?php if ($from): ?><p><?= icon('refresh-cw') ?> Report de la séance du <?= e(fdatetime($from['starts_at'])) ?></p><?php endif ?>
+      <?php if ($mergedFrom): ?><p><?= icon('refresh-cw') ?> Prolongée de <?= fdur((int)$se['merged_report_min']) ?> : report de la séance du <?= e(fdatetime($mergedFrom['starts_at'])) ?></p><?php endif ?>
     </div><?php endif ?>
     <?php if ($se['objectives']): ?><p class="muted"><?= nl2br(e($se['objectives'])) ?></p><?php endif ?>
     <?php foreach ($notes as $n): ?><p><small><?= icon($n['visibility'] === 'shared' ? 'users' : 'lock') ?> <?= nl2br(e($n['content'])) ?></small></p><?php endforeach ?>

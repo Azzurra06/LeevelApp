@@ -82,3 +82,39 @@ function schedule_generate(array $s, array $u, array $sched, bool $replace, bool
     }
     return $n;
 }
+
+/**
+ * Ajoute un créneau de report à une séance déjà prévue le même jour (au lieu d'en créer une nouvelle).
+ * Collé avant : la séance commence plus tôt ; chevauchant ou collé après : elle finit plus tard ; sinon : prolongée d'autant.
+ * Renvoie l'id de la séance prolongée, ou null s'il n'y a pas de séance ce jour-là.
+ */
+function merge_report_into_day(int $sid, DateTime $dt, int $dur, int $origId, int $excludeId = 0): ?int
+{
+    $day = $dt->format('Y-m-d');
+    $cands = all('SELECT * FROM sessions WHERE student_id=? AND status="planned" AND DATE(starts_at)=? AND id<>? AND id<>? ORDER BY starts_at', [$sid, $day, $origId, $excludeId]);
+    if (!$cands) return null;
+    $new0 = $dt->getTimestamp(); $new1 = $new0 + $dur * 60;
+    // la séance la plus proche du créneau
+    usort($cands, fn($a, $b) => min(abs(strtotime($a['starts_at']) - $new1), abs(strtotime($a['starts_at']) + $a['duration_min'] * 60 - $new0))
+                             <=> min(abs(strtotime($b['starts_at']) - $new1), abs(strtotime($b['starts_at']) + $b['duration_min'] * 60 - $new0)));
+    $se = $cands[0];
+    $s0 = strtotime($se['starts_at']); $s1 = $s0 + (int)$se['duration_min'] * 60;
+    if ($new1 >= $s0 && $new0 <= $s1) { $start = min($s0, $new0); $end = max($s1, $new1); }   // collé ou chevauchant
+    else { $start = $s0; $end = $s1 + $dur * 60; }                                               // même jour, à un autre moment
+    q('UPDATE sessions SET starts_at=?, duration_min=?, merged_report_from=?, merged_report_min=COALESCE(merged_report_min,0)+? WHERE id=?',
+        [date('Y-m-d H:i:00', $start), min(600, (int)round(($end - $start) / 60)), $origId, $dur, $se['id']]);
+    return (int)$se['id'];
+}
+
+/** Rattrape les reports déjà créés comme séances séparées le jour d'une autre séance prévue. Renvoie le nombre de fusions. */
+function merge_existing_reports(?int $sid = null): int
+{
+    $n = 0;
+    foreach (all('SELECT * FROM sessions WHERE rescheduled_from IS NOT NULL AND status="planned"' . ($sid ? ' AND student_id=' . (int)$sid : '') . ' ORDER BY starts_at') as $r) {
+        $dt = new DateTime($r['starts_at']);
+        if (merge_report_into_day((int)$r['student_id'], $dt, (int)$r['duration_min'], (int)$r['rescheduled_from'], (int)$r['id'])) {
+            q('DELETE FROM sessions WHERE id=?', [$r['id']]); $n++;
+        }
+    }
+    return $n;
+}

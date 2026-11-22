@@ -552,12 +552,15 @@ function save_session(int $sid): void
             foreach ($dates as $i => $d) {
                 $ndt = DateTime::createFromFormat('Y-m-d H:i', (string)$d . ' ' . (string)($times[$i] ?? ''));
                 if (!$ndt) continue;
+                $rsDur = max(15, min(600, (int)($durs[$i] ?? 0) ?: (int)$orig['duration_min']));
+                if (merge_report_into_day($sid, $ndt, $rsDur, $id)) { $merged = ($merged ?? 0) + 1; continue; }
                 q('INSERT INTO sessions (student_id, week_no, title, starts_at, duration_min, mode, status, objectives, rescheduled_from) VALUES (?,?,?,?,?,?,"planned",?,?)',
                     [$sid, $orig['week_no'], session_base_title($orig['title']), $ndt->format('Y-m-d H:i:00'), max(15, min(600, (int)($durs[$i] ?? 0) ?: (int)$orig['duration_min'])),
                      isset(MODES[$modes[$i] ?? '']) ? $modes[$i] : $orig['mode'], $orig['objectives'], $id]);
                 $n++;
             }
             if ($n) $extra = " $n nouveau" . ($n > 1 ? 'x' : '') . ' créneau' . ($n > 1 ? 'x' : '') . ' ajouté' . ($n > 1 ? 's' : '') . ' au planning.';
+            if (!empty($merged)) $extra .= ' ' . $merged . ' créneau' . ($merged > 1 ? 'x' : '') . ' ajouté' . ($merged > 1 ? 's' : '') . ' à une séance déjà prévue le même jour (séance prolongée).';
         }
     } catch (PDOException) { /* base pas encore migrée */ }
     if (($note = post_str('note', 3000)) !== '' && $id) q('INSERT INTO session_notes (session_id, author_id, content, visibility) VALUES (?,?,?,?)', [$id, current_user()['id'], $note, post_enum('note_visibility', ['private' => 1, 'shared' => 1], 'private')]);
