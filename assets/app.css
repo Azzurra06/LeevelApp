@@ -1127,3 +1127,8 @@ body.page-t .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--
 .dash-sec .ic{color:var(--accent-d)}
 .page-head+.dash-sec{margin-top:4px!important}
 .dash-row{align-items:stretch!important}.dash-row>.card{height:100%}
+/* Barre d'étapes : colonnes égales, libellés alignés */
+.wl-steps{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px}
+.wl-steps li{min-width:0}
+.wl-lbl{font-size:.76rem;line-height:1.25;overflow-wrap:anywhere;hyphens:auto}
+.wl-lbl{hyphens:manual;overflow-wrap:normal}

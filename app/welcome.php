@@ -36,8 +36,8 @@ function needs_onboarding(?array $u): bool
 function welcome_steps(array $u, ?array $s): array
 {
     if ($u['role'] === 'student') return ['intro' => ['Bienvenue', 'smile'], 'questionnaire' => ['Ton questionnaire', 'clipboard-list'], 'tour' => ['Ton espace', 'house'], 'done' => ["C'est parti", 'rocket']];
-    $steps = ['intro' => ['Bienvenue', 'smile'], 'contact' => ['Vos coordonnées', 'message-circle'], 'child' => ['Votre enfant', 'user'], 'questionnaire' => ['Questionnaire', 'clipboard-list']];
-    $steps['wishes'] = ['Accompagnement', 'target'];
+    $steps = ['intro' => ['Bienvenue', 'smile'], 'contact' => ['Coordonnées', 'message-circle'], 'child' => ['Votre enfant', 'user'], 'questionnaire' => ['Questionnaire', 'clipboard-list']];
+    $steps['wishes'] = ['Besoins', 'target'];
     if ($s && function_exists('finance_available') && finance_available()) $steps['payment'] = ['Paiement', 'file-text'];
     $steps['done'] = ["C'est prêt", 'rocket'];
     return $steps;
