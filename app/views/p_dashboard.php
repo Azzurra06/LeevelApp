@@ -11,6 +11,7 @@ $next = $upcoming[0] ?? null; ?>
         <div class="report-item"><span class="badge"><?= e(fdatetime($rp['starts_at'])) ?></span>
           <p data-clamp="120"><?= nl2br(e($rp['parent_summary'])) ?></p>
           <?php $fb = session_feedback_of((int)$rp['session_id']); if ($fb): ?><div class="fb-box"><strong><?= ['good' => '😄', 'ok' => '😐', 'hard' => '😣'][$fb['mood']] ?? '🙂' ?> Ressenti de <?= e($s['first_name']) ?><?= $fb['mood'] ? ' : ' . e(mb_strtolower(MOODS[$fb['mood']])) : '' ?></strong>
+            <?php if (!empty($fb['note'])): ?><p>« <?= e($fb['note']) ?> »</p><?php endif ?>
             <?php if ($fb['understood']): ?><p><small class="muted">A compris :</small> <?= e($fb['understood']) ?></p><?php endif ?><?php if ($fb['to_deepen']): ?><p><small class="muted">À approfondir :</small> <?= e($fb['to_deepen']) ?></p><?php endif ?></div><?php endif ?>
           <?php if ($rp['next_focus']): ?><p class="muted"><small><strong>Prochaine séance :</strong> <?= e($rp['next_focus']) ?></small></p><?php endif ?></div>
       <?php endforeach ?>

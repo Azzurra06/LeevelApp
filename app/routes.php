@@ -350,9 +350,14 @@ function family_route(string $r, bool $isPost): never
         $se = one('SELECT * FROM sessions WHERE id=? AND student_id=? AND starts_at < NOW()', [post_int('session_id'), $s['id']]);
         if ($se) {
             $mood = post_enum('mood', MOODS, '');
-            q('INSERT INTO session_feedback (session_id, mood, understood, to_deepen, needs_next) VALUES (?,?,?,?,?)
-               ON DUPLICATE KEY UPDATE mood=VALUES(mood), understood=VALUES(understood), to_deepen=VALUES(to_deepen), needs_next=VALUES(needs_next)',
-                [$se['id'], $mood ?: null, post_str('understood', 1000) ?: null, post_str('to_deepen', 1000) ?: null, post_str('needs_next', 1000) ?: null]);
+            if (array_key_exists('note', $_POST)) { // retour simplifié : émoji + petite note
+                q('INSERT INTO session_feedback (session_id, mood, note) VALUES (?,?,?) ON DUPLICATE KEY UPDATE mood=VALUES(mood), note=VALUES(note)',
+                    [$se['id'], $mood ?: null, post_str('note', 1000) ?: null]);
+            } else {
+                q('INSERT INTO session_feedback (session_id, mood, understood, to_deepen, needs_next) VALUES (?,?,?,?,?)
+                   ON DUPLICATE KEY UPDATE mood=VALUES(mood), understood=VALUES(understood), to_deepen=VALUES(to_deepen), needs_next=VALUES(needs_next)',
+                    [$se['id'], $mood ?: null, post_str('understood', 1000) ?: null, post_str('to_deepen', 1000) ?: null, post_str('needs_next', 1000) ?: null]);
+            }
             flash('Merci ! Ta tutrice verra ton retour avant la prochaine séance.');
         }
         ($_POST['back'] ?? '') === 's_subjects' ? redirect('s_subjects', ['subj' => post_int('subj')]) : redirect('s');

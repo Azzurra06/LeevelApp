@@ -7,6 +7,7 @@ $moodEmo = ['good' => '😄', 'ok' => '😐', 'hard' => '😣']; ?>
     <?php if ($rep && ($rep['worked_on'] || $rep['parent_summary'])): ?><p data-clamp="110"><?= nl2br(e($rep['worked_on'] ?: $rep['parent_summary'])) ?></p>
     <?php else: ?><p class="muted"><small>Bilan pas encore rédigé.</small></p><?php endif ?>
     <?php if ($fb): ?><div class="fb-box"><strong><?= $moodEmo[$fb['mood']] ?? '🙂' ?> Ressenti de <?= e($s['first_name']) ?><?= $fb['mood'] ? ' : ' . e(mb_strtolower(MOODS[$fb['mood']])) : '' ?></strong>
+      <?php if (!empty($fb['note'])): ?><p>« <?= e($fb['note']) ?> »</p><?php endif ?>
       <?php if ($fb['understood']): ?><p><small class="muted">A compris :</small> <?= e($fb['understood']) ?></p><?php endif ?>
       <?php if ($fb['to_deepen']): ?><p><small class="muted">À approfondir :</small> <?= e($fb['to_deepen']) ?></p><?php endif ?>
       <?php if ($fb['needs_next']): ?><p><small class="muted">Besoin :</small> <?= e($fb['needs_next']) ?></p><?php endif ?></div>

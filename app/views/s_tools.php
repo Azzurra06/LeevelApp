@@ -42,10 +42,11 @@ $links = [
   </div>
 
   <div class="card">
-    <h2><?= icon('sparkles') ?> Choisis pour toi</h2>
+    <h2><?= icon('sparkles') ?> Outils adaptés pour toi</h2>
+    <p class="muted tools-intro"><small>Choisis selon ce qui te sera le plus utile en ce moment.</small></p>
     <?php if (!$reco['tools']): ?><p class="muted">Ta tutrice te proposera des outils après votre premier rendez-vous.</p><?php endif ?>
-    <div class="col-stack"><?php foreach (array_slice($reco['tools'], 0, 4) as $t): ?>
-      <div class="tool"><span class="ico"><?= icon($t['icon']) ?></span><div><h3><?= e($t['title']) ?></h3><p class="muted"><small><?= e($t['desc']) ?></small></p></div></div>
+    <div class="tool-list"><?php foreach (array_slice($reco['tools'], 0, 4) as $t): ?>
+      <div class="tool"><span class="ico"><?= icon($t['icon']) ?></span><div><h3><?= e($t['title']) ?></h3><p><?= e($t['desc']) ?></p></div></div>
     <?php endforeach ?></div>
   </div>
 </div><br>
@@ -70,6 +71,6 @@ $links = [
   <?php endforeach ?>
 </div><br>
 
-<div class="card"><h2><?= icon('book-open') ?> Sites utiles</h2>
-  <ul class="list"><?php foreach ($links as [$n, $href, $d]): ?><li class="li-link"><a href="<?= e($href) ?>" target="_blank" rel="noopener noreferrer"><?= icon('book-open') ?><div><strong><?= e($n) ?></strong><br><small class="muted"><?= e($d) ?></small></div><?= icon('chevron-right', 'go') ?></a></li><?php endforeach ?></ul>
+<div class="card"><h2><?= icon('globe') ?> Sites utiles</h2>
+  <ul class="list"><?php foreach ($links as [$n, $href, $d]): ?><li class="li-link"><a href="<?= e($href) ?>" target="_blank" rel="noopener noreferrer"><?= icon('globe') ?><div><strong><?= e($n) ?></strong><br><small class="muted"><?= e($d) ?></small></div><?= icon('external-link', 'go') ?></a></li><?php endforeach ?></ul>
 </div>

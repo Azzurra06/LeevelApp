@@ -658,3 +658,20 @@ main.wrap>.page-head{margin-bottom:4px!important}
 .quiz>.btn{margin-top:4px}
 .quiz-review li{padding-bottom:10px;border-bottom:1px dashed var(--beige)}.quiz-review li:last-child{border-bottom:0}
 .quiz .quiz-ql{font-weight:600;color:var(--ink);margin:0 0 10px;line-height:1.4}
+
+/* Bilan de la dernière séance (élève) */
+.recap-date{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.recap-note{background:var(--surface);border:1px solid var(--beige);border-radius:12px;padding:12px 14px}
+.recap-note p{margin:0}.recap-note .recap-next{margin-top:8px;font-size:.92rem;color:var(--taupe-d)}
+.recap-note .mini-h,.recap-me .mini-h{display:flex;align-items:center;gap:6px}.recap-note .mini-h .ic,.recap-me .mini-h .ic{width:1em;height:1em}
+.recap-me{margin-top:14px}.recap-mynote{margin:4px 0 0;font-style:italic;color:var(--taupe-d)}
+.recap-form{margin-top:14px}.recap-form .ql{margin-bottom:0}
+
+/* Outils adaptés pour toi */
+.tools-intro{margin:-6px 0 6px}
+.tool-list{display:flex;flex-direction:column}
+.tool-list .tool{align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--beige)}
+.tool-list .tool:first-child{border-top:0;padding-top:8px}
+.tool-list .tool h3{margin:0 0 2px;font-size:1rem}
+.tool-list .tool p{margin:0;font-size:.88rem;color:var(--muted);line-height:1.4}
+.tool-list .tool .ico{width:42px;height:42px}

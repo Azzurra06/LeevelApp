@@ -4,35 +4,34 @@ $subjUrl = fn(array $x) => url('s_subjects', ['subj' => $x['id']]);
 $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" value="' . (int)$cur['id'] . '">' : ''); ?>
 <div class="page-head"><div><h1><?= icon('book-open') ?> Mes matières</h1><p>Tes notes, tes chapitres et tout ce qu'on travaille ensemble.</p></div></div>
 
-<?php if ($recap): $fb = $recap['feedback']; $rep = $recap['report']; ?>
-<div class="card tone-blue editable<?= $fb ? '' : ' editing' ?>" id="recap">
-  <div class="ed-head"><h2><?= icon('calendar') ?> Ma dernière séance · <?= e(fdatetime($recap['starts_at'])) ?></h2><?= $fb ? '<button type="button" class="btn ghost sm" data-edit>' . icon('pencil') . ' Modifier</button>' : '' ?></div>
-  <div class="recap-grid">
-    <div>
-      <h3 class="mini-h">Ce qu'on a travaillé</h3>
-      <p><?= $rep && $rep['worked_on'] ? nl2br(e($rep['worked_on'])) : '<span class="muted">' . e(session_label($recap)) . '</span>' ?></p>
-      <?php if ($rep && $rep['next_focus']): ?><h3 class="mini-h">Pour la prochaine fois</h3><p><?= e($rep['next_focus']) ?></p><?php endif ?>
+<?php $fb = $recap['feedback'] ?? null; $rep = $recap['report'] ?? null; ?>
+<div class="card tone-blue editable<?= $recap && !$fb ? ' editing' : '' ?>" id="recap">
+  <div class="ed-head"><h2><?= icon('file-text') ?> Bilan de la dernière séance</h2><?= $fb ? '<button type="button" class="btn ghost sm" data-edit>' . icon('pencil') . ' Modifier</button>' : '' ?></div>
+  <?php if (!$recap): ?>
+    <div class="empty-ill sm"><span>📅</span><p class="muted">Après ta première séance, tu trouveras ici le bilan de ta tutrice et tu pourras lui dire comment ça s'est passé.</p></div>
+  <?php else: ?>
+    <p class="recap-date"><span class="badge"><?= e(fdatetime($recap['starts_at'])) ?></span> <span class="muted"><?= e(session_label($recap)) ?></span></p>
+    <div class="recap-note">
+      <h3 class="mini-h"><?= icon('message-circle') ?> Le mot de ta tutrice</h3>
+      <?php if ($rep && $rep['worked_on']): ?><p><?= nl2br(e($rep['worked_on'])) ?></p>
+      <?php else: ?><p class="muted">Ta tutrice n'a pas encore écrit le bilan de cette séance.</p><?php endif ?>
+      <?php if ($rep && $rep['next_focus']): ?><p class="recap-next"><strong>Pour la prochaine fois :</strong> <?= e($rep['next_focus']) ?></p><?php endif ?>
     </div>
-    <div class="view">
-      <h3 class="mini-h">Mon ressenti</h3>
+    <div class="recap-me view">
+      <h3 class="mini-h"><?= icon('smile') ?> Mon retour</h3>
       <?php if ($fb): ?>
-        <p class="recap-mood"><span><?= $moodEmo[$fb['mood']] ?? '🙂' ?></span> <?= e(MOODS[$fb['mood']] ?? 'Ressenti donné') ?></p>
-        <?php if ($fb['understood']): ?><p><small class="muted">J'ai compris</small><br><?= e($fb['understood']) ?></p><?php endif ?>
-        <?php if ($fb['to_deepen']): ?><p><small class="muted">À approfondir</small><br><?= e($fb['to_deepen']) ?></p><?php endif ?>
-        <?php if ($fb['needs_next']): ?><p><small class="muted">Pour la prochaine séance</small><br><?= e($fb['needs_next']) ?></p><?php endif ?>
+        <p class="recap-mood"><span><?= $moodEmo[$fb['mood']] ?? '🙂' ?></span> <?= e(MOODS[$fb['mood']] ?? 'Retour envoyé') ?></p>
+        <?php $myNote = $fb['note'] ?? $fb['understood'] ?? null; if ($myNote): ?><p class="recap-mynote">« <?= e($myNote) ?> »</p><?php endif ?>
       <?php endif ?>
     </div>
-  </div>
-  <form method="post" action="<?= e(url('s_feedback')) ?>" class="stack edit-form"><?= $hiddenSubj() ?><input type="hidden" name="back" value="s_subjects"><input type="hidden" name="session_id" value="<?= (int)$recap['id'] ?>">
-    <div><span class="ql">Comment ça s'est passé ?</span>
-      <div class="mood-row mood-pick"><?php foreach (['good' => 'Bien', 'ok' => 'Moyen', 'hard' => 'Difficile'] as $k => $l): ?><label class="mood"><input type="radio" name="mood" value="<?= $k ?>" <?= ($fb['mood'] ?? '') === $k ? 'checked' : '' ?>><span><?= $moodEmo[$k] ?></span><small><?= $l ?></small></label><?php endforeach ?></div></div>
-    <label>Qu'est-ce que tu as compris ou réussi ?<textarea name="understood" maxlength="1000" rows="2"><?= e($fb['understood'] ?? '') ?></textarea></label>
-    <label>Qu'est-ce que tu dois encore approfondir ?<textarea name="to_deepen" maxlength="1000" rows="2"><?= e($fb['to_deepen'] ?? '') ?></textarea></label>
-    <label>De quoi as-tu besoin pour la prochaine séance ?<input name="needs_next" maxlength="1000" value="<?= e($fb['needs_next'] ?? '') ?>" placeholder="ex. revoir l'exercice 3"></label>
-    <div class="row"><button class="btn sm"><?= icon('send') ?> Envoyer à ma tutrice</button><?php if ($fb): ?><button type="button" class="btn ghost sm" data-edit>Annuler</button><?php endif ?></div>
-  </form>
-</div><br>
-<?php endif ?>
+    <form method="post" action="<?= e(url('s_feedback')) ?>" class="stack edit-form recap-form"><?= $hiddenSubj() ?><input type="hidden" name="back" value="s_subjects"><input type="hidden" name="session_id" value="<?= (int)$recap['id'] ?>">
+      <span class="ql">Comment ça s'est passé ?</span>
+      <div class="mood-row mood-pick"><?php foreach (['good' => 'Bien', 'ok' => 'Moyen', 'hard' => 'Difficile'] as $k => $l): ?><label class="mood"><input type="radio" name="mood" value="<?= $k ?>" required <?= ($fb['mood'] ?? '') === $k ? 'checked' : '' ?>><span><?= $moodEmo[$k] ?></span><small><?= $l ?></small></label><?php endforeach ?></div>
+      <label>Un petit mot pour ta tutrice ? <span class="q-hint">facultatif</span><textarea name="note" maxlength="1000" rows="2" placeholder="ex. J'ai bien compris les fractions, mais pas encore les équations"><?= e($fb['note'] ?? '') ?></textarea></label>
+      <div class="row"><button class="btn sm"><?= icon('send') ?> Envoyer</button><?php if ($fb): ?><button type="button" class="btn ghost sm" data-edit>Annuler</button><?php endif ?></div>
+    </form>
+  <?php endif ?>
+</div>
 
 <?php if (!$subjects): ?>
   <div class="card"><div class="empty-ill"><span>📚</span><p><strong>Tes matières arrivent bientôt</strong><br><small class="muted">Ta tutrice va ajouter les matières que vous travaillez ensemble. Tu pourras ensuite y noter tes résultats, voir tes chapitres et t'entraîner.</small></p></div></div>

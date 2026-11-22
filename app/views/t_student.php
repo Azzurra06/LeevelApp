@@ -144,13 +144,14 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
       <div class="row between"><h4><?= icon('file-text') ?> Bilan de séance</h4>
         <?php if ($rep && $rep['sent_at']): ?><span class="badge sage">Envoyé au parent le <?= e(fdate($rep['sent_at'])) ?></span><?php elseif ($rep): ?><span class="badge">Brouillon</span><?php else: ?><span class="badge warn">À faire</span><?php endif ?></div>
       <?php if ($fb): ?><div class="fb-box"><strong><?= icon('smile') ?> Retour de <?= e($s['first_name']) ?></strong> <?= $fb['mood'] ? '<span class="badge">' . e(MOODS[$fb['mood']]) . '</span>' : '' ?>
+        <?php if (!empty($fb['note'])): ?><p><small>« <?= e($fb['note']) ?> »</small></p><?php endif ?>
         <?php if ($fb['understood']): ?><p><small><strong>Compris / réussi :</strong> <?= e($fb['understood']) ?></small></p><?php endif ?>
         <?php if ($fb['to_deepen']): ?><p><small><strong>À approfondir :</strong> <?= e($fb['to_deepen']) ?></small></p><?php endif ?>
         <?php if ($fb['needs_next']): ?><p><small><strong>Besoin pour la prochaine fois :</strong> <?= e($fb['needs_next']) ?></small></p><?php endif ?></div>
       <?php else: ?><p class="muted"><small><?= e($s['first_name']) ?> n'a pas encore donné son retour.</small></p><?php endif ?>
       <details <?= $rep ? '' : 'open' ?>><summary><?= $rep ? 'Modifier le bilan' : 'Rédiger le bilan' ?></summary>
         <form method="post" action="<?= e(url('t_report')) ?>" class="stack"><?= $hidden() ?><input type="hidden" name="session_id" value="<?= (int)$se['id'] ?>">
-          <label>Ce qu'on a travaillé<textarea name="worked_on" maxlength="3000" rows="2"><?= e($rep['worked_on'] ?? '') ?></textarea></label>
+          <label>Ce qu'on a travaillé <span class="q-hint"><?= icon('eye') ?> visible par l'élève</span><textarea name="worked_on" maxlength="3000" rows="2"><?= e($rep['worked_on'] ?? '') ?></textarea></label>
           <label><?= icon('lock') ?> Note pour moi (privée)<textarea name="tutor_note" maxlength="3000" rows="2"><?= e($rep['tutor_note'] ?? '') ?></textarea></label>
           <label><?= icon('users') ?> Bilan pour le parent<textarea name="parent_summary" maxlength="3000" rows="3" placeholder="Quelques phrases simples : ce qui a été fait, comment ça s'est passé, sur quoi s'appuyer à la maison."><?= e($rep['parent_summary'] ?? '') ?></textarea></label>
           <label>Pour la prochaine séance<input name="next_focus" maxlength="500" value="<?= e($rep['next_focus'] ?? '') ?>" placeholder="ex. finir le chapitre 4, préparer le contrôle de jeudi"></label>
