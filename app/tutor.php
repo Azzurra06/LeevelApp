@@ -14,6 +14,57 @@ function tutor_route(string $r, bool $isPost): never
             $f['invites'] = all('SELECT * FROM invitations WHERE family_id=? AND used_at IS NULL ORDER BY id', [$f['id']]); }
         render('t_users', ['families' => $families]);
     }
+    if ($r === 't_finance') {
+        if (!finance_available()) render('error', ['msg' => 'La base de données doit être mise à jour (migration 018).']);
+        $mine = fn(int $sid) => one('SELECT s.* FROM students s JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? AND fm.member_role="tutor" WHERE s.id=?', [$u['id'], $sid]);
+        $month = preg_match('/^\d{4}-\d{2}$/', (string)($_REQUEST['m'] ?? '')) ? $_REQUEST['m'] : date('Y-m');
+        if ($isPost) {
+            $act = (string)($_POST['action'] ?? '');
+            $num = fn(string $k) => ($v = str_replace([',', ' ', '€'], ['.', '', ''], trim((string)($_POST[$k] ?? '')))) === '' ? null : max(0, min(9999, round((float)$v, 2)));
+            if ($act === 'settings') {
+                setting_set('tax_credit', !empty($_POST['tax_credit']) ? '1' : '0');
+                setting_set('pay_instructions', post_str('pay_instructions', 1000) ?: null);
+                flash('Réglages enregistrés.');
+            } elseif ($act === 'rate' && ($st = $mine(post_int('sid')))) {
+                q('UPDATE students SET hourly_rate=?, hourly_rate_visio=? WHERE id=?', [$num('hourly_rate'), $num('hourly_rate_visio'), $st['id']]);
+                flash('Tarif de ' . $st['first_name'] . ' enregistré.');
+            } elseif ($act === 'create' && ($st = $mine(post_int('sid')))) {
+                $b = month_billing($st, $month);
+                $amount = $num('amount') ?? $b['amount'];
+                if ($amount <= 0) flash('Montant nul : renseignez le tarif ou le montant.', 'err');
+                else {
+                    $label = post_str('label', 160) ?: 'Séances de ' . mb_strtolower(month_label($month));
+                    $due = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_str('due_date', 10)) ? post_str('due_date', 10) : date('Y-m-d', strtotime($month . '-01 +1 month +9 days'));
+                    q('INSERT INTO payments (student_id, period, label, minutes, amount, due_date) VALUES (?,?,?,?,?,?)', [$st['id'], $month, $label, empty($_POST['manual']) ? $b['minutes'] : 0, $amount, $due]);
+                    if (!empty($_POST['notify'])) send_message((int)$st['family_id'], $u, "Nouvelle échéance pour " . $st['first_name'] . " : " . $label . " · " . money($amount) . " à régler avant le " . fdate($due) . ".\nLe détail est dans « Finances » (menu Mon compte).");
+                    audit('payment_created', money($amount), (int)$st['family_id']);
+                    flash('Échéance créée' . (!empty($_POST['notify']) ? ' et envoyée au parent.' : '.'));
+                }
+            } elseif (in_array($act, ['pay', 'unpay', 'delete'], true)) {
+                $p = one('SELECT p.* FROM payments p WHERE p.id=?', [post_int('id')]);
+                $st = $p ? $mine((int)$p['student_id']) : null;
+                if (!$st) { http_response_code(403); render('error', ['msg' => 'Paiement introuvable.']); }
+                if ($act === 'pay') {
+                    $d = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_str('paid_at', 10)) ? post_str('paid_at', 10) : date('Y-m-d');
+                    q('UPDATE payments SET status="paid", paid_at=?, method=? WHERE id=?', [$d, post_enum('method', PAY_METHODS, 'virement'), $p['id']]);
+                    flash('Paiement enregistré.');
+                } elseif ($act === 'unpay') { q('UPDATE payments SET status="pending", paid_at=NULL, method=NULL WHERE id=?', [$p['id']]); flash('Paiement remis en attente.'); }
+                else { q('DELETE FROM payments WHERE id=?', [$p['id']]); flash('Échéance supprimée.'); }
+            }
+            redirect('t_finance', ['m' => $month]);
+        }
+        $students = all('SELECT s.*, f.name family_name FROM students s JOIN families f ON f.id=s.family_id JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? AND fm.member_role="tutor" ORDER BY f.is_demo, s.first_name', [$u['id']]);
+        $rows = []; $sids = [0];
+        foreach ($students as $st) {
+            $sids[] = (int)$st['id'];
+            $rows[] = ['s' => $st, 'b' => month_billing($st, $month), 'pay' => one('SELECT * FROM payments WHERE student_id=? AND period=? ORDER BY id DESC LIMIT 1', [$st['id'], $month])];
+        }
+        $in = implode(',', $sids);
+        render('t_finance', ['month' => $month, 'rows' => $rows,
+            'pending' => all("SELECT p.*, s.first_name FROM payments p JOIN students s ON s.id=p.student_id WHERE p.student_id IN ($in) AND p.status='pending' ORDER BY p.due_date"),
+            'paid' => all("SELECT p.*, s.first_name FROM payments p JOIN students s ON s.id=p.student_id WHERE p.student_id IN ($in) AND p.status='paid' ORDER BY p.paid_at DESC, p.id DESC LIMIT 15"),
+            'cashed' => (float)(one("SELECT SUM(amount) t FROM payments WHERE student_id IN ($in) AND status='paid' AND DATE_FORMAT(paid_at,'%Y-%m')=?", [$month])['t'] ?? 0)]);
+    }
     if ($r === 't_demo' && $isPost) {
         if (one('SELECT 1 FROM users WHERE username IN ("demo.parent","demo.eleve")')) {
             flash('Un dossier démo existe déjà. Redéfinissez ses mots de passe ci-dessous si besoin.', 'err');

@@ -925,3 +925,23 @@ body.page-t_student .card[class*="tone-"],body.page-t_rdv .card[class*="tone-"]{
 .btn.ghost.danger{background:transparent;color:#c0392b;border-color:#f0c9c4}
 .del-list{margin:6px 0 0;padding-left:18px}.del-list li{margin:2px 0}
 .danger-card .alert{display:flex;gap:10px;align-items:flex-start}
+/* Finances */
+.fin-list{display:flex;flex-direction:column}
+.fin-row{display:grid;grid-template-columns:minmax(140px,1fr) minmax(170px,1.1fr) minmax(150px,1fr) auto;gap:8px 18px;align-items:center;padding:12px 0;border-top:1px solid var(--beige)}
+.fin-row:first-child{border-top:0}
+.fin-who,.fin-month{display:flex;flex-direction:column}
+.fin-rate{display:flex;align-items:center;gap:6px}
+.fin-rate-form{grid-column:2/4;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.fin-rate-form label{flex:1;min-width:110px}
+.fin-status{text-align:right}
+.fin-manual{margin-top:14px;border-top:1px solid var(--beige);padding-top:12px}.fin-manual summary{cursor:pointer;font-weight:600;color:var(--accent-d);display:flex;align-items:center;gap:6px}.fin-manual form{margin-top:12px}
+.pay-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pay-list>li{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--beige)}
+.pay-list>li:first-child{border-top:0}
+.pay-main{display:flex;flex-direction:column;gap:2px;flex:1;min-width:180px}.pay-main .badge{align-self:flex-start}
+.pay-amt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.pay-form{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;width:100%}.pay-form label{flex:1;min-width:130px}
+.pay-instr{margin-top:12px;padding:12px;background:var(--accent-l);border-radius:12px}.pay-instr p{margin:6px 0 0}
+.fin-help{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.err-txt{color:#c0392b}
+@media (max-width:760px){.fin-row{grid-template-columns:1fr auto}.fin-rate,.fin-rate-form{grid-column:1/-1}.fin-month{grid-column:1}.fin-status{grid-column:2}}

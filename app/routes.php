@@ -313,6 +313,12 @@ function family_route(string $r, bool $isPost): never
         $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
         render('p_planning', ['u' => $u, 's' => $s] + family_view_data($s));
     }
+    if ($r === 'p_finance') {
+        $u = require_login('parent');
+        $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
+        if (!finance_available()) render('error', ['msg' => 'Cette page sera bientôt disponible.']);
+        render('p_finance', ['u' => $u, 's' => $s, 'billing' => month_billing($s, date('Y-m')), 'payments' => payments_of((int)$s['id'])]);
+    }
     if ($r === 'p_child') {
         $u = require_login('parent');
         $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);

@@ -37,13 +37,13 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
   </nav>
   <div class="nav nav-side">
     <details class="acct" data-acct>
-      <summary class="acct-btn<?= in_array($r, ['account', 'help', 't_users', 'q', 'q_recap'], true) ? ' on' : '' ?>" aria-label="Menu de mon compte">
+      <summary class="acct-btn<?= in_array($r, ['account', 'help', 't_users', 'q', 'q_recap', 't_finance', 'p_finance'], true) ? ' on' : '' ?>" aria-label="Menu de mon compte">
         <span class="acct-av"><?= avatar_html($me, 'xs') ?></span><span class="acct-ic"><?= icon('user') ?></span><span class="acct-lbl">Mon compte</span><?= icon('chevron-right', 'acct-chev') ?>
       </summary>
       <div class="acct-menu" role="menu">
         <div class="acct-head"><?= avatar_html($me, 'md') ?><div><strong><?= e($me['display_name']) ?></strong><small><?= e(ROLE_LABELS[$role] ?? '') ?> · <?= e($me['username']) ?></small></div></div>
         <a role="menuitem" href="<?= e(url('account')) ?>" class="<?= $r === 'account' ? 'on' : '' ?>"><?= icon('settings') ?> Mon compte</a>
-        <?php if ($role === 'tutor'): ?><a role="menuitem" href="<?= e(url('t_users')) ?>" class="<?= $r === 't_users' ? 'on' : '' ?>"><?= icon('users') ?> Familles et dossiers</a><?php else: ?><a role="menuitem" href="<?= e(url('q')) ?>" class="<?= in_array($r, ['q', 'q_recap'], true) ? 'on' : '' ?>"><?= icon('clipboard-list') ?> Mon questionnaire</a><?php endif ?>
+        <?php if ($role === 'tutor'): ?><a role="menuitem" href="<?= e(url('t_users')) ?>" class="<?= $r === 't_users' ? 'on' : '' ?>"><?= icon('users') ?> Familles et dossiers</a><a role="menuitem" href="<?= e(url('t_finance')) ?>" class="<?= $r === 't_finance' ? 'on' : '' ?>"><?= icon('file-text') ?> Finances</a><?php else: ?><?php if ($role === 'parent'): ?><a role="menuitem" href="<?= e(url('p_finance')) ?>" class="<?= $r === 'p_finance' ? 'on' : '' ?>"><?= icon('file-text') ?> Finances</a><?php endif ?><a role="menuitem" href="<?= e(url('q')) ?>" class="<?= in_array($r, ['q', 'q_recap'], true) ? 'on' : '' ?>"><?= icon('clipboard-list') ?> Mon questionnaire</a><?php endif ?>
         <a role="menuitem" href="<?= e(url('help')) ?>" class="<?= $r === 'help' ? 'on' : '' ?>"><?= icon('circle-help') ?> Centre d'aide</a>
         <form method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><button role="menuitem" class="acct-out"><?= icon('log-out') ?> Se déconnecter</button></form>
       </div>
