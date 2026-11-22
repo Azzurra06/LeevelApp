@@ -1063,3 +1063,12 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .login-back{margin:16px 0 0;text-align:center}
 .login-back a{display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-weight:600}
 .login-back a:hover{text-decoration:underline}
+
+/* Menu compte : avatar aligné sur la colonne des icônes, déconnexion discrète */
+.acct-switch .avatar{width:24px;height:24px;font-size:.7rem;flex:none;margin:0}
+.acct-switch .avatar.initials{display:grid;place-items:center}
+.acct-menu form .acct-out{color:var(--muted);font-size:.85rem;padding-top:8px;padding-bottom:8px}
+.acct-menu form .acct-out .ic{color:var(--muted);width:16px;height:16px}
+.acct-menu form .acct-out:hover{color:var(--err);background:var(--err-l)}.acct-menu form .acct-out:hover .ic{color:var(--err)}
+.acct-menu form:has(.acct-switch),.acct-menu form:has(.acct-out)+form:has(.acct-out){border-top:0;margin-top:0;padding-top:0}
+.acct-menu .acct-switch{gap:8px}.acct-switch .avatar{width:22px;height:22px;font-size:.66rem}

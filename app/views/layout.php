@@ -52,8 +52,8 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
             <button role="menuitem" class="acct-switch"><?= avatar_html($o, 'xs') ?><span><strong><?= e($o['display_name']) ?></strong><small><?= e(ROLE_LABELS[$o['role']] ?? '') ?> · <?= e($o['username']) ?></small></span></button></form>
         <?php endforeach ?>
         <a role="menuitem" href="<?= e(url('login', ['add' => 1])) ?>"><?= icon('plus') ?> Ajouter un compte</a>
-        <form method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><button role="menuitem" class="acct-out"><?= icon('log-out') ?> Se déconnecter<?= $others ? ' de ce compte' : '' ?></button></form>
-        <?php if ($others): ?><form method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><input type="hidden" name="all" value="1"><button role="menuitem" class="acct-out"><?= icon('log-out') ?> Se déconnecter de tous les comptes</button></form><?php endif ?>
+        <form method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><button role="menuitem" class="acct-out"><?= icon('log-out') ?> Se déconnecter</button></form>
+        <?php if ($others): ?><form method="post" action="<?= e(url('logout')) ?>"><?= csrf_field() ?><input type="hidden" name="all" value="1"><button role="menuitem" class="acct-out"><?= icon('log-out') ?> Déconnecter tous les comptes</button></form><?php endif ?>
       </div>
     </details>
   </div>
