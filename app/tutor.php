@@ -101,14 +101,35 @@ function tutor_route(string $r, bool $isPost): never
         $st = one('SELECT s.* FROM students s JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? AND fm.member_role="tutor" WHERE s.id=?', [$u['id'], post_int('sid')]);
         if (!$st) { http_response_code(403); render('error', ['msg' => 'Dossier non accessible.']); }
         $role = post_enum('role', ['parent' => 1, 'student' => 1], 'parent');
+        $mode = post_enum('mode', ['invite' => 1, 'link' => 1, 'create' => 1], 'invite');
         $email = mb_strtolower(post_str('email', 120));
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) flash('Adresse e-mail invalide.', 'err');
+        if ($role === 'student' && $st['user_id']) { flash('Cet élève a déjà un compte.', 'err'); redirect('t_users', ['open' => $st['family_id']]); }
+        if ($mode === 'create') {
+            // la tutrice crée elle-même l'identifiant et le mot de passe
+            $username = mb_strtolower(post_str('username', 60)); $pw = (string)($_POST['password'] ?? '');
+            $name = $role === 'parent' ? post_str('display_name', 100) : $st['first_name'];
+            $e = validate_username($username) ? 'Identifiant : 3 à 60 caractères (minuscules, chiffres, . _ -).' : (validate_password($pw) ?: ($name === '' ? 'Renseignez le nom du parent.' : null));
+            if (!$e && one('SELECT 1 FROM users WHERE username=?', [$username])) $e = 'Cet identifiant est déjà utilisé.';
+            if ($e) { flash($e, 'err'); redirect('t_users', ['open' => $st['family_id']]); }
+            db()->beginTransaction();
+            q('INSERT INTO users (username, display_name, role, password_hash) VALUES (?,?,?,?)', [$username, $name, $role, password_hash($pw, PASSWORD_DEFAULT)]);
+            $nid = (int)db()->lastInsertId();
+            q('INSERT INTO family_members (family_id, user_id, member_role) VALUES (?,?,?)', [$st['family_id'], $nid, $role]);
+            if ($role === 'student') q('UPDATE students SET user_id=? WHERE id=?', [$nid, $st['id']]);
+            q('UPDATE invitations SET expires_at=NOW() WHERE family_id=? AND role=? AND used_at IS NULL', [$st['family_id'], $role]);
+            db()->commit();
+            audit('account_created', $role, (int)$st['family_id']);
+            flash('Compte « ' . $username . ' » créé. Communiquez l\'identifiant et le mot de passe à la famille.');
+            redirect('t_users', ['open' => $st['family_id']]);
+        }
+        if ($mode === 'link') $email = '';
+        if ($mode === 'invite' && !filter_var($email, FILTER_VALIDATE_EMAIL)) flash('Adresse e-mail invalide.', 'err');
         elseif ($role === 'student' && $st['user_id']) flash('Cet élève a déjà un compte.', 'err');
         else {
             q('UPDATE invitations SET expires_at=NOW() WHERE family_id=? AND role=? AND used_at IS NULL', [$st['family_id'], $role]);
             $_SESSION['invite_result'] = [create_invitation((int)$st['family_id'], (int)$st['id'], $role, $email, $role === 'student' ? $st['first_name'] : '', (int)$u['id'])];
             audit('invitation_created', $role, (int)$st['family_id']);
-            flash('Invitation créée.');
+            flash($mode === 'link' ? 'Lien d\'invitation créé : copiez-le ci-dessous.' : 'Invitation créée.');
         }
         redirect('t_users', ['open' => $st['family_id']]);
     }

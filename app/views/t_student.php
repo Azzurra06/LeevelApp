@@ -95,22 +95,6 @@ $hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_wor
     <p class="muted"><small><?= !$mem ? 'Pas encore renseigné dans le questionnaire élève.' : (in_array('not_sure', $mem, true) ? 'L\'élève ne sait pas encore : à observer en séance.' : 'D\'après le questionnaire élève (modifiable par l\'élève dans son compte).') ?></small></p>
   </div>
 
-  <div class="card tone-blue editable">
-    <div class="ed-head"><h2><?= icon('users') ?> Famille</h2><?= $editBtn ?></div>
-    <p class="fam-name view"><strong><?= $parentU ? e($parentU['display_name']) : 'Parent' ?></strong><?php if ($parentU): ?> · <code><?= e($parentU['username']) ?></code><?php else: ?> · <span class="muted">pas de compte parent</span><?php endif ?></p>
-    <dl class="fields view">
-      <div><dt>Téléphone</dt><dd><?= $tel($s['parent_phone'] ?? null) ?></dd></div>
-      <div><dt>E-mail</dt><dd><?= $mail($s['parent_email'] ?? null) ?></dd></div>
-      <div class="wide"><dt>Adresse</dt><dd><?= $val($s['parent_address'] ?? null) ?></dd></div>
-      <div class="wide"><dt>Remarques</dt><dd><?= $val($s['contact_notes'] ?? null) ?></dd></div>
-    </dl>
-    <form method="post" action="<?= e(url('t_contacts')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="who" value="parent">
-      <div class="form-grid"><label>Téléphone<input type="tel" name="parent_phone" value="<?= e($s['parent_phone'] ?? '') ?>" maxlength="30" autocomplete="off"></label>
-      <label>E-mail<input type="email" name="parent_email" value="<?= e($s['parent_email'] ?? '') ?>" maxlength="120" autocomplete="off"></label></div>
-      <label>Adresse (pour les séances en présentiel)<input name="parent_address" value="<?= e($s['parent_address'] ?? '') ?>" maxlength="255" autocomplete="off"></label>
-      <label>Remarques (préférences de contact, disponibilités…)<input name="contact_notes" value="<?= e($s['contact_notes'] ?? '') ?>" maxlength="500"></label>
-      <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
-  </div>
  </div>
 
  <div class="col-stack">
@@ -131,6 +115,23 @@ $hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_wor
       <label>Points forts<textarea name="shared_strengths" maxlength="3000" rows="3" placeholder="<?= e(implode("\n", array_slice($an['strengths'] ?? [], 0, 4))) ?>"><?= e($s['shared_strengths']) ?></textarea></label>
       <label>Points à travailler<textarea name="shared_to_work" maxlength="3000" rows="3" placeholder="<?= e(implode("\n", array_map(fn($a) => AXES[$a], $prio['axes']))) ?>"><?= e($s['shared_to_work']) ?></textarea></label>
       <div class="row"><button class="btn sm"><?= icon('send') ?> Publier</button><?php if ($hasShared): ?><button type="button" class="btn ghost sm" data-edit>Annuler</button><?php endif ?></div></form>
+  </div>
+
+  <div class="card tone-blue editable">
+    <div class="ed-head"><h2><?= icon('users') ?> Famille</h2><?= $editBtn ?></div>
+    <p class="fam-name view"><strong><?= $parentU ? e($parentU['display_name']) : 'Parent' ?></strong><?php if ($parentU): ?> · <code><?= e($parentU['username']) ?></code><?php else: ?> · <span class="muted">pas de compte parent</span><?php endif ?></p>
+    <dl class="fields view">
+      <div><dt>Téléphone</dt><dd><?= $tel($s['parent_phone'] ?? null) ?></dd></div>
+      <div><dt>E-mail</dt><dd><?= $mail($s['parent_email'] ?? null) ?></dd></div>
+      <div class="wide"><dt>Adresse</dt><dd><?= $val($s['parent_address'] ?? null) ?></dd></div>
+      <div class="wide"><dt>Remarques</dt><dd><?= $val($s['contact_notes'] ?? null) ?></dd></div>
+    </dl>
+    <form method="post" action="<?= e(url('t_contacts')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="who" value="parent">
+      <div class="form-grid"><label>Téléphone<input type="tel" name="parent_phone" value="<?= e($s['parent_phone'] ?? '') ?>" maxlength="30" autocomplete="off"></label>
+      <label>E-mail<input type="email" name="parent_email" value="<?= e($s['parent_email'] ?? '') ?>" maxlength="120" autocomplete="off"></label></div>
+      <label>Adresse (pour les séances en présentiel)<input name="parent_address" value="<?= e($s['parent_address'] ?? '') ?>" maxlength="255" autocomplete="off"></label>
+      <label>Remarques (préférences de contact, disponibilités…)<input name="contact_notes" value="<?= e($s['contact_notes'] ?? '') ?>" maxlength="500"></label>
+      <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
   </div>
  </div>
 </div>

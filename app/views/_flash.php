@@ -4,8 +4,8 @@
   <h3><?= icon('message-circle') ?> Invitations</h3>
   <?php foreach ($invRes as $ir): ?>
     <div class="invite-item">
-      <p><strong><?= $ir['role'] === 'parent' ? 'Parent' : 'Élève' ?></strong> · <?= e($ir['email']) ?> ·
-        <?= $ir['sent'] ? '<span class="badge sage">E-mail envoyé</span>' : '<span class="badge warn">E-mail non envoyé : transmettez le lien vous-même</span>' ?></p>
+      <p><strong><?= $ir['role'] === 'parent' ? 'Parent' : 'Élève' ?></strong><?= $ir['email'] !== '' ? ' · ' . e($ir['email']) : '' ?> ·
+        <?= $ir['sent'] ? '<span class="badge sage">E-mail envoyé</span>' : ($ir['email'] === '' ? '<span class="badge">Lien à copier et à transmettre</span>' : '<span class="badge warn">E-mail non envoyé : transmettez le lien vous-même</span>') ?></p>
       <div class="copy-row"><input type="text" readonly value="<?= e($ir['link']) ?>" aria-label="Lien d'invitation"><button type="button" class="btn soft sm" data-copy><?= icon('file-text') ?> Copier</button></div>
     </div>
   <?php endforeach ?>

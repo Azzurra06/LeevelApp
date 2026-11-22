@@ -62,14 +62,30 @@
     $hasParent = (bool)array_filter($f['users'], fn($x) => $x['role'] === 'parent') || (bool)array_filter($f['invites'], fn($x) => $x['role'] === 'parent' && strtotime($x['expires_at']) > time());
     $hasStudent = $st['user_id'] || array_filter($f['invites'], fn($x) => $x['role'] === 'student' && strtotime($x['expires_at']) > time());
     foreach (['parent' => !$hasParent, 'student' => !$hasStudent] as $role => $missing): if (!$missing) continue; ?>
+    <?php $sw = 'm' . (int)$st['id'] . $role; ?>
     <form method="post" action="<?= e(url('t_invite_new')) ?>" class="missing-acc"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$st['id'] ?>"><input type="hidden" name="role" value="<?= $role ?>">
-      <label><?= icon('user') ?> Compte <?= $role === 'parent' ? 'parent' : 'élève' ?> manquant : inviter par e-mail</label>
-      <div class="copy-row"><input type="email" name="email" required maxlength="120" placeholder="adresse@exemple.fr" aria-label="E-mail"><button class="btn sm"><?= icon('send') ?> Envoyer</button></div>
+      <span class="missing-h"><?= icon('user') ?> Compte <?= $role === 'parent' ? 'parent' : 'élève' ?> à créer</span>
+      <div class="seg seg-tight" role="radiogroup">
+        <label class="seg-opt"><input type="radio" name="mode" value="invite" data-switch="<?= $sw ?>" checked><span><?= icon('send') ?> Inviter par e-mail</span></label>
+        <label class="seg-opt"><input type="radio" name="mode" value="link" data-switch="<?= $sw ?>"><span><?= icon('external-link') ?> Lien à copier</span></label>
+        <label class="seg-opt"><input type="radio" name="mode" value="create" data-switch="<?= $sw ?>"><span><?= icon('lock') ?> Créer moi-même</span></label>
+      </div>
+      <div data-switch-pane="<?= $sw ?>:invite"><div class="copy-row"><input type="email" name="email" required maxlength="120" placeholder="adresse@exemple.fr" aria-label="E-mail"><button class="btn sm"><?= icon('send') ?> Envoyer</button></div>
+        <p class="muted"><small>Un e-mail avec le lien d'inscription est envoyé (valable 7 jours).</small></p></div>
+      <div data-switch-pane="<?= $sw ?>:link" hidden><input type="hidden" name="link_only" value="1" disabled>
+        <div class="row"><button class="btn sm"><?= icon('external-link') ?> Générer le lien d'invitation</button></div>
+        <p class="muted"><small>Le lien s'affiche en haut de la page : copiez-le et transmettez-le vous-même (SMS, WhatsApp…).</small></p></div>
+      <div data-switch-pane="<?= $sw ?>:create" hidden>
+        <div class="form-grid"><?php if ($role === 'parent'): ?><label>Nom affiché<input name="display_name" required maxlength="100" placeholder="Mme Martin"></label><?php endif ?>
+          <label>Identifiant<input name="username" required pattern="[a-z0-9._\-]{3,60}" autocapitalize="none" autocomplete="off"></label>
+          <label>Mot de passe initial<input name="password" type="password" required minlength="10" autocomplete="new-password"></label></div>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Créer le compte</button></div>
+        <p class="muted"><small>10 caractères minimum avec lettres et chiffres. Communiquez ensuite l'identifiant et le mot de passe à la famille.</small></p></div>
     </form>
   <?php endforeach; endforeach ?>
   <?php if ($f['invites']): ?><h3 class="sub-h"><?= icon('message-circle') ?> Invitations en attente</h3>
   <ul class="list"><?php foreach ($f['invites'] as $iv): $expired = strtotime($iv['expires_at']) < time(); ?>
-    <li><?= icon($iv['role'] === 'student' ? 'smile' : 'user') ?><div><?= e($iv['display_name'] ?: ROLE_LABELS[$iv['role']]) ?><?= $iv['display_name'] ? ' · ' . e(ROLE_LABELS[$iv['role']]) : '' ?> · <code><?= e($iv['email']) ?></code><br>
+    <li><?= icon($iv['role'] === 'student' ? 'smile' : 'user') ?><div><?= e($iv['display_name'] ?: ROLE_LABELS[$iv['role']]) ?><?= $iv['display_name'] ? ' · ' . e(ROLE_LABELS[$iv['role']]) : '' ?><?= $iv['email'] !== '' ? ' · <code>' . e($iv['email']) . '</code>' : ' · <span class="muted">lien transmis par vous</span>' ?><br>
       <small class="muted"><?= $expired ? 'Lien expiré' : 'Valable jusqu\'au ' . e(fdate($iv['expires_at'])) ?> · <?= $iv['mail_sent'] ? 'e-mail envoyé' : 'e-mail non envoyé (lien à transmettre)' ?></small></div>
       <form method="post" action="<?= e(url('t_invite')) ?>" class="row inv-actions"><?= csrf_field() ?><input type="hidden" name="invite_id" value="<?= (int)$iv['id'] ?>">
         <button class="btn soft sm" name="do" value="resend"><?= icon('refresh-cw') ?> Nouveau lien</button>
