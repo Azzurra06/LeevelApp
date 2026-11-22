@@ -173,7 +173,7 @@
     if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => requestAnimationFrame(fit)); [...grid.children].forEach(c => ro.observe(c)); }
     window.addEventListener('resize', fit);
   };
-  $$('.grid:not(.stat-grid), .grid-2').forEach(masonry);
+  $$('.grid:not(.stat-grid), .grid-2:not(.two-cols)').forEach(masonry);
   // Retour sur un bloc précis après enregistrement : on rouvre les volets qui le contiennent
   if (location.hash.length > 1) {
     const tgt = document.getElementById(decodeURIComponent(location.hash.slice(1)));
