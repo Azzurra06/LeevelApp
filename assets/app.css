@@ -973,7 +973,7 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 @media (max-width:720px){.nav-main .nav-ic .nav-badge{top:-4px;right:8px}}
 
 /* Notification système dans la messagerie */
-.msg-sys{display:flex;gap:10px;align-items:flex-start;max-width:520px;margin:6px auto;padding:10px 14px;background:var(--accent-l);border:1px dashed #c9bdfc;border-radius:12px;font-size:.9rem}
+.msg-sys{display:flex;gap:10px;align-items:flex-start;margin:6px 0;padding:10px 14px;background:var(--accent-l);border:1px dashed #c9bdfc;border-radius:12px;font-size:.9rem}
 .msg-sys-ic{flex:none;color:var(--accent-d);margin-top:1px}
 .msg-sys-from{display:block;font-size:.75rem;font-weight:700;color:var(--accent-d);text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
 .msg-sys .msg-time{display:block;margin-top:4px;font-size:.72rem;color:var(--muted)}
