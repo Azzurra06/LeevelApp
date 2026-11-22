@@ -112,17 +112,25 @@ $hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_wor
  </div>
 </div>
 
-<?php elseif ($tab === 'parent' || $tab === 'eleve'): $code = $tab === 'parent' ? 'parent' : 'student'; $d = $data[$code]; $cfg = qn_config($code); ?>
-<div class="card">
-  <div class="row between"><h2><?= icon('clipboard-list') ?> <?= e($cfg['title']) ?></h2>
-    <span class="badge <?= ($d['sub']['status'] ?? '') === 'completed' ? 'sage' : 'warn' ?>"><?= !$d['sub'] ? 'Non commencé' : ($d['sub']['status'] === 'completed' ? 'Terminé le ' . e(fdate($d['sub']['completed_at'])) : 'En cours') ?></span></div>
-  <p><a class="btn ghost sm" href="<?= e(url('q', ['sid' => $s['id'], 'code' => $code])) ?>"><?= icon('pencil') ?> <?= $d['sub'] ? 'Compléter / modifier moi-même' : 'Remplir moi-même' ?></a></p>
-  <?php if ($code === 'student'): ?><p class="alert warn"><?= icon('lock') ?> Réponses personnelles de l'élève : confidentielles, jamais affichées au parent.</p><?php endif ?>
-  <p class="muted"><small>Réponses d'origine, non modifiables par la tutrice.</small></p>
-  <?php foreach ($cfg['steps'] as $st): ?><fieldset><legend><?= e($st['title']) ?></legend><dl class="recap">
-    <?php foreach ($st['questions'] as $qq): if (!qn_visible($qq, $d['all'])) continue; ?><dt><?= e($qq['label']) ?></dt><dd><?= e(qn_display($qq, $d['all'][$qq['key']] ?? null)) ?></dd><?php endforeach ?>
-  </dl></fieldset><br><?php endforeach ?>
+<?php elseif ($tab === 'parent' || $tab === 'eleve'): $code = $tab === 'parent' ? 'parent' : 'student'; $d = $data[$code]; $cfg = qn_config($code);
+$stat = fn($c) => !$data[$c]['sub'] ? ['Non commencé', 'warn'] : ($data[$c]['sub']['status'] === 'completed' ? ['Terminé le ' . fdate($data[$c]['sub']['completed_at']), 'sage'] : ['En cours', 'warn']); ?>
+<div class="qn-switch">
+  <div class="seg"><?php foreach (['parent' => ['parent', 'user', 'Parent'], 'eleve' => ['student', 'smile', 'Élève']] as $tk => [$c, $ic, $lb]): [$st, $tone] = $stat($c); ?><a href="<?= e(url('t_student', $sidp + ['tab' => $tk])) ?>" class="<?= $tab === $tk ? 'on' : '' ?>"><?= icon($ic) ?> <?= $lb ?> <span class="badge <?= $tone ?>"><?= e($st) ?></span></a><?php endforeach ?></div>
+  <a class="btn ghost sm" href="<?= e(url('q', ['sid' => $s['id'], 'code' => $code])) ?>"><?= icon('pencil') ?> <?= $d['sub'] ? 'Compléter / modifier moi-même' : 'Remplir moi-même' ?></a>
 </div>
+<?php if ($code === 'student'): ?><p class="alert warn"><?= icon('lock') ?> Réponses personnelles de l'élève : confidentielles, jamais affichées au parent.</p><?php endif ?>
+<?php if (!$d['sub']): ?><div class="card"><div class="empty-ill sm"><span>📝</span><p class="muted">Ce questionnaire n'a pas encore été rempli. Vous pouvez le faire passer pendant le premier rendez-vous (onglet « 1er RDV »).</p></div></div>
+<?php else: $tones = ['tone-violet', 'tone-blue', 'tone-pink', 'tone-orange', 'tone-green', 'tone-teal', 'tone-gold']; foreach ($cfg['steps'] as $n => $st):
+  $qs = array_values(array_filter($st['questions'], fn($qq) => qn_visible($qq, $d['all'])));
+  $ans = []; $empty = [];
+  foreach ($qs as $qq) { $v = qn_display($qq, $d['all'][$qq['key']] ?? null); if ($v === '' || $v === '-' || $v === '—') $empty[] = $qq; else $ans[] = [$qq, $v]; }
+  if (!$qs) continue; ?>
+<div class="card qn-step <?= $tones[$n % count($tones)] ?>">
+  <div class="row between"><h2><?= e($st['title']) ?></h2><span class="muted"><small><?= count($ans) ?> / <?= count($qs) ?> répondues</small></span></div>
+  <?php if ($ans): ?><dl class="qa-grid"><?php foreach ($ans as [$qq, $v]): ?><div><dt><?= e($qq['label']) ?></dt><dd><?= e($v) ?></dd></div><?php endforeach ?></dl><?php endif ?>
+  <?php if ($empty): ?><details class="qa-empty"><summary><?= count($empty) ?> question<?= count($empty) > 1 ? 's' : '' ?> sans réponse</summary><ul><?php foreach ($empty as $qq): ?><li><?= e($qq['label']) ?></li><?php endforeach ?></ul></details><?php endif ?>
+</div>
+<?php endforeach; endif ?>
 
 <?php elseif ($tab === 'analyse'): ?>
 <?php require __DIR__ . '/_analysis.php' ?>
@@ -143,14 +151,41 @@ $goalForm = function (?array $g) use ($hidden, $catOpts) { $g ??= ['id' => 0, 't
       <?php if ($g['id']): ?><button class="btn ghost" name="delete" value="1" data-confirm="Supprimer cet objectif ?"><?= icon('trash-2') ?> Supprimer</button><?php endif ?></div>
   </form>
 <?php }; ?>
-<div class="card"><div class="row between"><h2><?= icon('target') ?> Objectifs</h2><button class="btn" data-toggle="newgoal"><?= icon('plus') ?> Nouvel objectif</button></div>
-  <div id="newgoal" hidden><?php $goalForm(null) ?></div>
-  <?php if ($reco['goals']): ?><details><summary>Objectifs suggérés selon les priorités</summary><ul class="dots"><?php foreach ($reco['goals'] as $sg): ?><li><strong><?= e($sg['title']) ?></strong> - <?= e($sg['description']) ?></li><?php endforeach ?></ul></details><?php endif ?></div><br>
-<?php foreach ($goals as $g): ?>
-  <div class="card"><div class="row between"><h3><?= e($g['title']) ?></h3><div class="row"><?php if (($g['horizon'] ?? '') === 'year'): ?><span class="badge sage">Objectif de l'année</span><?php endif ?><?php require __DIR__ . '/_goal_status.php' ?> <span class="badge"><?= e(AXES[$g['category']] ?? $g['category']) ?></span></div></div>
-    <div class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></div>
-    <p class="muted"><small>Élève : <?= $g['student_done_at'] ? 'signalé terminé le ' . e(fdate($g['student_done_at'])) : 'pas encore signalé' ?><?= $g['student_feeling'] ? ' · ressenti : « ' . e(FEELINGS[$g['student_feeling']]) . ' »' : '' ?></small></p>
-    <details><summary>Modifier / valider</summary><br><?php $goalForm($g) ?></details></div><br>
+<?php $byStatus = ['in_progress' => [], 'rework' => [], 'todo' => [], 'acquired' => []];
+foreach ($goals as $g) $byStatus[$g['status']][] = $g;
+$groupInfo = ['in_progress' => ['En cours', 'tone-blue'], 'rework' => ['À retravailler', 'tone-orange'], 'todo' => ['À commencer', 'tone-violet'], 'acquired' => ['Acquis', 'tone-green']];
+$existing = array_map(fn($g) => mb_strtolower($g['title']), $goals);
+$sugg = array_values(array_filter($reco['goals'] ?? [], fn($sg) => !in_array(mb_strtolower($sg['title']), $existing, true))); ?>
+<div class="grid stat-grid goal-stats">
+  <?php foreach ($groupInfo as $k => [$l, $t]): ?><div class="card stat <?= $t ?>"><span class="muted"><?= $l ?></span><strong><?= count($byStatus[$k]) ?></strong></div><?php endforeach ?>
+</div>
+<div class="row between goal-bar"><h2 class="sec-h"><?= icon('target') ?> Objectifs de <?= e($s['first_name']) ?></h2><button class="btn sm" data-toggle="newgoal"><?= icon('plus') ?> Nouvel objectif</button></div>
+<div id="newgoal" class="card new-panel" hidden><h3>Nouvel objectif</h3><?php $goalForm(null) ?></div>
+<?php if ($sugg): ?>
+<div class="card tone-gold"><h2><?= icon('sparkles') ?> Suggestions selon les priorités</h2>
+  <ul class="sugg-list"><?php foreach ($sugg as $sg): ?><li><div><strong><?= e($sg['title']) ?></strong><small class="muted"><?= e($sg['description']) ?></small></div>
+    <form method="post" action="<?= e(url('t_goal')) ?>"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="id" value="0"><input type="hidden" name="title" value="<?= e($sg['title']) ?>"><input type="hidden" name="description" value="<?= e($sg['description']) ?>"><input type="hidden" name="category" value="<?= e($sg['category']) ?>"><input type="hidden" name="status" value="todo"><input type="hidden" name="progress" value="0">
+      <button class="btn ghost sm"><?= icon('plus') ?> Ajouter</button></form></li><?php endforeach ?></ul>
+</div>
+<?php endif ?>
+<?php if (!$goals): ?><div class="card"><div class="empty-ill sm"><span>🎯</span><p class="muted">Aucun objectif pour l'instant : ajoutez-en un ou partez des suggestions.</p></div></div><?php endif ?>
+<?php foreach ($byStatus as $k => $list): if (!$list) continue; [$gl, $gt] = $groupInfo[$k]; ?>
+<h3 class="goal-group"><?= e($gl) ?> <span class="muted">· <?= count($list) ?></span></h3>
+<div class="goal-list">
+<?php foreach ($list as $g): ?>
+  <div class="card goal-card editable <?= $gt ?>" id="goal-<?= (int)$g['id'] ?>">
+    <div class="view">
+      <div class="goal-top"><h3><?= e($g['title']) ?></h3><button type="button" class="btn ghost sm" data-edit><?= icon('pencil') ?> Modifier</button></div>
+      <div class="goal-tags"><span class="badge"><?= e(AXES[$g['category']] ?? $g['category']) ?></span><?php if (($g['horizon'] ?? '') === 'year'): ?><span class="badge sage">Objectif de l'année</span><?php endif ?><?php if ($g['is_mission']): ?><span class="badge">🚀 Mission</span><?php endif ?><?php if ($g['target_date']): ?><span class="badge"><?= icon('calendar') ?> <?= e(fdate($g['target_date'])) ?></span><?php endif ?></div>
+      <?php if ($g['description']): ?><p class="muted goal-desc"><?= e($g['description']) ?></p><?php endif ?>
+      <div class="goal-prog"><div class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></div><strong><?= (int)$g['progress'] ?>%</strong></div>
+      <p class="goal-student"><?= icon('smile') ?> <?= $g['student_done_at'] ? 'Signalé terminé par ' . e($s['first_name']) . ' le ' . e(fdate($g['student_done_at'])) : '<span class="muted">Pas encore signalé par ' . e($s['first_name']) . '</span>' ?><?= $g['student_feeling'] ? ' · « ' . e(FEELINGS[$g['student_feeling']]) . ' »' : '' ?></p>
+      <?php if ($g['tutor_comment']): ?><p class="goal-comment"><?= icon('message-circle') ?> <?= e($g['tutor_comment']) ?></p><?php endif ?>
+    </div>
+    <div class="edit-form"><div class="goal-top"><h3>Modifier l'objectif</h3><button type="button" class="btn ghost sm" data-edit>Annuler</button></div><?php $goalForm($g) ?></div>
+  </div>
+<?php endforeach ?>
+</div>
 <?php endforeach ?>
 
 <?php elseif ($tab === 'matieres'): require __DIR__ . '/_t_subjects.php'; ?>
@@ -275,7 +310,7 @@ $draft = $saved['summary'] ?? month_draft($s, $ov, $month); ?>
       <?php if (!empty($saved['published_at'])): ?><span class="badge sage">Publié le <?= e(fdate($saved['published_at'])) ?></span><?php endif ?></div>
   </form>
 </div><br>
-<div class="card"><h2><?= icon('file-text') ?> Bilans de séance du mois</h2>
+<div class="card tone-blue"><h2><?= icon('file-text') ?> Bilans de séance du mois</h2>
   <?php if (!$ov['reports']): ?><p class="muted">Aucun.</p><?php endif ?>
   <?php foreach ($ov['reports'] as $rp): ?><div class="report-item"><span class="badge"><?= e(fdatetime($rp['date'])) ?></span>
     <?php if (!empty($rp['subjects'])): ?><p><small><strong>Matières :</strong> <?= e(implode(', ', $rp['subjects'])) ?></small></p><?php endif ?>
@@ -283,13 +318,43 @@ $draft = $saved['summary'] ?? month_draft($s, $ov, $month); ?>
     <?php if ($rp['summary']): ?><p><small><strong>Bilan parent :</strong> <?= e($rp['summary']) ?></small></p><?php endif ?></div><?php endforeach ?>
 </div>
 
-<?php elseif ($tab === 'progression'): ?>
-<div class="grid-2">
-  <div class="card"><h2><?= icon('chart-column') ?> Objectifs</h2>
+<?php elseif ($tab === 'progression'):
+$doneSe = all('SELECT id, starts_at, duration_min FROM sessions WHERE student_id=? AND (status="done" OR (status="planned" AND starts_at < NOW())) ORDER BY starts_at DESC', [$s['id']]);
+$minutes = array_sum(array_map(fn($x) => (int)$x['duration_min'], $doneSe));
+$acq = count(array_filter($goals, fn($g) => $g['status'] === 'acquired'));
+$avg = $goals ? (int)round(array_sum(array_map(fn($g) => (int)$g['progress'], $goals)) / count($goals)) : 0;
+try { $fbs = all('SELECT f.mood, f.note, s.starts_at FROM session_feedback f JOIN sessions s ON s.id=f.session_id WHERE s.student_id=? ORDER BY s.starts_at DESC LIMIT 8', [$s['id']]); } catch (PDOException) { $fbs = []; }
+try { $grades = all('SELECT ss.name, g.value, g.out_of, g.label, g.graded_on FROM subject_grades g JOIN student_subjects ss ON ss.id=g.subject_id WHERE ss.student_id=? ORDER BY ss.position, ss.name, g.graded_on', [$s['id']]); } catch (PDOException) { $grades = []; }
+$bySubj = []; foreach ($grades as $gr) $bySubj[$gr['name']][] = $gr;
+$moodEmo = ['good' => '😄', 'ok' => '😐', 'hard' => '😣']; ?>
+<div class="grid stat-grid">
+  <div class="card stat tone-blue"><span class="muted">Séances réalisées</span><strong><?= count($doneSe) ?></strong><small class="muted"><?= fdur($minutes) ?> au total</small></div>
+  <div class="card stat tone-violet"><span class="muted">Progression moyenne</span><strong><?= $avg ?>%</strong><small class="muted">sur <?= count($goals) ?> objectif<?= count($goals) > 1 ? 's' : '' ?></small></div>
+  <div class="card stat tone-green"><span class="muted">Objectifs acquis</span><strong><?= $acq ?> / <?= count($goals) ?></strong></div>
+  <div class="card stat tone-pink"><span class="muted">Dernier ressenti</span><strong><?= $fbs ? ($moodEmo[$fbs[0]['mood']] ?? '🙂') . ' ' . e(MOODS[$fbs[0]['mood']] ?? '') : '—' ?></strong><?php if ($fbs): ?><small class="muted">séance du <?= e(fdate($fbs[0]['starts_at'])) ?></small><?php endif ?></div>
+</div>
+<div class="grid-2 two-cols">
+ <div class="col-stack">
+  <div class="card tone-violet"><h2><?= icon('target') ?> Avancement des objectifs</h2>
     <?php foreach ($goals as $g): ?><div class="axis"><span class="lbl"><?= e($g['title']) ?> <?php require __DIR__ . '/_goal_status.php' ?></span><span class="n"><?= (int)$g['progress'] ?>%</span><div class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></div></div><?php endforeach ?>
-    <?php if (!$goals): ?><p class="muted">Aucun objectif.</p><?php endif ?></div>
-  <div class="card"><h2><?= icon('message-circle') ?> Journal de l'élève</h2><ul class="list">
+    <?php if (!$goals): ?><p class="muted">Aucun objectif.</p><?php endif ?>
+    <a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'objectifs'])) ?>">Gérer les objectifs →</a></div>
+  <div class="card tone-gold"><h2><?= icon('chart-column') ?> Notes par matière</h2>
+    <?php if (!$bySubj): ?><p class="muted">Aucune note saisie. Les notes s'ajoutent dans « Matières ».</p><?php endif ?>
+    <?php foreach ($bySubj as $name => $list): $vals = array_map(fn($x) => 20 * (float)$x['value'] / max(1, (float)$x['out_of']), $list); $avgS = array_sum($vals) / count($vals); $trend = count($vals) > 1 ? end($vals) - $vals[0] : 0; ?>
+      <div class="grade-row"><strong><?= e($name) ?></strong>
+        <span class="grade-dots"><?php foreach (array_slice($list, -6) as $x): ?><span class="ra-chip" title="<?= e(($x['label'] ?: 'Note') . ' · ' . fdate($x['graded_on'])) ?>"><?= rtrim(rtrim(number_format((float)$x['value'], 2, ',', ''), '0'), ',') ?>/<?= (int)$x['out_of'] ?></span><?php endforeach ?></span>
+        <span class="grade-avg"><?= number_format($avgS, 1, ',', '') ?>/20 <?= $trend > 0.5 ? '<span class="up">↗</span>' : ($trend < -0.5 ? '<span class="down">↘</span>' : '') ?></span></div>
+    <?php endforeach ?>
+    <a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'matieres'])) ?>">Voir les matières →</a></div>
+ </div>
+ <div class="col-stack">
+  <div class="card tone-pink"><h2><?= icon('smile') ?> Ressentis après les séances</h2>
+    <?php if (!$fbs): ?><p class="muted"><?= e($s['first_name']) ?> n'a pas encore donné de retour de séance.</p><?php endif ?>
+    <ul class="list"><?php foreach ($fbs as $f): ?><li><span class="fb-emo"><?= $moodEmo[$f['mood']] ?? '🙂' ?></span><div><strong><?= e(MOODS[$f['mood']] ?? 'Retour') ?></strong> <small class="muted">· séance du <?= e(fdate($f['starts_at'])) ?></small><?= !empty($f['note']) ? '<br>« ' . e($f['note']) . ' »' : '' ?></div></li><?php endforeach ?></ul></div>
+  <div class="card tone-teal"><h2><?= icon('message-circle') ?> Journal de l'élève</h2><ul class="list">
     <?php foreach ($entries as $h): ?><li><?= icon(entry_icon($h['entry_type'])) ?><div><?= e(entry_label($h)) ?><?= $h['goal'] ? ' · ' . e($h['goal']) : '' ?><?= $h['comment'] ? '<br>« ' . e($h['comment']) . ' »' : '' ?><br><small class="muted"><?= e(fdate($h['created_at'], 'd/m/Y H:i')) ?></small></div></li><?php endforeach ?>
     <?php if (!$entries): ?><li class="muted">Aucune entrée.</li><?php endif ?></ul></div>
+ </div>
 </div>
 <?php endif ?>

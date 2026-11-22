@@ -4,13 +4,13 @@
   <form method="post" action="<?= e(url('t_analyze')) ?>"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$s['id'] ?>"><input type="hidden" name="back" value="<?= e($_GET['r'] ?? 't_student') ?>"><button class="btn"><?= icon('refresh-cw') ?> Calculer l'analyse</button></form></div>
 <?php else: ?>
 <div class="grid-2">
-  <div class="card">
+  <div class="card tone-violet">
     <div class="row between"><h2><?= icon('chart-column') ?> Profil indicatif</h2>
       <form method="post" action="<?= e(url('t_analyze')) ?>"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$s['id'] ?>"><input type="hidden" name="back" value="<?= e($_GET['r'] ?? 't_student') ?>"><button class="btn ghost sm"><?= icon('refresh-cw') ?> Recalculer</button></form></div>
     <p class="muted"><small>Calculé le <?= e(fdate($an['computed_at'], 'd/m/Y à H:i')) ?></small></p>
     <?php require __DIR__ . '/_axes.php' ?>
   </div>
-  <div class="card">
+  <div class="card tone-orange">
     <h2><?= icon('target') ?> Priorités d'accompagnement</h2>
     <p class="muted"><small>Suggestion automatique : <?= e(implode(', ', array_map(fn($a) => AXES[$a], $an['auto_priorities'])) ?: '-') ?>. Cochez 2 ou 3 axes, dans l'ordre d'importance.</small></p>
     <form method="post" action="<?= e(url('t_priorities')) ?>" class="stack"><?= csrf_field() ?>
@@ -27,17 +27,17 @@
     </form>
   </div>
 </div><br>
-<div class="card"><h2><?= icon('file-text') ?> Synthèse</h2><p><?= e($reco['summary']) ?></p>
+<div class="card tone-blue"><h2><?= icon('file-text') ?> Synthèse</h2><p><?= e($reco['summary']) ?></p>
   <?php if ($reco['profiles']): ?><p><?php foreach ($reco['profiles'] as $p): ?><span class="badge warn"><?= e($p) ?></span> <?php endforeach ?></p><?php endif ?></div><br>
 <div class="grid">
-  <div class="card"><h3><?= icon('heart') ?> Points forts</h3><ul class="dots" data-clamp><?php foreach ($an['strengths'] ?: ['À découvrir en séance'] as $x): ?><li><?= e($x) ?></li><?php endforeach ?></ul></div>
-  <div class="card"><h3><?= icon('compass') ?> Difficultés à explorer</h3><ul class="dots" data-clamp><?php foreach ($an['explore'] as $k => $x): ?><li><strong><?= e($k) ?></strong> - <?= e($x) ?></li><?php endforeach ?><?php if (!$an['explore']): ?><li>-</li><?php endif ?></ul></div>
-  <div class="card"><h3><?= icon('triangle-alert') ?> Informations manquantes</h3>
+  <div class="card tone-green"><h3><?= icon('heart') ?> Points forts</h3><ul class="dots" data-clamp><?php foreach ($an['strengths'] ?: ['À découvrir en séance'] as $x): ?><li><?= e($x) ?></li><?php endforeach ?></ul></div>
+  <div class="card tone-pink"><h3><?= icon('compass') ?> Difficultés à explorer</h3><ul class="dots" data-clamp><?php foreach ($an['explore'] as $k => $x): ?><li><strong><?= e($k) ?></strong> - <?= e($x) ?></li><?php endforeach ?><?php if (!$an['explore']): ?><li>-</li><?php endif ?></ul></div>
+  <div class="card tone-gold"><h3><?= icon('triangle-alert') ?> Informations manquantes</h3>
     <?php if (!$an['missing'] && !$an['skipped']): ?><p class="muted">Rien à signaler.</p><?php endif ?>
     <ul class="dots" data-clamp><?php foreach ($an['missing'] as $m): ?><li><?= e($m['label']) ?> <small class="muted">(<?= $m['src'] === 'parent' ? 'parent' : 'élève' ?>)</small></li><?php endforeach ?>
     <?php foreach ($an['skipped'] as $m): ?><li><?= e($m) ?> <small class="muted">(non répondu volontairement)</small></li><?php endforeach ?></ul></div>
 </div><br>
-<div class="card"><h2><?= icon('git-compare') ?> Convergences et divergences parent / élève</h2>
+<div class="card tone-teal"><h2><?= icon('git-compare') ?> Convergences et divergences parent / élève</h2>
   <?php if (!$an['divergences']): ?><p class="muted">Pas assez de réponses croisées.</p><?php endif ?>
   <div class="stack" data-clamp="320"><?php foreach ($an['divergences'] as $d): ?>
     <div><div class="row"><strong><?= e($d['label']) ?></strong> <span class="badge <?= $d['type'] === 'divergence' ? 'warn' : 'sage' ?>"><?= $d['type'] === 'divergence' ? 'Divergence' : 'Convergence' ?></span> <small class="muted"><?= e($d['note']) ?></small></div>
@@ -45,11 +45,11 @@
   <?php endforeach ?></div>
 </div><br>
 <div class="grid">
-  <div class="card"><h3><?= icon('lightbulb') ?> Méthodes recommandées</h3><ul class="dots" data-clamp><?php foreach (array_unique($reco['methods']) as $x): ?><li><?= e($x) ?></li><?php endforeach ?></ul></div>
-  <div class="card"><h3><?= icon('pencil') ?> Types d'exercices</h3><ul class="dots" data-clamp><?php foreach (array_unique($reco['exercises']) as $x): ?><li><?= e($x) ?></li><?php endforeach ?></ul></div>
-  <div class="card"><h3><?= icon('book-open') ?> Supports de progression</h3><ul class="dots" data-clamp><?php foreach (array_unique($reco['supports']) as $x): ?><li><?= e($x) ?></li><?php endforeach ?></ul></div>
+  <div class="card tone-violet"><h3><?= icon('lightbulb') ?> Méthodes recommandées</h3><ul class="dots" data-clamp><?php foreach (array_unique($reco['methods']) as $x): ?><li><?= e($x) ?></li><?php endforeach ?></ul></div>
+  <div class="card tone-blue"><h3><?= icon('pencil') ?> Types d'exercices</h3><ul class="dots" data-clamp><?php foreach (array_unique($reco['exercises']) as $x): ?><li><?= e($x) ?></li><?php endforeach ?></ul></div>
+  <div class="card tone-green"><h3><?= icon('book-open') ?> Supports de progression</h3><ul class="dots" data-clamp><?php foreach (array_unique($reco['supports']) as $x): ?><li><?= e($x) ?></li><?php endforeach ?></ul></div>
 </div><br>
-<div class="card"><h2><?= icon('calendar') ?> Plan d'action initial - 4 semaines</h2>
+<div class="card tone-orange"><h2><?= icon('calendar') ?> Plan d'action initial - 4 semaines</h2>
   <div class="grid"><?php foreach ($reco['plan'] as $w => $p): ?><div class="card flat"><h3>Semaine <?= $w ?> · <?= e($p['title']) ?></h3><ul class="dots"><?php foreach ($p['items'] as $it): ?><li><?= e($it) ?></li><?php endforeach ?></ul></div><?php endforeach ?></div>
 </div><br>
 <details class="card"><summary>Détail des contributions par axe (réponses d'origine)</summary><br>
@@ -61,7 +61,7 @@
   <?php endforeach ?>
 </details><br>
 <?php endif ?>
-<div class="card"><h2><?= icon('eye') ?> Observations de la tutrice</h2>
+<div class="card tone-pink"><h2><?= icon('eye') ?> Observations de la tutrice</h2>
   <form method="post" action="<?= e(url('t_observation')) ?>" class="stack"><?= csrf_field() ?>
     <input type="hidden" name="sid" value="<?= (int)$s['id'] ?>"><input type="hidden" name="back" value="<?= e($_GET['r'] ?? 't_student') ?>">
     <label>Observation<textarea name="content" required maxlength="3000"></textarea></label>

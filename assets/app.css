@@ -827,3 +827,39 @@ body.parent .link-card{border-top-width:1px!important}
 .fam-name{margin:0 0 10px}
 .card .editable>.ed-head h3{margin:0;font-size:.95rem;color:var(--taupe-d)}
 .glance a{color:var(--accent-d);text-decoration:none;font-weight:600}.glance a:hover{text-decoration:underline}
+
+/* Fiche élève : questionnaires */
+.qn-switch{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.qn-switch .seg a{display:inline-flex;align-items:center;gap:6px}
+.qn-switch .seg .badge{font-size:.72rem}
+.qa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 24px;margin:6px 0 0}
+.qa-grid>div{padding:10px 12px;background:var(--bg,#faf7f2);border-radius:10px}
+.qa-grid dt{font-size:.82rem;color:var(--muted);font-weight:600;margin:0 0 3px}
+.qa-grid dd{margin:0;font-weight:500}
+.qa-empty{margin-top:12px}.qa-empty summary{cursor:pointer;color:var(--muted);font-size:.88rem}
+.qa-empty ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:.88rem}
+@media (max-width:760px){.qa-grid{grid-template-columns:1fr}}
+/* Fiche élève : objectifs */
+.goal-bar{margin-top:8px}.sec-h{margin:0}
+.goal-group{margin:10px 0 -4px;font-size:1rem}
+.goal-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.goal-card .goal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.goal-card h3{margin:0;font-size:1.02rem}
+.goal-tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.goal-desc{margin:0 0 8px;font-size:.9rem}
+.goal-prog{display:flex;align-items:center;gap:10px}.goal-prog .bar{flex:1;margin:0}.goal-prog strong{font-size:.9rem;min-width:40px;text-align:right}
+.goal-student,.goal-comment{margin:8px 0 0;font-size:.86rem;display:flex;gap:6px;align-items:flex-start}
+.goal-student .ic,.goal-comment .ic{flex:none;margin-top:2px;color:var(--tc)}
+.sugg-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.sugg-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--beige);border-radius:12px}
+.sugg-list li>div{display:flex;flex-direction:column;gap:2px}
+@media (max-width:760px){.goal-list{grid-template-columns:1fr}}
+/* Fiche élève : progression */
+.grade-row{display:grid;grid-template-columns:140px 1fr auto;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--beige)}
+.grade-row:last-of-type{border-bottom:0}
+.grade-dots{display:flex;flex-wrap:wrap;gap:4px}.grade-avg{font-weight:700}
+.grade-avg .up{color:#2f8a57}.grade-avg .down{color:#c0392b}
+.fb-emo{font-size:1.3rem;line-height:1}
+@media (max-width:560px){.grade-row{grid-template-columns:1fr auto}.grade-dots{grid-column:1/-1;order:3}}
+.goal-list .goal-card.editing{grid-column:1/-1}
+body.tutor .card[class*="tone-"] h3 .ic{color:var(--tc)}
