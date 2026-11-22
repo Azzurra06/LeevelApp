@@ -1088,3 +1088,14 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .pw-toggle:hover{background:var(--accent-l);color:var(--accent-d)}
 .pw-toggle.on{color:var(--accent-d)}
 .pw-toggle.on::after{content:'';position:absolute;width:20px;height:2px;background:currentColor;transform:rotate(-45deg);border-radius:2px}
+/* Accompagnement souhaité : une question par bloc, bien séparées */
+.stack.wl-wish{gap:0}
+.wl-wish>div:not(.wl-nav):not(.wl-sub),.wl-wish>label:not(.wl-sub){padding:20px 0;border-top:1px solid var(--beige)}
+.wl-wish>input[type=hidden]+input[type=hidden]+input[type=hidden]+div,.wl-wish>div:first-of-type{border-top:0;padding-top:4px}
+.wl-wish .ql{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:12px}
+.wl-wish .ql small{font-weight:400}
+.wl-wish .pills{gap:8px}
+.wl-wish .pill span{padding:7px 14px;font-size:.92rem}
+.wl-wish .wl-sub{margin:0 0 20px}
+.wl-wish .wl-nav{margin-top:4px}
+.wl-wish>label{font-weight:700;color:var(--ink)}.wl-wish>label small{font-weight:400}.wl-wish>label input,.wl-wish>label textarea{font-weight:400;margin-top:8px}
