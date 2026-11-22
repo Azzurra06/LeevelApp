@@ -965,3 +965,4 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .fin-rate-btns{display:flex;gap:8px}
 .ok-txt{color:#2f8a57}
 @media (max-width:760px){.fin-rate-form{grid-template-columns:1fr 1fr}.fin-rate-form .wide-l,.fin-rate-btns{grid-column:1/-1}}
+.consent-more{margin:-6px 0 0 30px;font-size:.9rem}

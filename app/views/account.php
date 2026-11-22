@@ -71,7 +71,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
     </div>
 
     <?php foreach ($children as $ch): ?>
-    <a class="card link-card tone-violet" href="<?= e(url('p_child', ['sid' => $ch['id']])) ?>"><span class="lc-emoji">🧒</span><div><h2>Informations de <?= e($ch['first_name']) ?></h2><small>Identité, coordonnées, besoins particuliers et autorisations : tout est dans « Mon enfant ».</small></div><?= icon('chevron-right', 'go') ?></a>
+    <a class="card link-card tone-violet" href="<?= e(url('p_child', ['sid' => $ch['id']])) ?>"><span class="lc-emoji">🧒</span><div><h2>Informations de <?= e(kid($ch['first_name'])) ?></h2><small>Identité, coordonnées, besoins particuliers et autorisations : tout est dans « Mon enfant ».</small></div><?= icon('chevron-right', 'go') ?></a>
     <?php endforeach ?>
 
     <?php if ($me): ?>

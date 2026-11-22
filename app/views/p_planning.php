@@ -2,7 +2,7 @@
 $done = count(array_filter($sessions, fn($x) => $x['status'] === 'done'));
 $upcoming = array_values(array_filter($sessions, fn($x) => strtotime($x['starts_at']) >= time() && $x['status'] === 'planned'));
 $total = array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' ? (int)$x['duration_min'] : 0, $sessions)); ?>
-<div class="page-head"><div><h1><?= icon('calendar') ?> Planning</h1><p><?= (current_user()['role'] ?? '') === 'student' ? 'Tes séances avec ta tutrice : clique sur une séance pour voir le détail.' : 'Les séances de ' . e($s['first_name']) . '.' ?></p></div></div>
+<div class="page-head"><div><h1><?= icon('calendar') ?> Planning</h1><p><?= (current_user()['role'] ?? '') === 'student' ? 'Tes séances avec ta tutrice : clique sur une séance pour voir le détail.' : 'Les séances de ' . e(kid($s['first_name'])) . '.' ?></p></div></div>
 <div class="grid stat-grid">
   <div class="card stat"><span class="muted">Prochaine séance</span><strong><?= $upcoming ? e(fdatetime($upcoming[0]['starts_at'])) : '-' ?></strong><?php if ($upcoming): ?><small class="muted"><?= icon($upcoming[0]['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$upcoming[0]['mode']]) ?> · <?= fdur((int)$upcoming[0]['duration_min']) ?></small><?php endif ?></div>
   <div class="card stat"><span class="muted">Séances réalisées</span><strong><?= $done ?> / <?= count(array_filter($sessions, fn($x) => $x['status'] !== 'cancelled')) ?></strong></div>

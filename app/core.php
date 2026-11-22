@@ -17,6 +17,14 @@ const CLASSES = ['CP' => 'CP', 'CE1' => 'CE1', 'CE2' => 'CE2', 'CM1' => 'CM1', '
 const STUDENT_INTERESTS = ['sport' => 'Sport', 'musique' => 'Musique', 'jeux' => 'Jeux vidéo', 'lecture' => 'Lecture / mangas', 'arts' => 'Dessin / arts', 'cinema' => 'Cinéma / séries',
     'nature' => 'Nature / animaux', 'sciences' => 'Sciences / technologie', 'numerique' => 'Informatique / numérique', 'cuisine' => 'Cuisine', 'mode' => 'Mode / beauté', 'voyages' => 'Voyages / langues', 'autre' => 'Autre'];
 const MEMORY_TYPES = ['visual' => 'Voir (schémas, couleurs, images)', 'auditory' => 'Entendre (écouter, répéter à voix haute)', 'kinesthetic' => 'Faire (écrire, manipuler, bouger)', 'not_sure' => 'Je ne sais pas encore'];
+const CHILD_PLACEHOLDER = 'Élève (à compléter)';
+/** Prénom de l'enfant à afficher au parent : « votre enfant » tant qu'il n'est pas renseigné. */
+function kid(?string $firstName, bool $capital = false): string
+{
+    $n = trim((string)$firstName);
+    if ($n === '' || $n === CHILD_PLACEHOLDER) return $capital ? 'Votre enfant' : 'votre enfant';
+    return $n;
+}
 /** Cycle d'une classe : primaire, college, lycee (null si inconnu). */
 function grade_cycle(?string $g): ?string
 {

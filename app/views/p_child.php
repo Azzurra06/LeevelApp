@@ -10,16 +10,16 @@ $h = fn(string $action) => csrf_field() . '<input type="hidden" name="sid" value
 $perms = ['perm_edit_contacts' => 'Modifier lui-même ses coordonnées', 'perm_edit_photo' => 'Changer sa photo de profil', 'perm_help_requests' => 'Signaler qu\'il bloque et demander de l\'aide']; ?>
 <?php $tab ??= 'profil'; $sidq = ['sid' => $s['id']];
 $childTabs = ['profil' => 'Profil', 'matieres' => 'Matières', 'progression' => 'Progression', 'bilans' => 'Bilans']; ?>
-<div class="page-head"><div><h1><?= e($s['first_name']) ?><?= !empty($s['last_name']) ? ' ' . e($s['last_name']) : '' ?></h1><p><?= e(CLASSES[$s['grade']] ?? $s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?></p></div></div>
+<div class="page-head"><div><h1><?= e(kid($s['first_name'], true)) ?><?= !empty($s['last_name']) ? ' ' . e($s['last_name']) : '' ?></h1><p><?= e(CLASSES[$s['grade']] ?? $s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?></p></div></div>
 <nav class="tabs" aria-label="Mon enfant"><?php foreach ($childTabs as $k => $l): ?><a href="<?= e(url('p_child', $sidq + ['tab' => $k])) ?>" class="<?= $tab === $k ? 'on' : '' ?>"<?= $tab === $k ? ' aria-current="page"' : '' ?>><?= e($l) ?></a><?php endforeach ?></nav>
 <?php if ($tab !== 'profil') { require __DIR__ . '/_p_child_' . $tab . '.php'; return; } ?>
-<p class="muted child-intro">Les informations de <?= e($s['first_name']) ?>, visibles par la tutrice. Vous pouvez les compléter à tout moment.</p>
+<p class="muted child-intro">Les informations de <?= e(kid($s['first_name'])) ?>, visibles par la tutrice. Vous pouvez les compléter à tout moment.</p>
 
 <div class="grid-2">
   <div class="card editable tone-violet">
     <div class="ed-head"><h2><?= icon('user') ?> Identité et scolarité</h2><?= $editBtn ?></div>
     <dl class="fields view">
-      <div><dt>Prénom</dt><dd><?= $val($s['first_name']) ?></dd></div>
+      <div><dt>Prénom</dt><dd><?= $val($s['first_name'] === CHILD_PLACEHOLDER ? null : $s['first_name']) ?></dd></div>
       <div><dt>Nom</dt><dd><?= $val($s['last_name'] ?? null) ?></dd></div>
       <div><dt>Date de naissance</dt><dd><?= !empty($s['birth_date']) ? e(fdate($s['birth_date'])) . ' <span class="muted">(' . $age . ' ans)</span>' : $val(null) ?></dd></div>
       <div><dt>Classe</dt><dd><?= $val(CLASSES[$s['grade']] ?? $s['grade']) ?></dd></div>
@@ -27,7 +27,7 @@ $childTabs = ['profil' => 'Profil', 'matieres' => 'Matières', 'progression' => 
     </dl>
     <form method="post" class="stack edit-form"><?= $h('identity') ?>
       <div class="form-grid">
-        <label>Prénom<input name="first_name" required maxlength="80" value="<?= e($s['first_name']) ?>"></label>
+        <label>Prénom<input name="first_name" required maxlength="80" value="<?= e($s['first_name'] === CHILD_PLACEHOLDER ? '' : $s['first_name']) ?>" placeholder="Prénom de votre enfant"></label>
         <label>Nom<input name="last_name" maxlength="80" value="<?= e($s['last_name'] ?? '') ?>"></label>
         <label>Date de naissance<input type="date" name="birth_date" value="<?= e($s['birth_date'] ?? '') ?>" max="<?= date('Y-m-d') ?>"></label>
         <label>Classe<?= grade_select('grade', $s['grade']) ?></label>
@@ -38,7 +38,7 @@ $childTabs = ['profil' => 'Profil', 'matieres' => 'Matières', 'progression' => 
   </div>
 
   <div class="card editable tone-blue">
-    <div class="ed-head"><h2><?= icon('message-circle') ?> Coordonnées de <?= e($s['first_name']) ?></h2><?= $editBtn ?></div>
+    <div class="ed-head"><h2><?= icon('message-circle') ?> Coordonnées de <?= e(kid($s['first_name'])) ?></h2><?= $editBtn ?></div>
     <dl class="fields view">
       <div><dt>Téléphone</dt><dd><?= $val($s['student_phone'] ?? null) ?></dd></div>
       <div><dt>E-mail</dt><dd><?= $val($s['student_email'] ?? null) ?></dd></div>
@@ -73,7 +73,7 @@ $childTabs = ['profil' => 'Profil', 'matieres' => 'Matières', 'progression' => 
 
   <div class="card editable tone-green">
     <div class="ed-head"><h2><?= icon('shield') ?> Autorisations</h2><?= $editBtn ?></div>
-    <p class="muted view"><small>Ce que <?= e($s['first_name']) ?> peut faire seul dans son espace.</small></p>
+    <p class="muted view"><small>Ce que <?= e(kid($s['first_name'])) ?> peut faire seul dans son espace.</small></p>
     <ul class="list view"><?php foreach ($perms as $k => $l): $on = (int)($s[$k] ?? 1); ?><li><?= icon($on ? 'circle-check' : 'x') ?><div><?= e($l) ?> <span class="badge <?= $on ? 'ok' : '' ?>"><?= $on ? 'Autorisé' : 'Non autorisé' ?></span></div></li><?php endforeach ?></ul>
     <form method="post" class="stack edit-form"><?= $h('perms') ?>
       <?php foreach ($perms as $k => $l): ?><label class="check"><input type="checkbox" name="<?= $k ?>" value="1" <?= (int)($s[$k] ?? 1) ? 'checked' : '' ?>> <?= e($l) ?></label><?php endforeach ?>
