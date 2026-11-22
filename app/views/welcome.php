@@ -38,7 +38,7 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
         'contact' => ['Vos coordonnées', 'Votre téléphone et votre e-mail, pour que la tutrice puisse vous joindre.', '1 min'],
         'child' => ['Présenter ' . $kidName, 'Prénom, classe, établissement, et ses besoins particuliers s\'il y en a.', '2 min'],
         'questionnaire' => ['Répondre au questionnaire', 'Ses difficultés, ce qui a déjà été essayé, vos attentes : la base de l\'accompagnement.', '10 min'],
-        'wishes' => ['Vos souhaits', 'Le nombre d\'heures, les besoins (matières, devoirs, organisation…) et la formule : présentiel ou visio.', ''],
+        'wishes' => ['L\'accompagnement souhaité', 'Le nombre d\'heures, les besoins (matières, devoirs, organisation…) et la formule : présentiel ou visio.', ''],
         'payment' => ['Modalités de paiement', 'Le tarif, le rythme et le moyen de paiement convenus avec la tutrice.', '1 min'],
       ] : [
         'questionnaire' => ['Répondre à ton questionnaire', 'Comment tu travailles, ce que tu aimes, ce qui t\'aide : pour des séances faites pour toi.', '10 min'],
@@ -102,7 +102,7 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
     <?php endif ?>
 
   <?php elseif ($step === 'wishes'): $w = wishes_of($s); $subjOpts = wish_subject_options($s); ?>
-    <h1><?= icon('target') ?> Vos souhaits</h1>
+    <h1><?= icon('target') ?> L'accompagnement souhaité</h1>
     <p class="wl-lead">Ce que vous attendez de l'accompagnement de <?= e($kidName) ?>. Rien n'est figé : vous en reparlerez avec la tutrice.</p>
     <form method="post" class="stack wl-wish"><?= $hid('save') ?>
       <div><span class="ql">Combien d'heures par semaine ?</span>

@@ -65,7 +65,7 @@ $hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_wor
   </div>
 
   <?php $w = function_exists('wishes_of') ? wishes_of($s) : null; if ($w && ($w['hours'] !== '' || $w['needs'] || $w['mode'] !== '' || $w['slots'] !== '' || $w['note'] !== '')): $so = wish_subject_options($s); ?>
-  <div class="card tone-blue"><h2><?= icon('target') ?> Souhaits de la famille</h2>
+  <div class="card tone-blue"><h2><?= icon('target') ?> Accompagnement souhaité par la famille</h2>
     <dl class="fields">
       <?php if ($w['hours'] !== ''): ?><div><dt>Volume souhaité</dt><dd><?= e(WISH_HOURS[$w['hours']] ?? $w['hours']) ?><?= $w['hours'] !== 'tbd' ? ' / semaine' : '' ?></dd></div><?php endif ?>
       <?php if ($w['mode'] !== ''): ?><div><dt>Formule</dt><dd><?= e(WISH_MODES[$w['mode']] ?? $w['mode']) ?></dd></div><?php endif ?>
