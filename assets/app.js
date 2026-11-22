@@ -17,6 +17,22 @@
   $$('[data-wish-subj],[data-wish-other]').forEach(cb => cb.addEventListener('change', () => {
     const box = document.querySelector(cb.hasAttribute('data-wish-subj') ? '[data-wish-subj-box]' : '[data-wish-other-box]'); if (box) box.hidden = !cb.checked;
   }));
+  // Afficher / masquer les mots de passe
+  const sprite = (document.querySelector('svg use')?.getAttribute('href') || '/assets/icons.svg').split('#')[0];
+  $$('input[type=password]').forEach(inp => {
+    if (inp.closest('.pw-wrap')) return;
+    const w = document.createElement('span'); w.className = 'pw-wrap';
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pw-toggle';
+    b.setAttribute('aria-label', 'Afficher le mot de passe'); b.title = 'Afficher le mot de passe';
+    b.innerHTML = '<svg class="ic" aria-hidden="true"><use href="' + sprite + '#i-eye"></use></svg>';
+    b.addEventListener('click', () => {
+      const show = inp.type === 'password'; inp.type = show ? 'text' : 'password';
+      b.classList.toggle('on', show); const l = show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'; b.setAttribute('aria-label', l); b.title = l;
+      inp.focus({ preventScroll: true });
+    });
+    w.appendChild(b);
+  });
   $$('select[data-autosubmit]').forEach(sel => sel.addEventListener('change', () => sel.form.submit()));
   // Onglets défilants : l'onglet actif est toujours visible
   $$('.tabs').forEach(t => { const on = t.querySelector('a.on'); if (on && t.scrollWidth > t.clientWidth) t.scrollLeft = on.offsetLeft - (t.clientWidth - on.offsetWidth) / 2; });

@@ -1080,3 +1080,11 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .auth-card h1{margin:0 0 8px}
 .auth-card .login-add-h{margin-top:0;padding-top:0;border-top:0}
 .auth-card h1+p.muted{margin:0 0 18px}
+
+/* Afficher / masquer le mot de passe */
+.pw-wrap{position:relative;display:block}
+.pw-wrap input{width:100%;padding-right:44px}
+.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer}
+.pw-toggle:hover{background:var(--accent-l);color:var(--accent-d)}
+.pw-toggle.on{color:var(--accent-d)}
+.pw-toggle.on::after{content:'';position:absolute;width:20px;height:2px;background:currentColor;transform:rotate(-45deg);border-radius:2px}
