@@ -4,9 +4,9 @@ $keys = array_keys($steps); $idx = array_search($step, $keys, true); $total = co
 $kidName = $s ? kid($s['first_name']) : 'votre enfant';
 $qDone = $sub && $sub['status'] === 'completed';
 $hid = fn(string $action = 'next') => csrf_field() . '<input type="hidden" name="step" value="' . e($step) . '"><input type="hidden" name="action" value="' . $action . '">';
-$nav = function (string $label = 'Continuer', bool $save = false) use ($idx, $keys) {
+$nav = function (string $label = 'Continuer', bool $ghost = false) use ($idx, $keys) {
     $prev = $idx > 0 ? '<a class="btn ghost" href="' . e(url('welcome', ['step' => $keys[$idx - 1]])) . '">' . icon('chevron-left') . ' Retour</a>' : '<span></span>';
-    return '<div class="wl-nav">' . $prev . '<button class="btn">' . e($label) . ' ' . icon('chevron-right') . '</button></div>';
+    return '<div class="wl-nav">' . $prev . '<button class="btn' . ($ghost ? ' ghost' : '') . '">' . e($label) . ' ' . icon('chevron-right') . '</button></div>';
 };
 $needsList = ['dys' => 'Trouble « dys »', 'tdah' => 'TDAH / attention', 'hpi' => 'Haut potentiel', 'anxiety' => 'Anxiété scolaire', 'other' => 'Autre'];
 $accList = ['pap' => 'PAP', 'pps' => 'PPS', 'pai' => 'PAI', 'tiers_temps' => 'Tiers-temps'];
@@ -29,7 +29,7 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
     <h1><?= $isParent ? 'Bienvenue sur leevel.app !' : 'Bienvenue, ' . e($u['display_name']) . ' !' ?></h1>
     <?php if ($isParent): ?>
       <p class="wl-lead">Ici, vous suivez l'accompagnement scolaire de <?= e($kidName) ?> : séances, bilans, progrès et échanges avec <?= !empty($tutor) ? e($tutor['display_name']) : 'la tutrice' ?>.</p>
-      <p>Avant de commencer, quelques étapes rapides (environ <strong>15 minutes</strong>) pour que la tutrice dispose de tout ce qu'il faut :</p>
+      <p>Avant de commencer, quelques étapes rapides pour que la tutrice dispose de tout ce qu'il faut :</p>
     <?php else: ?>
       <p class="wl-lead">C'est ton espace pour suivre tes séances, tes missions et tes progrès avec <?= !empty($tutor) ? e($tutor['display_name']) : 'ta tutrice' ?>.</p>
       <p>Avant de commencer, deux petites étapes :</p>
@@ -38,13 +38,14 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
         'contact' => ['Vos coordonnées', 'Votre téléphone et votre e-mail, pour que la tutrice puisse vous joindre.', '1 min'],
         'child' => ['Présenter ' . $kidName, 'Prénom, classe, établissement, et ses besoins particuliers s\'il y en a.', '2 min'],
         'questionnaire' => ['Répondre au questionnaire', 'Ses difficultés, ce qui a déjà été essayé, vos attentes : la base de l\'accompagnement.', '10 min'],
-        'payment' => ['Découvrir les modalités de paiement', 'Le tarif, le rythme et le moyen de paiement convenus avec la tutrice (simple lecture).', '1 min'],
+        'wishes' => ['Vos souhaits', 'Le nombre d\'heures, les besoins (matières, devoirs, organisation…) et la formule : présentiel ou visio.', ''],
+        'payment' => ['Modalités de paiement', 'Le tarif, le rythme et le moyen de paiement convenus avec la tutrice.', '1 min'],
       ] : [
         'questionnaire' => ['Répondre à ton questionnaire', 'Comment tu travailles, ce que tu aimes, ce qui t\'aide : pour des séances faites pour toi.', '10 min'],
         'tour' => ['Découvrir ton espace', 'Les onglets de ton espace expliqués en 30 secondes.', '1 min'],
       ]; ?>
     <ol class="wl-list"><?php $n = 0; foreach (array_slice($steps, 1, -1, true) as $k => [$lb, $ic]): $n++; [$t, $d, $dur] = $intro[$k] ?? [$lb, '', '']; ?>
-      <li><span class="wl-li-ic"><?= icon($ic) ?></span><div><strong><?= $n ?>. <?= e($t) ?></strong><?php if ($d): ?><small><?= e($d) ?></small><?php endif ?></div><?php if ($dur): ?><span class="wl-dur"><?= icon('clock') ?> <?= e($dur) ?></span><?php endif ?></li>
+      <li><span class="wl-li-ic"><?= icon($ic) ?></span><div><strong><?= $n ?>. <?= e($t) ?></strong><?php if ($d): ?><small><?= e($d) ?></small><?php endif ?></div></li>
     <?php endforeach ?></ol>
     <p class="muted"><small>Vous pouvez vous arrêter à tout moment : tout est enregistré au fur et à mesure.</small></p>
     <form method="post"><?= $hid() ?><?= $nav('Commencer') ?></form>
@@ -97,20 +98,38 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
       <div class="wl-q <?= $qDone ? 'done' : '' ?>"><span class="wl-q-ic"><?= $qDone ? icon('circle-check') : icon('clipboard-list') ?></span>
         <div><strong><?= $qDone ? 'Questionnaire terminé, merci !' : ($sub ? 'Questionnaire commencé' : 'Pas encore commencé') ?></strong><small class="muted"><?= $qDone ? 'Vos réponses ont bien été transmises à la tutrice.' : 'Vous reviendrez ici automatiquement à la fin.' ?></small></div>
         <?php if (!$qDone): ?><a class="btn" href="<?= e(url('q')) ?>"><?= icon('play') ?> <?= $sub ? 'Reprendre' : 'Commencer' ?></a><?php endif ?></div>
-      <form method="post"><?= $hid() ?><?= $nav($qDone ? 'Continuer' : 'Plus tard') ?></form>
+      <form method="post"><?= $hid() ?><?= $nav($qDone ? 'Continuer' : 'Plus tard', !$qDone) ?></form>
     <?php endif ?>
 
+  <?php elseif ($step === 'wishes'): $w = wishes_of($s); $subjOpts = wish_subject_options($s); ?>
+    <h1><?= icon('target') ?> Vos souhaits</h1>
+    <p class="wl-lead">Ce que vous attendez de l'accompagnement de <?= e($kidName) ?>. Rien n'est figé : vous en reparlerez avec la tutrice.</p>
+    <form method="post" class="stack wl-wish"><?= $hid('save') ?>
+      <div><span class="ql">Combien d'heures par semaine ?</span>
+        <div class="pills"><?php foreach (WISH_HOURS as $k => $l): ?><label class="pill"><input type="radio" name="hours" value="<?= e($k) ?>" <?= (string)$w['hours'] === (string)$k ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>
+      <div><span class="ql">Quels besoins ? <small class="muted">plusieurs choix possibles</small></span>
+        <div class="pills"><?php foreach (WISH_NEEDS as $k => $l): ?><label class="pill"><input type="checkbox" name="needs[]" value="<?= $k ?>" <?= in_array($k, $w['needs'], true) ? 'checked' : '' ?> <?= $k === 'subjects' ? 'data-wish-subj' : '' ?><?= $k === 'other' ? ' data-wish-other' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>
+      <div class="wl-sub" data-wish-subj-box <?= in_array('subjects', $w['needs'], true) ? '' : 'hidden' ?>><span class="ql">Quelles matières ?</span>
+        <div class="pills"><label class="pill"><input type="checkbox" name="general" value="1" <?= $w['general'] ? 'checked' : '' ?>><span>Soutien général (toutes matières)</span></label><?php foreach ($subjOpts as $k => $l): ?><label class="pill"><input type="checkbox" name="subjects[]" value="<?= e($k) ?>" <?= in_array($k, $w['subjects'], true) ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>
+      <label class="wl-sub" data-wish-other-box <?= in_array('other', $w['needs'], true) ? '' : 'hidden' ?>>Précisez<input name="other" maxlength="200" value="<?= e($w['other']) ?>" placeholder="ex. préparer l'entrée en 6e"></label>
+      <div><span class="ql">Plutôt en présentiel ou en visio ?</span>
+        <div class="pills"><?php foreach (WISH_MODES as $k => $l): ?><label class="pill"><input type="radio" name="mode" value="<?= $k ?>" <?= $w['mode'] === $k ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>
+      <label>Jours et créneaux qui vous arrangent <small class="muted">facultatif</small><input name="slots" maxlength="300" value="<?= e($w['slots']) ?>" placeholder="ex. mercredi après-midi, samedi matin"></label>
+      <label>Autre chose à préciser ? <small class="muted">facultatif</small><textarea name="note" maxlength="1000" rows="2"><?= e($w['note']) ?></textarea></label>
+      <?= $nav() ?>
+    </form>
+
   <?php elseif ($step === 'payment'): $rate = $s ? rate_for($s, 'presentiel') : null; $terms = $s ? family_terms($s) : ''; $instr = setting('pay_instructions'); ?>
-    <h1><?= icon('file-text') ?> Le paiement</h1>
-    <p class="wl-lead">Pour information, voici les modalités convenues avec la tutrice. Vous retrouverez tout dans l'onglet « Finances ».</p>
-    <dl class="fields">
+    <h1><?= icon('file-text') ?> Modalités de paiement</h1>
+    <p class="wl-lead">Voici les modalités convenues avec la tutrice. Vous retrouverez tout dans l'onglet « Finances ».</p>
+    <dl class="fields wl-box">
       <div><dt>Tarif horaire</dt><dd><?= $rate !== null ? e(money($rate)) . ' / h' : '<span class="muted">Sera précisé par la tutrice</span>' ?></dd></div>
       <div><dt>Rythme de paiement</dt><dd><?= $terms !== '' ? e($terms) : '<span class="muted">Sera précisé par la tutrice</span>' ?></dd></div>
       <?php if ((float)($s['discount_pct'] ?? 0) > 0): ?><div class="wide"><dt>Remise</dt><dd><?= e(discount_text($s['discount_label'] ?? null, (float)$s['discount_pct'])) ?></dd></div><?php endif ?>
       <?php if ($instr): ?><div class="wide"><dt>Comment régler</dt><dd><?= nl2br(e($instr)) ?></dd></div><?php endif ?>
       <?php if (tax_credit_on()): ?><div class="wide"><dt>Crédit d'impôt</dt><dd>Les cours ouvrent droit à un crédit d'impôt de 50 % des sommes versées.</dd></div><?php endif ?>
     </dl>
-    <p class="muted"><small>Chaque échéance vous sera notifiée dans la messagerie, avec le détail des séances.</small></p>
+    <p class="wl-note"><?= icon('message-circle') ?> Chaque échéance vous sera notifiée dans la messagerie, avec le détail des séances.</p>
     <form method="post"><?= $hid() ?><?= $nav() ?></form>
 
   <?php elseif ($step === 'tour'): ?>

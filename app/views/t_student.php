@@ -64,6 +64,19 @@ $hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_wor
     </div>
   </div>
 
+  <?php $w = function_exists('wishes_of') ? wishes_of($s) : null; if ($w && ($w['hours'] !== '' || $w['needs'] || $w['mode'] !== '' || $w['slots'] !== '' || $w['note'] !== '')): $so = wish_subject_options($s); ?>
+  <div class="card tone-blue"><h2><?= icon('target') ?> Souhaits de la famille</h2>
+    <dl class="fields">
+      <?php if ($w['hours'] !== ''): ?><div><dt>Volume souhaité</dt><dd><?= e(WISH_HOURS[$w['hours']] ?? $w['hours']) ?><?= $w['hours'] !== 'tbd' ? ' / semaine' : '' ?></dd></div><?php endif ?>
+      <?php if ($w['mode'] !== ''): ?><div><dt>Formule</dt><dd><?= e(WISH_MODES[$w['mode']] ?? $w['mode']) ?></dd></div><?php endif ?>
+      <?php if ($w['needs']): ?><div class="wide"><dt>Besoins</dt><dd><span class="ra-chips"><?php foreach ($w['needs'] as $k): ?><span class="ra-chip"><?= e($k === 'other' && $w['other'] !== '' ? $w['other'] : (WISH_NEEDS[$k] ?? $k)) ?></span><?php endforeach ?></span></dd></div><?php endif ?>
+      <?php if (in_array('subjects', $w['needs'], true) && ($w['general'] || $w['subjects'])): ?><div class="wide"><dt>Matières</dt><dd><?= e(implode(', ', array_merge($w['general'] ? ['Soutien général'] : [], array_map(fn($k) => $so[$k] ?? $k, $w['subjects'])))) ?></dd></div><?php endif ?>
+      <?php if ($w['slots'] !== ''): ?><div class="wide"><dt>Créneaux</dt><dd><?= e($w['slots']) ?></dd></div><?php endif ?>
+      <?php if ($w['note'] !== ''): ?><div class="wide"><dt>Précisions</dt><dd><?= nl2br(e($w['note'])) ?></dd></div><?php endif ?>
+    </dl>
+  </div>
+  <?php endif ?>
+
   <div class="card tone-pink"><h2><?= icon('heart') ?> Besoins particuliers</h2>
     <?php if (!$hasNeeds): ?><p class="muted">Rien de signalé par le parent pour l'instant (il peut le renseigner dans « Mon enfant »).</p><?php else: ?>
     <?php if ($nd['items'] || $nd['acc']): ?><div class="ra-chips child-chips"><?php foreach ($nd['items'] as $k): ?><span class="ra-chip"><?= e($ndL[$k] ?? $k) ?></span><?php endforeach ?><?php foreach ($nd['acc'] as $k): ?><span class="ra-chip prio"><?= e($acL[$k] ?? $k) ?></span><?php endforeach ?></div><?php endif ?>

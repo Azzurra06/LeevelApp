@@ -13,6 +13,10 @@
     const m = e.target.dataset.confirm || e.submitter?.dataset.confirm;
     if (m && !confirm(m)) e.preventDefault();
   });
+  // Parcours d'accueil : volets affichés selon les cases cochées
+  $$('[data-wish-subj],[data-wish-other]').forEach(cb => cb.addEventListener('change', () => {
+    const box = document.querySelector(cb.hasAttribute('data-wish-subj') ? '[data-wish-subj-box]' : '[data-wish-other-box]'); if (box) box.hidden = !cb.checked;
+  }));
   $$('select[data-autosubmit]').forEach(sel => sel.addEventListener('change', () => sel.form.submit()));
   // Onglets défilants : l'onglet actif est toujours visible
   $$('.tabs').forEach(t => { const on = t.querySelector('a.on'); if (on && t.scrollWidth > t.clientWidth) t.scrollLeft = on.offsetLeft - (t.clientWidth - on.offsetWidth) / 2; });

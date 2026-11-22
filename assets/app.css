@@ -1049,3 +1049,10 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .wl-list li strong{font-weight:700}.wl-list li small{color:var(--muted);font-size:.88rem;line-height:1.4}
 .wl-li-ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--accent-l);display:grid;place-items:center}
 .wl-dur{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);white-space:nowrap;margin-top:2px}.wl-dur .ic{width:13px;height:13px;color:var(--muted)}
+
+.wl-wish .ql{display:block;margin-bottom:8px}
+.wl-sub{padding:12px 14px;background:var(--bg);border-radius:12px}
+
+.wl-box{background:var(--bg);border:1px solid var(--beige);border-radius:14px;padding:16px 18px;margin:6px 0 16px;gap:16px 24px}
+.wl-note{display:flex;gap:8px;align-items:flex-start;margin:0;font-size:.9rem;color:var(--muted)}.wl-note .ic{flex:none;margin-top:3px;color:var(--accent-d)}
+.stack.wl-wish{gap:20px}

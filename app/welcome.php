@@ -2,6 +2,25 @@
 declare(strict_types=1);
 // Parcours d'accueil des nouveaux inscrits (parent, élève) : étapes guidées avant d'arriver sur l'espace.
 
+const WISH_HOURS = ['1' => '1 h', '1.5' => '1 h 30', '2' => '2 h', '3' => '3 h', '4' => '4 h ou plus', 'tbd' => 'À voir avec la tutrice'];
+const WISH_NEEDS = ['subjects' => 'Réviser / consolider des matières', 'homework' => 'Aide aux devoirs', 'organisation' => 'Gagner en organisation et en méthode', 'exam' => 'Préparer un examen (brevet, bac…)', 'confidence' => 'Reprendre confiance', 'other' => 'Autre'];
+const WISH_MODES = ['presentiel' => 'Présentiel', 'visio' => 'Visio', 'both' => 'Les deux', 'progressive' => 'Présentiel au début, puis visio', 'none' => 'Pas de préférence'];
+
+function wishes_of(?array $s): array
+{
+    $w = json_decode((string)($s['wishes_json'] ?? ''), true);
+    return is_array($w) ? $w + ['hours' => '', 'needs' => [], 'subjects' => [], 'general' => false, 'mode' => '', 'other' => '', 'slots' => '', 'note' => ''] : ['hours' => '', 'needs' => [], 'subjects' => [], 'general' => false, 'mode' => '', 'other' => '', 'slots' => '', 'note' => ''];
+}
+/** Matières proposées selon la classe de l'élève. */
+function wish_subject_options(?array $s): array
+{
+    $lv = (require APP_ROOT . '/app/questionnaires/_levels.php')['subjects'];
+    $cyc = grade_cycle($s['grade'] ?? null);
+    $out = [];
+    foreach ($lv as $k => [$name, $cycles]) if (!$cyc || in_array($cyc, (array)$cycles, true)) $out[$k] = $name;
+    return $out;
+}
+
 function onboarding_available(): bool
 {
     static $ok = null;
@@ -18,6 +37,7 @@ function welcome_steps(array $u, ?array $s): array
 {
     if ($u['role'] === 'student') return ['intro' => ['Bienvenue', 'smile'], 'questionnaire' => ['Ton questionnaire', 'clipboard-list'], 'tour' => ['Ton espace', 'house'], 'done' => ["C'est parti", 'rocket']];
     $steps = ['intro' => ['Bienvenue', 'smile'], 'contact' => ['Vos coordonnées', 'message-circle'], 'child' => ['Votre enfant', 'user'], 'questionnaire' => ['Questionnaire', 'clipboard-list']];
+    $steps['wishes'] = ['Vos souhaits', 'target'];
     if ($s && function_exists('finance_available') && finance_available()) $steps['payment'] = ['Paiement', 'file-text'];
     $steps['done'] = ["C'est prêt", 'rocket'];
     return $steps;
@@ -71,6 +91,16 @@ function welcome_route(bool $isPost): never
             } catch (PDOException) {}
             $sub = qn_latest('parent', (int)$s['id']);
             if ($sub) qn_save($sub, 'parent', ['p_first_name' => $first, 'p_last_name' => post_str('last_name', 80), 'p_class' => $grade, 'p_class_school' => post_str('school', 120)]);
+        }
+        if ($act === 'save' && $step === 'wishes' && $u['role'] === 'parent' && $s) {
+            $subjOpts = wish_subject_options($s);
+            $w = ['hours' => array_key_exists($_POST['hours'] ?? '', WISH_HOURS) ? $_POST['hours'] : '',
+                  'needs' => array_values(array_intersect((array)($_POST['needs'] ?? []), array_keys(WISH_NEEDS))),
+                  'subjects' => array_values(array_intersect((array)($_POST['subjects'] ?? []), array_keys($subjOpts))),
+                  'general' => !empty($_POST['general']),
+                  'other' => post_str('other', 200), 'mode' => array_key_exists($_POST['mode'] ?? '', WISH_MODES) ? $_POST['mode'] : '',
+                  'slots' => post_str('slots', 300), 'note' => post_str('note', 1000), 'at' => date('Y-m-d')];
+            try { q('UPDATE students SET wishes_json=? WHERE id=?', [json_encode($w, JSON_UNESCAPED_UNICODE), $s['id']]); } catch (PDOException) {}
         }
         $next = welcome_next($steps, $step);
         $_SESSION['wl_step'] = $next;
