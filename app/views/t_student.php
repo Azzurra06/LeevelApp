@@ -67,8 +67,8 @@ $hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_wor
   <?php $w = function_exists('wishes_of') ? wishes_of($s) : null; if ($w && ($w['hours'] !== '' || $w['needs'] || $w['mode'] !== '' || $w['slots'] !== '' || $w['note'] !== '')): $so = wish_subject_options($s); ?>
   <div class="card tone-blue"><h2><?= icon('target') ?> Accompagnement souhaité par la famille</h2>
     <dl class="fields">
-      <?php if ($w['hours'] !== ''): ?><div><dt>Volume souhaité</dt><dd><?= e(WISH_HOURS[$w['hours']] ?? $w['hours']) ?><?= $w['hours'] !== 'tbd' ? ' / semaine' : '' ?></dd></div><?php endif ?>
-      <?php if ($w['mode'] !== ''): ?><div><dt>Formule</dt><dd><?= e(WISH_MODES[$w['mode']] ?? $w['mode']) ?></dd></div><?php endif ?>
+      <?php if ($w['hours'] !== ''): ?><div><dt>Heures par semaine</dt><dd><?= e(WISH_HOURS[$w['hours']] ?? $w['hours']) ?></dd></div><?php endif ?>
+      <?php if ($w['mode'] !== ''): ?><div><dt>Formule</dt><dd><?= e($w['mode'] === 'other' && $w['mode_other'] !== '' ? $w['mode_other'] : (WISH_MODES[$w['mode']] ?? ['progressive' => 'Présentiel au début, puis visio', 'none' => 'Pas de préférence'][$w['mode']] ?? $w['mode'])) ?></dd></div><?php endif ?>
       <?php if ($w['needs']): ?><div class="wide"><dt>Besoins</dt><dd><span class="ra-chips"><?php foreach ($w['needs'] as $k): ?><span class="ra-chip"><?= e($k === 'other' && $w['other'] !== '' ? $w['other'] : (WISH_NEEDS[$k] ?? $k)) ?></span><?php endforeach ?></span></dd></div><?php endif ?>
       <?php if (in_array('subjects', $w['needs'], true) && ($w['general'] || $w['subjects'])): ?><div class="wide"><dt>Matières</dt><dd><?= e(implode(', ', array_merge($w['general'] ? ['Soutien général'] : [], array_map(fn($k) => $so[$k] ?? $k, $w['subjects'])))) ?></dd></div><?php endif ?>
       <?php if ($w['slots'] !== ''): ?><div class="wide"><dt>Créneaux</dt><dd><?= e($w['slots']) ?></dd></div><?php endif ?>

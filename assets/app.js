@@ -14,6 +14,7 @@
     if (m && !confirm(m)) e.preventDefault();
   });
   // Parcours d'accueil : volets affichés selon les cases cochées
+  $$('[data-wish-mode]').forEach(r => r.addEventListener('change', () => { const b = document.querySelector('[data-wish-mode-box]'); if (b) b.hidden = r.value !== 'other'; }));
   $$('[data-wish-subj],[data-wish-other]').forEach(cb => cb.addEventListener('change', () => {
     const box = document.querySelector(cb.hasAttribute('data-wish-subj') ? '[data-wish-subj-box]' : '[data-wish-other-box]'); if (box) box.hidden = !cb.checked;
   }));

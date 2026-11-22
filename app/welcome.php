@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 const WISH_HOURS = ['1' => '1 h', '1.5' => '1 h 30', '2' => '2 h', '3' => '3 h', '4' => '4 h ou plus', 'tbd' => 'À voir avec la tutrice'];
 const WISH_NEEDS = ['subjects' => 'Réviser / consolider des matières', 'homework' => 'Aide aux devoirs', 'organisation' => 'Gagner en organisation et en méthode', 'exam' => 'Préparer un examen (brevet, bac…)', 'confidence' => 'Reprendre confiance', 'other' => 'Autre'];
-const WISH_MODES = ['presentiel' => 'Présentiel', 'visio' => 'Visio', 'both' => 'Les deux', 'progressive' => 'Présentiel au début, puis visio', 'none' => 'Pas de préférence'];
+const WISH_MODES = ['presentiel' => 'Présentiel', 'visio' => 'Visio', 'both' => 'Les deux', 'unsure' => 'Je ne sais pas encore', 'other' => 'Autre'];
 
 function wishes_of(?array $s): array
 {
     $w = json_decode((string)($s['wishes_json'] ?? ''), true);
-    return is_array($w) ? $w + ['hours' => '', 'needs' => [], 'subjects' => [], 'general' => false, 'mode' => '', 'other' => '', 'slots' => '', 'note' => ''] : ['hours' => '', 'needs' => [], 'subjects' => [], 'general' => false, 'mode' => '', 'other' => '', 'slots' => '', 'note' => ''];
+    return is_array($w) ? $w + ['hours' => '', 'needs' => [], 'subjects' => [], 'general' => false, 'mode' => '', 'mode_other' => '', 'other' => '', 'slots' => '', 'note' => ''] : ['hours' => '', 'needs' => [], 'subjects' => [], 'general' => false, 'mode' => '', 'mode_other' => '', 'other' => '', 'slots' => '', 'note' => ''];
 }
 /** Matières proposées selon la classe de l'élève. */
 function wish_subject_options(?array $s): array
@@ -94,11 +94,11 @@ function welcome_route(bool $isPost): never
         }
         if ($act === 'save' && $step === 'wishes' && $u['role'] === 'parent' && $s) {
             $subjOpts = wish_subject_options($s);
-            $w = ['hours' => array_key_exists($_POST['hours'] ?? '', WISH_HOURS) ? $_POST['hours'] : '',
+            $w = ['hours' => post_str('hours', 40),
                   'needs' => array_values(array_intersect((array)($_POST['needs'] ?? []), array_keys(WISH_NEEDS))),
                   'subjects' => array_values(array_intersect((array)($_POST['subjects'] ?? []), array_keys($subjOpts))),
                   'general' => !empty($_POST['general']),
-                  'other' => post_str('other', 200), 'mode' => array_key_exists($_POST['mode'] ?? '', WISH_MODES) ? $_POST['mode'] : '',
+                  'other' => post_str('other', 200), 'mode' => array_key_exists($_POST['mode'] ?? '', WISH_MODES) ? $_POST['mode'] : '', 'mode_other' => post_str('mode_other', 200),
                   'slots' => post_str('slots', 300), 'note' => post_str('note', 1000), 'at' => date('Y-m-d')];
             try { q('UPDATE students SET wishes_json=? WHERE id=?', [json_encode($w, JSON_UNESCAPED_UNICODE), $s['id']]); } catch (PDOException) {}
         }

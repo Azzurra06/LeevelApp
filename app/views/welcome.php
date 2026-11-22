@@ -105,15 +105,15 @@ $needs = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 
     <h1><?= icon('target') ?> L'accompagnement souhaité</h1>
     <p class="wl-lead">Ce que vous attendez de l'accompagnement de <?= e($kidName) ?>. Rien n'est figé : vous en reparlerez avec la tutrice.</p>
     <form method="post" class="stack wl-wish"><?= $hid('save') ?>
-      <div><span class="ql">Combien d'heures par semaine ?</span>
-        <div class="pills"><?php foreach (WISH_HOURS as $k => $l): ?><label class="pill"><input type="radio" name="hours" value="<?= e($k) ?>" <?= (string)$w['hours'] === (string)$k ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>
-      <div><span class="ql">Quels besoins ? <small class="muted">plusieurs choix possibles</small></span>
+      <label>Combien d'heures par semaine ?<input name="hours" maxlength="40" value="<?= e(isset(WISH_HOURS[$w['hours']]) ? WISH_HOURS[$w['hours']] : $w['hours']) ?>" placeholder="ex. 2 h, 1 h 30, à voir avec la tutrice"></label>
+      <div><span class="ql">Quels sont les besoins ? <small class="muted">plusieurs choix possibles</small></span>
         <div class="pills"><?php foreach (WISH_NEEDS as $k => $l): ?><label class="pill"><input type="checkbox" name="needs[]" value="<?= $k ?>" <?= in_array($k, $w['needs'], true) ? 'checked' : '' ?> <?= $k === 'subjects' ? 'data-wish-subj' : '' ?><?= $k === 'other' ? ' data-wish-other' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>
       <div class="wl-sub" data-wish-subj-box <?= in_array('subjects', $w['needs'], true) ? '' : 'hidden' ?>><span class="ql">Quelles matières ?</span>
         <div class="pills"><label class="pill"><input type="checkbox" name="general" value="1" <?= $w['general'] ? 'checked' : '' ?>><span>Soutien général (toutes matières)</span></label><?php foreach ($subjOpts as $k => $l): ?><label class="pill"><input type="checkbox" name="subjects[]" value="<?= e($k) ?>" <?= in_array($k, $w['subjects'], true) ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>
       <label class="wl-sub" data-wish-other-box <?= in_array('other', $w['needs'], true) ? '' : 'hidden' ?>>Précisez<input name="other" maxlength="200" value="<?= e($w['other']) ?>" placeholder="ex. préparer l'entrée en 6e"></label>
       <div><span class="ql">Plutôt en présentiel ou en visio ?</span>
-        <div class="pills"><?php foreach (WISH_MODES as $k => $l): ?><label class="pill"><input type="radio" name="mode" value="<?= $k ?>" <?= $w['mode'] === $k ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div></div>
+        <div class="pills"><?php foreach (WISH_MODES as $k => $l): ?><label class="pill"><input type="radio" name="mode" value="<?= $k ?>" <?= $w['mode'] === $k ? 'checked' : '' ?> data-wish-mode><span><?= e($l) ?></span></label><?php endforeach ?></div>
+        <label class="wl-sub wl-sub-in" data-wish-mode-box <?= $w['mode'] === 'other' ? '' : 'hidden' ?>>Précisez<input name="mode_other" maxlength="200" value="<?= e($w['mode_other']) ?>" placeholder="ex. présentiel au début, puis visio"></label></div>
       <label>Jours et créneaux qui vous arrangent <small class="muted">facultatif</small><input name="slots" maxlength="300" value="<?= e($w['slots']) ?>" placeholder="ex. mercredi après-midi, samedi matin"></label>
       <label>Autre chose à préciser ? <small class="muted">facultatif</small><textarea name="note" maxlength="1000" rows="2"><?= e($w['note']) ?></textarea></label>
       <?= $nav() ?>

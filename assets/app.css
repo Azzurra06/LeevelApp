@@ -1099,3 +1099,5 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .wl-wish .wl-sub{margin:0 0 20px}
 .wl-wish .wl-nav{margin-top:4px}
 .wl-wish>label{font-weight:700;color:var(--ink)}.wl-wish>label small{font-weight:400}.wl-wish>label input,.wl-wish>label textarea{font-weight:400;margin-top:8px}
+.wl-sub-in{display:block;margin:12px 0 0!important;font-weight:600}
+.wl-wish>label:first-of-type{border-top:0;padding-top:4px}.wl-sub-in input{font-weight:400;margin-top:6px}
