@@ -675,3 +675,13 @@ main.wrap>.page-head{margin-bottom:4px!important}
 .tool-list .tool h3{margin:0 0 2px;font-size:1rem}
 .tool-list .tool p{margin:0;font-size:.88rem;color:var(--muted);line-height:1.4}
 .tool-list .tool .ico{width:42px;height:42px}
+/* Interlignes resserrés sur toute la plateforme */
+body{line-height:1.45}
+small{display:inline-block;line-height:1.4;max-width:100%}
+.list li{line-height:1.4}
+.fields dd,.faq p,.recap-note p,.card p{line-height:1.45}
+/* Titres de section dans la page : plus d'air au-dessus, texte d'intro collé au titre */
+main.wrap>h2:not(:first-child),main.wrap>h3:not(:first-child){margin-top:20px!important}
+main.wrap>h2+p,main.wrap>h3+p{margin-top:-8px!important}
+main.wrap>h2{display:flex;align-items:center;gap:8px}
+main.wrap>h2 .ic{color:var(--accent-d)}
