@@ -23,7 +23,7 @@ $w = [
   <?php },
   'tests' => function () use ($tests, $s) { $tone = 'tone-gold'; require __DIR__ . '/_tests.php'; },
   'needs' => function () use ($an, $prio, $reco, $sidp) { ?>
-    <div class="card tone-violet"><h2><?= icon('chart-column') ?> Synthèse des besoins</h2><?php require __DIR__ . '/_axes.php' ?><p><small><?= e($reco['summary']) ?></small></p><a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'analyse'])) ?>">Analyse détaillée →</a></div>
+    <div class="card tone-green"><h2><?= icon('chart-column') ?> Synthèse des besoins</h2><?php require __DIR__ . '/_axes.php' ?><p><small><?= e($reco['summary']) ?></small></p><a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'analyse'])) ?>">Analyse détaillée →</a></div>
   <?php },
   'quest' => function () use ($subs, $sidp) { ?>
     <div class="card tone-teal"><h2><?= icon('clipboard-list') ?> Questionnaires</h2><ul class="list">
@@ -38,7 +38,7 @@ $w = [
       <a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>">Gérer le planning →</a></div>
   <?php },
   'goals' => function () use ($goals, $goalStats, $sidp) { ?>
-    <div class="card tone-green"><h2><?= icon('target') ?> Objectifs en cours</h2>
+    <div class="card tone-violet"><h2><?= icon('target') ?> Objectifs en cours</h2>
       <?php if ($goalStats['n']): ?><p class="muted"><?= (int)$goalStats['acq'] ?> / <?= (int)$goalStats['n'] ?> acquis · progression moyenne <?= (int)$goalStats['avgp'] ?>%</p><div class="bar bar-gap"><i data-w="<?= (int)$goalStats['avgp'] ?>"></i></div><?php else: ?><p class="muted">Aucun objectif.</p><?php endif ?>
       <ul class="list airy"><?php foreach ($goals as $g): ?><li><?= icon('flag') ?><div><?= e($g['title']) ?><div class="badges"><?php require __DIR__ . '/_goal_status.php' ?><?= $g['student_done_at'] ? '<span class="badge sage">Signalé terminé</span>' : '' ?></div></div></li><?php endforeach ?></ul>
       <a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'objectifs'])) ?>">Gérer les objectifs →</a></div>

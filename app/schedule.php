@@ -24,10 +24,16 @@ function schedule_minutes_per_week(array $sched): int { return array_sum(array_m
 /** Lecture et contrôle du formulaire ; renvoie [rythme, erreur]. */
 function schedule_from_post(): array
 {
-    $days = (array)($_POST['slot_day'] ?? []); $times = (array)($_POST['slot_time'] ?? []); $durs = (array)($_POST['slot_duration'] ?? []); $modes = (array)($_POST['slot_mode'] ?? []);
+    $days = (array)($_POST['slot_day'] ?? []); $times = (array)($_POST['slot_time'] ?? []); $ends = (array)($_POST['slot_end'] ?? []); $durs = (array)($_POST['slot_duration'] ?? []); $modes = (array)($_POST['slot_mode'] ?? []);
     $slots = [];
     foreach ($days as $i => $day) {
-        $day = (int)$day; $time = (string)($times[$i] ?? ''); $dur = (int)($durs[$i] ?? 0); $mode = (string)($modes[$i] ?? 'presentiel');
+        $day = (int)$day; $time = (string)($times[$i] ?? ''); $dur = (int)($durs[$i] ?? 0);
+        $end = (string)($ends[$i] ?? '');
+        if (preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $time) && preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $end)) {
+            [$h1, $m1] = array_map('intval', explode(':', $time)); [$h2, $m2] = array_map('intval', explode(':', $end));
+            $dur = ($h2 * 60 + $m2) - ($h1 * 60 + $m1);
+            if ($dur <= 0) continue; // fin avant le début : créneau ignoré
+        } $mode = (string)($modes[$i] ?? 'presentiel');
         if (!isset(WEEKDAYS[$day]) || !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $time)) continue;
         if (array_filter($slots, fn($x) => $x['day'] === $day && $x['time'] === $time)) continue; // même jour et même heure : un seul créneau
         $slots[] = ['day' => $day, 'time' => $time, 'duration' => max(15, min(480, $dur ?: 60)), 'mode' => isset(MODES[$mode]) ? $mode : 'presentiel'];
@@ -43,7 +49,7 @@ function schedule_from_post(): array
 /** Texte lisible du rythme (pour l'écran et le message au parent). */
 function schedule_lines(array $sched): array
 {
-    return array_map(fn($x) => WEEKDAYS[$x['day']] . ' à ' . str_replace(':', 'h', $x['time']) . ' · ' . fdur((int)$x['duration']) . ' · ' . MODES[$x['mode']], $sched['slots']);
+    return array_map(fn($x) => WEEKDAYS[$x['day']] . ' de ' . str_replace(':', 'h', $x['time']) . ' à ' . str_replace(':', 'h', slot_end($x)) . ' (' . fdur((int)$x['duration']) . ') · ' . MODES[$x['mode']], $sched['slots']);
 }
 
 /** Crée les séances du rythme (sans doublon). $replace : supprime d'abord les séances futures encore prévues. Renvoie le nombre créé. */
@@ -117,4 +123,12 @@ function merge_existing_reports(?int $sid = null): int
         }
     }
     return $n;
+}
+
+/** Heure de fin d'un créneau (« HH:MM »). */
+function slot_end(array $x): string
+{
+    [$h, $m] = array_map('intval', explode(':', $x['time']));
+    $t = $h * 60 + $m + (int)$x['duration'];
+    return sprintf('%02d:%02d', intdiv($t, 60) % 24, $t % 60);
 }

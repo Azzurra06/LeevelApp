@@ -752,3 +752,11 @@ body.tutor .card[class*="tone-"] h2 .ic{width:1.15em;height:1.15em;padding:0;bor
 body.tutor .card[class*="tone-"] .bar{background:var(--beige)}
 body.tutor .card[class*="tone-"] .add-test>summary{color:var(--accent-d)}
 body.tutor .todo-card{border-color:var(--beige)}
+
+.sched-hours{font-weight:600;min-width:130px}.sched-dur{color:var(--muted)}
+.sched-row{grid-template-columns:1.3fr 1fr 1fr auto 1.2fr auto}
+.sched-row-dur{align-self:center;margin-top:18px;font-size:.88rem;font-weight:600;color:var(--accent-d);white-space:nowrap;min-width:60px}
+.sched-row-dur.bad{color:var(--err)}
+@media (max-width:720px){.sched-row{grid-template-columns:1fr 1fr}.sched-row-dur{margin-top:0}}
+body.tutor .card[class*="tone-"] .rank{background:var(--tc)}
+body.tutor .card[class*="tone-"] .axis:not(.prio) .bar>i{background:var(--tc);opacity:.45}

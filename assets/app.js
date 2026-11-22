@@ -197,14 +197,19 @@
   // Rythme des séances : ajouter / retirer un créneau, total hebdomadaire en direct
   $$('[data-sched-rows]').forEach(box => {
     const form = box.closest('form'), out = $('[data-sched-total]', form);
-    const total = () => { const m = $$('select[name="slot_duration[]"]', box).reduce((a, s) => a + (+s.value || 0), 0); const n = $$('[data-sched-row]', box).length;
+    const mins = v => { const [h, m] = (v || '').split(':').map(Number); return isNaN(h) ? null : h * 60 + (m || 0); };
+    const fmtD = m => m < 60 ? m + ' min' : Math.floor(m / 60) + 'h' + (m % 60 ? String(m % 60).padStart(2, '0') : '');
+    const total = () => { let m = 0;
+      $$('[data-sched-row]', box).forEach(r => { const a = mins($('input[name="slot_time[]"]', r).value), b = mins($('input[name="slot_end[]"]', r).value), d = a !== null && b !== null ? b - a : 0;
+        const lab = $('[data-row-dur]', r); if (lab) { lab.textContent = d > 0 ? fmtD(d) : 'fin avant le début'; lab.classList.toggle('bad', d <= 0); } if (d > 0) m += d; });
+      const n = $$('[data-sched-row]', box).length;
       if (out) out.textContent = n + ' créneau' + (n > 1 ? 'x' : '') + ' · ' + Math.floor(m / 60) + 'h' + (m % 60 ? String(m % 60).padStart(2, '0') : '') + ' par semaine'; };
     form.addEventListener('click', e => {
       if (e.target.closest('[data-sched-add]')) { const rows = $$('[data-sched-row]', box); const c = rows[rows.length - 1].cloneNode(true); box.appendChild(c); total(); }
       const del = e.target.closest('[data-sched-del]');
       if (del) { const rows = $$('[data-sched-row]', box); if (rows.length > 1) del.closest('[data-sched-row]').remove(); total(); }
     });
-    form.addEventListener('change', total); total();
+    form.addEventListener('change', total); form.addEventListener('input', total); total();
   });
   // Séance : champs selon le statut (raison, report)
   $$('select[data-status-select]').forEach(sel => {

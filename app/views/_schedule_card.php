@@ -16,7 +16,7 @@ $durations = [30, 45, 60, 75, 90, 120, 150, 180]; ?>
         <div class="sched-total"><strong><?= (int)$sched['weeks'] ?></strong><small>semaine<?= (int)$sched['weeks'] > 1 ? 's' : '' ?> à partir du <?= e(fdate($sched['start'])) ?></small></div>
       </div>
       <ul class="sched-slots"><?php foreach ($sched['slots'] as $x): ?>
-        <li><span class="sched-day"><?= e(WEEKDAYS[$x['day']]) ?></span><span><?= e(str_replace(':', 'h', $x['time'])) ?> · <?= fdur((int)$x['duration']) ?></span><span class="badge <?= $x['mode'] === 'visio' ? '' : 'sage' ?>"><?= icon($x['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$x['mode']]) ?></span></li>
+        <li><span class="sched-day"><?= e(WEEKDAYS[$x['day']]) ?></span><span class="sched-hours"><?= e(str_replace(':', 'h', $x['time'])) ?> – <?= e(str_replace(':', 'h', slot_end($x))) ?></span><span class="sched-dur"><?= fdur((int)$x['duration']) ?></span><span class="badge <?= $x['mode'] === 'visio' ? '' : 'sage' ?>"><?= icon($x['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$x['mode']]) ?></span></li>
       <?php endforeach ?></ul>
       <?php if (!empty($sched['note'])): ?><p class="sched-note"><?= icon('message-circle') ?> <?= e($sched['note']) ?></p><?php endif ?>
       <?php if (!empty($sched['agreed_at'])): ?><p class="muted"><small>Convenu le <?= e(fdate($sched['agreed_at'])) ?></small></p><?php endif ?>
@@ -29,8 +29,9 @@ $durations = [30, 45, 60, 75, 90, 120, 150, 180]; ?>
       <?php foreach ($slotsForm as $x): ?>
       <div class="sched-row" data-sched-row>
         <label>Jour<select name="slot_day[]"><?php foreach (WEEKDAYS as $k => $l): ?><option value="<?= $k ?>" <?= (int)$x['day'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label>
-        <label>Heure<input type="time" name="slot_time[]" value="<?= e($x['time']) ?>" required></label>
-        <label>Durée<select name="slot_duration[]"><?php foreach ($durations as $d): ?><option value="<?= $d ?>" <?= (int)$x['duration'] === $d ? 'selected' : '' ?>><?= fdur($d) ?></option><?php endforeach ?></select></label>
+        <label>Début<input type="time" name="slot_time[]" value="<?= e($x['time']) ?>" required></label>
+        <label>Fin<input type="time" name="slot_end[]" value="<?= e(slot_end($x)) ?>" required></label>
+        <span class="sched-row-dur" data-row-dur><?= fdur((int)$x['duration']) ?></span>
         <label>Modalité<select name="slot_mode[]"><?php foreach (MODES as $k => $l): ?><option value="<?= $k ?>" <?= $x['mode'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label>
         <button type="button" class="edit-btn" data-sched-del title="Retirer ce créneau" aria-label="Retirer ce créneau"><?= icon('trash-2') ?></button>
       </div>
