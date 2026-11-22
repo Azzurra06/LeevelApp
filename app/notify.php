@@ -10,20 +10,21 @@ const NOTIFY_DELAY_MIN = 30;
 const NOTIFY_COOLDOWN_MIN = 120;
 
 /** Envoi d'un e-mail texte. Hors production : écrit dans storage/outbox.log au lieu d'envoyer. */
-function send_app_mail(string $to, string $subject, string $body, string $host): bool
+function send_app_mail(string $to, string $subject, string|array $body, string $host): bool
 {
+    require_once APP_ROOT . '/app/mail_template.php';
+    $tpl = is_array($body) ? $body : ['paragraphs' => [$body]];
     if (!filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
     $host = preg_replace('/^www\./', '', preg_replace('/[^a-z0-9.-]/i', '', $host));
     $from = config('mail_from') ?: 'no-reply@' . $host;
     if (config('env') !== 'prod') {
         $dir = APP_ROOT . '/storage';
         if (!is_dir($dir)) mkdir($dir, 0750, true);
-        file_put_contents($dir . '/outbox.log', json_encode(['to' => $to, 'subject' => $subject, 'body' => $body, 'at' => date('c')], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
+        file_put_contents($dir . '/outbox.log', json_encode(['to' => $to, 'subject' => $subject, 'body' => mail_text($tpl), 'at' => date('c')], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
+        file_put_contents($dir . '/outbox_last.html', mail_html($tpl));
         return true;
     }
-    $headers = implode("\r\n", ['From: leevel.app <' . $from . '>', 'Reply-To: ' . $from, 'MIME-Version: 1.0', 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: 8bit']);
-    try { return @mail($to, mb_encode_mimeheader($subject, 'UTF-8'), $body, $headers, '-f' . $from); }
-    catch (Throwable) { return false; }
+    return send_branded_mail($to, $subject, $tpl, $from);
 }
 
 /** Traite les notifications dues. $host : domaine public de l'application (pour les liens). */
@@ -64,16 +65,16 @@ function run_message_notifications(string $host, int $delayMin = NOTIFY_DELAY_MI
             $excerpt = mb_strimwidth(preg_replace('/\s+/', ' ', $last['body']), 0, 160, '…');
             $link = $base . '?' . http_build_query($toStudent ? ['r' => 's_messages'] : ['r' => $side === 'family' ? 'p_messages' : 't_messages', 'sid' => $student['id']] + ($chan === 'student' ? ['ch' => 'student'] : []));
             $subject = $n > 1 ? "$n nouveaux messages sur leevel.app" : 'Nouveau message sur leevel.app';
+            $who = $side === 'family' ? ($toStudent ? 'de ta tutrice' : 'de votre tutrice') : ($chan === 'student' ? 'de ' . $student['first_name'] : 'au sujet de ' . $student['first_name']);
             $body = $toStudent
-                ? "Salut {$rc['display_name']},\n\n" . ($n > 1 ? "Tu as $n messages non lus" : 'Tu as un message non lu') . " de ta tutrice sur leevel.app.\n\n"
-                  . "Dernier message de {$last['sender_name']} :\n« $excerpt »\n\n" . "Pour lire et répondre : $link\n\n"
-                  . "Tu reçois cet e-mail car ce message n'a pas été lu depuis plus de $delayMin minutes."
-                : "Bonjour {$rc['display_name']},\n\n"
-                  . ($n > 1 ? "Vous avez $n messages non lus" : 'Vous avez un message non lu')
-                  . ($side === 'family' ? ' de votre tutrice' : ($chan === 'student' ? ' de ' . $student['first_name'] : ' au sujet de ' . $student['first_name'])) . " sur leevel.app.\n\n"
-                  . "Dernier message de {$last['sender_name']} :\n« $excerpt »\n\n"
-                  . "Pour lire et répondre : $link\n\n"
-                  . "Vous recevez cet e-mail car ce message n'a pas été lu depuis plus de $delayMin minutes. Vous pouvez désactiver ces notifications dans « Mon compte ».";
+                ? ['title' => $n > 1 ? "Tu as $n messages non lus" : 'Tu as un nouveau message', 'greeting' => "Salut {$rc['display_name']},",
+                   'paragraphs' => [($n > 1 ? "Tu as $n messages non lus" : 'Tu as un message non lu') . " $who sur leevel.app."],
+                   'quote' => $excerpt, 'quote_by' => $last['sender_name'], 'cta_label' => 'Lire et répondre', 'cta_url' => $link,
+                   'note' => "Tu reçois cet e-mail car ce message n'a pas été lu depuis plus de $delayMin minutes."]
+                : ['title' => $n > 1 ? "$n messages non lus" : 'Nouveau message', 'greeting' => "Bonjour {$rc['display_name']},",
+                   'paragraphs' => [($n > 1 ? "Vous avez $n messages non lus" : 'Vous avez un message non lu') . " $who sur leevel.app."],
+                   'quote' => $excerpt, 'quote_by' => $last['sender_name'], 'cta_label' => 'Lire et répondre', 'cta_url' => $link,
+                   'note' => "Vous recevez cet e-mail car ce message n'a pas été lu depuis plus de $delayMin minutes. Vous pouvez désactiver ces notifications dans « Mon compte »."];
             if (send_app_mail($email, $subject, $body, $host)) {
                 q('UPDATE users SET last_notified_at=NOW() WHERE id=?', [$rc['id']]);
                 $stats['sent']++;

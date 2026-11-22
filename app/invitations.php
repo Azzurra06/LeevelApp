@@ -39,15 +39,15 @@ function send_invite_mail(string $to, string $name, string $role, string $link):
     $host = preg_replace('/^www\./', '', preg_replace('/[^a-z0-9.-]/i', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost')));
     $from = config('mail_from') ?: 'no-reply@' . $host;
     $tutor = current_user()['display_name'] ?? 'Votre tutrice';
-    $body = $role === 'parent'
-        ? 'Bonjour' . ($name !== '' ? " $name" : '') . ",\n\n" . "$tutor vous invite à rejoindre leevel.app, l'espace de suivi scolaire de votre enfant.\n\nCréez votre compte (identifiant et mot de passe de votre choix) en cliquant sur ce lien :\n$link\n\nCe lien est personnel et valable " . INVITE_DAYS . " jours.\n\nÀ bientôt,\n$tutor"
-        : "Salut $name,\n\n$tutor t'invite à rejoindre leevel.app pour suivre tes objectifs et tes séances.\n\nCrée ton compte (identifiant et mot de passe de ton choix) ici :\n$link\n\nLe lien est valable " . INVITE_DAYS . " jours.\n\nÀ bientôt !\n$tutor";
-    $headers = implode("\r\n", ['From: leevel.app <' . $from . '>', 'Reply-To: ' . $from, 'MIME-Version: 1.0', 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: 8bit']);
-    try {
-        return @mail($to, mb_encode_mimeheader('Votre invitation sur leevel.app', 'UTF-8'), $body, $headers, '-f' . $from);
-    } catch (Throwable) {
-        return false;
-    }
+    require_once APP_ROOT . '/app/mail_template.php';
+    $tpl = $role === 'parent'
+        ? ['title' => 'Bienvenue sur leevel.app', 'greeting' => 'Bonjour' . ($name !== '' ? " $name" : '') . ',',
+           'paragraphs' => ["$tutor vous invite à rejoindre leevel.app, l'espace de suivi scolaire de votre enfant : séances, bilans, objectifs et échanges avec la tutrice, au même endroit.", 'Créez votre compte en choisissant votre identifiant et votre mot de passe.'],
+           'cta_label' => 'Créer mon compte', 'cta_url' => $link, 'note' => 'Ce lien est personnel et valable ' . INVITE_DAYS . " jours.\nÀ bientôt, $tutor"]
+        : ['title' => 'Bienvenue sur leevel.app 🚀', 'greeting' => "Salut $name,",
+           'paragraphs' => ["$tutor t'invite à rejoindre leevel.app pour suivre tes objectifs, tes séances et tes réussites.", 'Crée ton compte en choisissant ton identifiant et ton mot de passe.'],
+           'cta_label' => 'Créer mon compte', 'cta_url' => $link, 'note' => 'Le lien est valable ' . INVITE_DAYS . " jours.\nÀ bientôt ! $tutor"];
+    return send_branded_mail($to, 'Votre invitation sur leevel.app', $tpl, $from);
 }
 
 /** Accepte une invitation : crée le compte, l'associe au dossier, ouvre la session. */
