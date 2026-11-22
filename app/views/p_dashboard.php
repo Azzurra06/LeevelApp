@@ -1,7 +1,7 @@
 <?php $title = 'Suivi';
 $upcoming = array_values(array_filter($sessions, fn($x) => strtotime($x['starts_at']) >= strtotime('today') && $x['status'] === 'planned'));
 $next = $upcoming[0] ?? null; ?>
-<div class="page-head"><div><h1>Bonjour <?= e($u['display_name']) ?></h1><p>Le suivi de <?= e($s['first_name']) ?>, simplement.</p></div></div>
+<div class="page-head"><div><h1>Bonjour <?= e($u['display_name']) ?></h1><p>Vue d’ensemble des cours de <?= e($s['first_name']) ?> : séances, bilans, contrôles et progression.</p></div></div>
 <?php require __DIR__ . '/_onboarding.php' ?>
 <div class="grid-2 masonry">
     <div class="card">
