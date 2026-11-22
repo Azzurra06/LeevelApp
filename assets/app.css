@@ -989,7 +989,7 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .pc-main{display:flex;flex-direction:column;gap:16px;min-width:0}
 .pc-aside{position:sticky;top:86px}
 .card.pc-side{background:var(--accent-l)!important;border-color:#ddd3ff!important}
-.card.pc-side .test-item,.card.pc-side li{background:rgba(255,255,255,.7)}
+.card.pc-side li{background:#fff;border-radius:12px;padding:10px 12px;border:1px solid #e4dcff;align-items:center}.card.pc-side li+li{margin-top:8px}.card.pc-side .date-chip{background:var(--accent-l)}
 @media (max-width:900px){.pc-layout{grid-template-columns:1fr}.pc-aside{position:static;order:-1}}
 
 /* Parcours d'accueil */
