@@ -51,6 +51,7 @@ function finish_onboarding(array $u): never
 {
     q('UPDATE users SET onboarded_at=NOW() WHERE id=?', [$u['id']]);
     unset($_SESSION['wl_step']);
+    if (($_POST['action'] ?? '') === 'finish') $_SESSION['tour_offer'] = 1;
     audit('onboarding_done');
     redirect('home');
 }

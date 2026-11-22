@@ -32,12 +32,12 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
       $on = $route === 't_student'
           ? (($r === 't_student' || $r === 't_rdv') && (($params['tab'] ?? '') === (in_array($curTab, ['seances', 'matieres'], true) && $r === 't_student' ? $curTab : '')))
           : $r === $route; ?>
-      <a href="<?= e(url($route, ($role === 'tutor' ? $sidQ : []) + $params)) ?>" class="<?= $on ? 'on' : '' ?>"<?= $on ? ' aria-current="page"' : '' ?>><span class="nav-ic"><?= icon($ic) ?><?php if ($unread && in_array($route, ['t_messages', 'p_messages', 's_messages'], true)): ?><span class="nav-badge"><?= $unread ?></span><?php endif ?></span><span class="lbl"><?= e($label) ?></span><span class="lbl-s"><?= e($short) ?></span></a>
+      <a data-tour="<?= e($route . (isset($params['tab']) ? '-' . $params['tab'] : '')) ?>" href="<?= e(url($route, ($role === 'tutor' ? $sidQ : []) + $params)) ?>" class="<?= $on ? 'on' : '' ?>"<?= $on ? ' aria-current="page"' : '' ?>><span class="nav-ic"><?= icon($ic) ?><?php if ($unread && in_array($route, ['t_messages', 'p_messages', 's_messages'], true)): ?><span class="nav-badge"><?= $unread ?></span><?php endif ?></span><span class="lbl"><?= e($label) ?></span><span class="lbl-s"><?= e($short) ?></span></a>
     <?php endforeach ?>
   </nav>
   <div class="nav nav-side">
     <details class="acct" data-acct>
-      <summary class="acct-btn<?= in_array($r, ['account', 'help', 't_users', 'q', 'q_recap', 't_finance'], true) ? ' on' : '' ?>" aria-label="Menu de mon compte">
+      <summary data-tour="account" class="acct-btn<?= in_array($r, ['account', 'help', 't_users', 'q', 'q_recap', 't_finance'], true) ? ' on' : '' ?>" aria-label="Menu de mon compte">
         <span class="acct-av"><?= avatar_html($me, 'xs') ?></span><span class="acct-ic"><?= icon('user') ?></span><span class="acct-lbl">Mon compte</span><?= icon('chevron-right', 'acct-chev') ?>
       </summary>
       <div class="acct-menu" role="menu">
@@ -58,6 +58,39 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
     </details>
   </div>
 </div></header>
+<?php // Visite guidée : proposée après le parcours d'accueil, ou relancée depuis le Centre d'aide (?tour=1)
+$tourOn = in_array($role, ['parent', 'student', 'tutor'], true) && (!empty($_SESSION['tour_offer']) || !empty($_GET['tour']));
+if ($tourOn): $autoStart = !empty($_GET['tour']); unset($_SESSION['tour_offer']);
+  $kidN = isset($s['first_name']) ? kid($s['first_name']) : 'votre enfant';
+  $tourSteps = match ($role) {
+    'parent' => [
+      ['p', 'Suivi', "Votre page d'accueil : la prochaine séance, les derniers bilans, les contrôles à venir et la progression de $kidN."],
+      ['p_child', 'Mon enfant', "Ses informations (que vous pouvez compléter), ses matières et ses notes, sa progression et tous les bilans."],
+      ['p_planning', 'Planning', 'Toutes les séances, en liste ou en calendrier. Cliquez sur une séance pour voir son détail.'],
+      ['p_finance', 'Finances', 'Le tarif, les montants à régler et l\'historique de vos paiements.'],
+      ['p_messages', 'Messagerie', "Écrivez à la tutrice ici. Vous pouvez aussi lire les échanges entre $kidN et la tutrice."],
+      ['account', 'Mon compte', 'Vos coordonnées, votre questionnaire, le Centre d\'aide (pour revoir cette visite) et la déconnexion.'],
+    ],
+    'student' => [
+      ['s', 'Mon espace', 'Ta page d\'accueil : tes missions, ta prochaine séance et ton humeur de la semaine.'],
+      ['s_planning', 'Planning', 'Toutes tes séances. Clique sur une séance pour voir ce qui est prévu.'],
+      ['s_subjects', 'Mes matières', 'Tes notes, tes chapitres, des quiz pour t\'entraîner et le bilan de chaque séance.'],
+      ['s_tools', 'Mes outils', 'Un chrono de travail, des méthodes pour mieux retenir et des fiches.'],
+      ['s_messages', 'Messagerie', 'Écris à ta tutrice quand tu bloques ou si tu as une question.'],
+      ['account', 'Mon compte', 'Ton profil, ta photo, le Centre d\'aide (pour revoir cette visite) et la déconnexion.'],
+    ],
+    default => [
+      ['t', 'Tableau de bord', 'Vos tâches du jour, les prochaines séances et l\'activité des élèves.'],
+      ['t_student', 'Fiche élève', 'Tout le dossier de l\'élève sélectionné : profil, objectifs, progression, bilans, analyse et questionnaires.'],
+      ['t_student-seances', 'Séances', 'Le rythme convenu, le planning et les bilans de séance.'],
+      ['t_student-matieres', 'Matières', 'Notes, chapitres, quiz (dont la génération par IA) et fichiers.'],
+      ['t_messages', 'Messagerie', 'Les échanges avec les parents et les élèves.'],
+      ['account', 'Mon compte', 'Votre profil, vos tarifs, les familles, les finances et le Centre d\'aide.'],
+    ],
+  };
+  $tourData = ['auto' => $autoStart, 'kid' => $role === 'student', 'steps' => array_map(fn($x) => ['target' => $x[0], 'title' => $x[1], 'text' => $x[2]], $tourSteps)]; ?>
+<script type="application/json" id="tour-data"><?= json_encode($tourData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
+<?php endif ?>
 <main class="wrap">
 <?php require __DIR__ . '/_flash.php' ?>
 <?= $content ?>

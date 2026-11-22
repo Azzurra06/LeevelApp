@@ -18,6 +18,57 @@
   $$('[data-wish-subj],[data-wish-other]').forEach(cb => cb.addEventListener('change', () => {
     const box = document.querySelector(cb.hasAttribute('data-wish-subj') ? '[data-wish-subj-box]' : '[data-wish-other-box]'); if (box) box.hidden = !cb.checked;
   }));
+  // Visite guidée
+  const tourEl = document.getElementById('tour-data');
+  if (tourEl) {
+    let T; try { T = JSON.parse(tourEl.textContent); } catch (e) { T = null; }
+    if (T && T.steps.length) {
+      const tu = T.kid; let i = 0, ov, pop;
+      const close = () => { document.body.classList.remove('touring'); ov?.remove(); pop?.remove(); document.querySelectorAll('.tour-hl').forEach(e => e.classList.remove('tour-hl')); document.removeEventListener('keydown', onKey); };
+      const onKey = e => { if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') go(i + 1); if (e.key === 'ArrowLeft') go(i - 1); };
+      const target = st => [...document.querySelectorAll('[data-tour="' + st.target + '"]')].find(el => el.offsetParent !== null);
+      const place = el => {
+        const r = el.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight, m = 12;
+        let top = r.bottom + m; if (top + ph > innerHeight - 8) top = r.top - ph - m;
+        let left = r.left + r.width / 2 - pw / 2; left = Math.max(8, Math.min(innerWidth - pw - 8, left));
+        pop.style.top = Math.max(8, top) + 'px'; pop.style.left = left + 'px';
+      };
+      const go = n => {
+        if (n < 0 || n >= T.steps.length) return;
+        i = n; const st = T.steps[i], el = target(st);
+        document.querySelectorAll('.tour-hl').forEach(e => e.classList.remove('tour-hl'));
+        if (el) el.classList.add('tour-hl');
+        pop.innerHTML = '<div class="tour-step">Étape ' + (i + 1) + ' sur ' + T.steps.length + '</div><h3></h3><p></p>' +
+          '<div class="tour-btns"><button type="button" class="btn ghost sm" data-t="skip">' + (tu ? 'Passer' : 'Passer la visite') + '</button><span>' +
+          (i > 0 ? '<button type="button" class="btn ghost sm" data-t="prev">Précédent</button>' : '') +
+          '<button type="button" class="btn sm" data-t="next">' + (i === T.steps.length - 1 ? 'Terminer' : 'Suivant') + '</button></span></div>';
+        pop.querySelector('h3').textContent = st.title; pop.querySelector('p').textContent = st.text;
+        pop.querySelector('[data-t=next]').onclick = () => i === T.steps.length - 1 ? close() : go(i + 1);
+        pop.querySelector('[data-t=skip]').onclick = close;
+        const pv = pop.querySelector('[data-t=prev]'); if (pv) pv.onclick = () => go(i - 1);
+        if (el) place(el); else { pop.style.top = '30%'; pop.style.left = Math.max(8, innerWidth / 2 - pop.offsetWidth / 2) + 'px'; }
+        pop.querySelector('[data-t=next]').focus();
+      };
+      const start = () => {
+        document.body.classList.add('touring');
+        ov = document.createElement('div'); ov.className = 'tour-ov'; ov.onclick = close;
+        pop = document.createElement('div'); pop.className = 'tour-pop'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-live', 'polite');
+        document.body.append(ov, pop); document.addEventListener('keydown', onKey); addEventListener('resize', () => { const el = target(T.steps[i]); if (el && pop.isConnected) place(el); });
+        go(0);
+      };
+      if (T.auto) start();
+      else {
+        const m = document.createElement('div'); m.className = 'tour-ov tour-ov-modal';
+        m.innerHTML = '<div class="tour-welcome" role="dialog" aria-modal="true"><div class="tour-emo">🧭</div><h2>' + (tu ? 'Bienvenue dans ton espace !' : 'Bienvenue dans votre espace !') + '</h2><p>' +
+          (tu ? 'Veux-tu une petite visite pour découvrir les onglets ? Ça prend 1 minute.' : 'Souhaitez-vous une visite rapide pour découvrir les onglets et les fonctionnalités ? Cela prend 1 minute.') +
+          '</p><div class="tour-btns"><button type="button" class="btn ghost" data-t="no">' + (tu ? 'Plus tard' : 'Plus tard') + '</button><button type="button" class="btn" data-t="go">' + (tu ? 'C\'est parti' : 'Commencer la visite') + '</button></div><small>' + (tu ? 'Tu pourras la revoir depuis le Centre d\'aide.' : 'Vous pourrez la revoir depuis le Centre d\'aide.') + '</small></div>';
+        document.body.append(m);
+        m.querySelector('[data-t=no]').onclick = () => m.remove();
+        m.querySelector('[data-t=go]').onclick = () => { m.remove(); start(); };
+        m.querySelector('[data-t=go]').focus();
+      }
+    }
+  }
   // Afficher / masquer les mots de passe
   const sprite = (document.querySelector('svg use')?.getAttribute('href') || '/assets/icons.svg').split('#')[0];
   $$('input[type=password]').forEach(inp => {

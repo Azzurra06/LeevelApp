@@ -29,7 +29,8 @@ $common = [
     ['house', "Installer l'application sur mon téléphone", "Sur iPhone (Safari) : bouton Partager puis « Sur l'écran d'accueil ». Sur Android (Chrome) : menu ⋮ puis « Installer l'application ». Leevel s'ouvre alors en plein écran, comme une application."],
     ['shield', 'Mes données sont-elles protégées ?', "Les données restent sur le serveur de l'application et ne sont transmises à aucun tiers. Les fichiers déposés ne sont visibles que par la famille et la tutrice."],
 ]; ?>
-<div class="page-head"><div><h1><?= icon('circle-help') ?> Centre d'aide</h1><p>Les réponses aux questions les plus fréquentes.</p></div></div>
+<div class="page-head"><div><h1><?= icon('circle-help') ?> Centre d'aide</h1><p>Les réponses aux questions les plus fréquentes.</p></div>
+  <a class="btn ghost sm" href="<?= e(url(['tutor' => 't', 'parent' => 'p', 'student' => 's'][$role], ['tour' => 1])) ?>"><?= icon('compass') ?> Revoir la visite guidée</a></div>
 <div class="grid-2">
   <div class="card">
     <h2><?= icon('lightbulb') ?> <?= $role === 'student' ? 'Utiliser ton espace' : ($role === 'parent' ? 'Suivre votre enfant' : 'Accompagner vos élèves') ?></h2>
