@@ -70,6 +70,25 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       <?php endif ?>
     </div>
 
+    <div class="card editable">
+      <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
+      <dl class="fields view">
+        <div><dt>Identifiant</dt><dd><code><?= e($u['username']) ?></code></dd></div>
+        <div><dt>Mot de passe</dt><dd>•••••••••• <span class="muted"><small>(jamais affiché)</small></span></dd></div>
+      </dl>
+      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="password">
+        <p class="muted"><small>Identifiant : <code><?= e($u['username']) ?></code></small></p>
+        <div class="form-grid">
+          <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
+          <span></span>
+          <label>Nouveau mot de passe<input type="password" name="new_password" required minlength="10" autocomplete="new-password"></label>
+          <label>Confirmer<input type="password" name="new_password2" required minlength="10" autocomplete="new-password"></label>
+        </div>
+        <p class="muted"><small>10 caractères minimum, avec des lettres et des chiffres.</small></p>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+      </form>
+    </div>
+
     <?php foreach ($children as $ch): ?>
     <a class="card link-card tone-violet" href="<?= e(url('p_child', ['sid' => $ch['id']])) ?>"><span class="lc-emoji">🧒</span><div><h2>Informations de <?= e(kid($ch['first_name'])) ?></h2><small>Identité, coordonnées, besoins particuliers et autorisations : tout est dans « Mon enfant ».</small></div><?= icon('chevron-right', 'go') ?></a>
     <?php endforeach ?>
@@ -97,22 +116,6 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
         <label>Établissement<input name="s_school" maxlength="120" value="<?= e($pv('s_school') ?? '') ?>"></label>
         <div><span class="ql">Centres d'intérêt</span><?= $pills('s_interests', STUDENT_INTERESTS, $pv('s_interests')) ?></div>
         <div><span class="ql">Pour retenir, ce qui marche le mieux pour moi</span><?= $pills('s_memory', MEMORY_TYPES, $pv('s_memory')) ?></div>
-        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
-      </form>
-    </div>
-    <?php endif ?>
-
-    <?php if ($isTutor && function_exists('finance_available') && finance_available()): $dr = setting('default_rate'); $drv = setting('default_rate_visio'); ?>
-    <div class="card editable">
-      <div class="ed-head"><h2><?= icon('file-text') ?> Mes tarifs</h2><?= $editBtn('Modifier') ?></div>
-      <dl class="fields view">
-        <div><dt>Tarif horaire</dt><dd><?= $dr !== null && $dr !== '' ? e(money((float)$dr)) . ' / h' : '<span class="muted">Non renseigné</span>' ?></dd></div>
-        <div><dt>En visio</dt><dd><?= $drv !== null && $drv !== '' ? e(money((float)$drv)) . ' / h' : '<span class="muted">Même tarif</span>' ?></dd></div>
-      </dl>
-      <p class="muted view"><small>Repris automatiquement pour chaque élève dans « Finances » (modifiable élève par élève).</small></p>
-      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="rates">
-        <div class="form-grid"><label>Tarif horaire (€)<input name="default_rate" inputmode="decimal" value="<?= e($dr ?? '') ?>" placeholder="ex. 25"></label>
-          <label>En visio (€) <small class="muted">si différent</small><input name="default_rate_visio" inputmode="decimal" value="<?= e($drv ?? '') ?>" placeholder="—"></label></div>
         <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
       </form>
     </div>
@@ -175,24 +178,6 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
     </div>
     <?php endif ?>
 
-    <div class="card editable span-2">
-      <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
-      <dl class="fields view">
-        <div><dt>Identifiant</dt><dd><code><?= e($u['username']) ?></code></dd></div>
-        <div><dt>Mot de passe</dt><dd>•••••••••• <span class="muted"><small>(jamais affiché)</small></span></dd></div>
-      </dl>
-      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="password">
-        <p class="muted"><small>Identifiant : <code><?= e($u['username']) ?></code></small></p>
-        <div class="form-grid">
-          <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
-          <span></span>
-          <label>Nouveau mot de passe<input type="password" name="new_password" required minlength="10" autocomplete="new-password"></label>
-          <label>Confirmer<input type="password" name="new_password2" required minlength="10" autocomplete="new-password"></label>
-        </div>
-        <p class="muted"><small>10 caractères minimum, avec des lettres et des chiffres.</small></p>
-        <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
-      </form>
-    </div>
 
     <?php $scope = deletion_scope($u); ?>
     <div class="card span-2 danger-card editable" id="suppression">

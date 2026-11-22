@@ -40,7 +40,7 @@ $late = fn($p) => $p['status'] === 'pending' && $p['due_date'] && $p['due_date']
       </div>
       <form method="post" class="fin-rate-form edit-form"><?= $hid('rate') ?><input type="hidden" name="sid" value="<?= (int)$st['id'] ?>">
         <label>Tarif / h (€)<input name="hourly_rate" inputmode="decimal" value="<?= e($st['hourly_rate'] ?? (default_rate('presentiel') !== null ? rtrim(rtrim(number_format(default_rate('presentiel'), 2, '.', ''), '0'), '.') : '')) ?>" placeholder="ex. 25"></label>
-        <label>Visio / h<input name="hourly_rate_visio" inputmode="decimal" value="<?= e($st['hourly_rate_visio'] ?? (setting('default_rate_visio') ?? '')) ?>" placeholder="—"></label>
+        <label>Visio / h<input name="hourly_rate_visio" inputmode="decimal" value="<?= e($st['hourly_rate_visio'] ?? (default_rate('visio') !== null ? rtrim(rtrim(number_format(default_rate('visio'), 2, '.', ''), '0'), '.') : '')) ?>" placeholder="—"></label>
         <label>Remise (%)<input name="discount_pct" inputmode="decimal" value="<?= e($st['discount_pct'] ?? '') ?>" placeholder="ex. 10"></label>
         <label class="wide-l">Motif de la remise<input name="discount_label" maxlength="80" value="<?= e($st['discount_label'] ?? '') ?>" placeholder="ex. fratrie, fidélité, forfait 10 séances"></label>
         <label>Paiement<select name="pay_frequency"><option value="">—</option><?php foreach (PAY_FREQUENCIES as $k => $l): ?><option value="<?= $k ?>" <?= ($st['pay_frequency'] ?? '') === $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach ?></select></label>

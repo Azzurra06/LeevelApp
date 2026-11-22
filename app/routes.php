@@ -17,7 +17,11 @@ function dispatch(string $r, string $method): void
             $u = current_user();
             if (in_passation()) redirect('q');
             if (!$u) redirect('login');
+            if (needs_onboarding($u)) redirect('welcome');
             redirect(['tutor' => 't', 'parent' => 'p', 'student' => 's'][$u['role']]);
+
+        case 'welcome':
+            welcome_route($isPost);
 
         case 'login':
             if (current_user() && !in_passation()) redirect('home');
@@ -135,12 +139,6 @@ function dispatch(string $r, string $method): void
                 student_profile_sync((int)$st['id'], $in);
                 audit('student_profile_updated', null, (int)$st['family_id']);
                 flash('Ton profil est enregistré.');
-                redirect('account');
-            }
-            if ($isPost && $act === 'rates' && $u['role'] === 'tutor') {
-                $n = fn(string $k) => ($v = str_replace([',', ' ', '€'], ['.', '', ''], trim((string)($_POST[$k] ?? '')))) === '' ? null : (string)max(0, min(9999, round((float)$v, 2)));
-                setting_set('default_rate', $n('default_rate')); setting_set('default_rate_visio', $n('default_rate_visio'));
-                flash('Tarifs enregistrés : ils sont repris dans « Finances ».');
                 redirect('account');
             }
             if ($isPost && $act === 'ai_key' && $u['role'] === 'tutor') {
@@ -299,6 +297,7 @@ function questionnaire_route(string $r, bool $isPost): never
         qn_complete($sub);
         audit('questionnaire_completed', $code . ($tutor ? ' (rempli par la tutrice)' : ''), (int)$s['family_id']);
         run_analysis((int)$s['id'], $tutor ? (int)$tutor['id'] : null);
+        if (needs_onboarding(current_user())) redirect('welcome', ['step' => 'questionnaire']);
         redirect('q_recap', $qp + ['done' => 1]);
     }
     $answers = qn_answers((int)$sub['id']);
@@ -388,6 +387,7 @@ function family_route(string $r, bool $isPost): never
     }
     if ($r === 'p') {
         $u = require_login('parent');
+        if (needs_onboarding($u)) redirect('welcome');
         $s = pick_student($u);
         if (!$s) render('error', ['msg' => 'Aucun dossier associé.']);
         render('p_dashboard', ['u' => $u, 's' => $s] + family_view_data($s));
@@ -456,6 +456,7 @@ function family_route(string $r, bool $isPost): never
         flash('Merci pour ton ressenti !');
         redirect('s');
     }
+    if ($r === 's' && needs_onboarding($u)) redirect('welcome');
     render('s_dashboard', ['u' => $u, 's' => $s] + family_view_data($s) + [
         'missions' => all('SELECT * FROM goals WHERE student_id=? AND is_mission=1 AND status<>"acquired" ORDER BY student_done_at IS NOT NULL, target_date IS NULL, target_date LIMIT 3', [$s['id']]),
         'wins' => all('SELECT title, updated_at FROM goals WHERE student_id=? AND (status="acquired" OR student_done_at IS NOT NULL) ORDER BY updated_at DESC LIMIT 4', [$s['id']]),

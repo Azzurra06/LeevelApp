@@ -9,7 +9,7 @@ $lastMood = one('SELECT value FROM progress_entries WHERE student_id=? AND entry
 $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' => ['😣', "C'est dur"]]; ?>
 <div class="page-head"><div><h1 class="hello">Salut <?= e($s['first_name']) ?> 👋</h1><p>Voici ce qui t'attend cette semaine.</p></div></div>
 <?php require __DIR__ . '/_s_hero.php' ?>
-<?php require __DIR__ . '/_onboarding.php' ?>
+<?php if (!onboarding_available()) require __DIR__ . '/_onboarding.php' ?>
 <?php $awaiting = session_awaiting_feedback((int)$s['id']); if ($awaiting): ?>
 <a class="card tone-pink link-card fb-cta" href="<?= e(url('s_subjects')) ?>#recap"><span class="lc-emoji">💬</span><div><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small></div><?= icon('chevron-right', 'go') ?></a>
 <?php endif ?>

@@ -23,9 +23,11 @@ function money(float $v): string
 /** Tarifs par défaut de la tutrice (Mon compte), repris quand l'élève n'a pas de tarif propre. */
 function default_rate(string $mode): ?float
 {
-    $v = setting($mode === 'visio' ? 'default_rate_visio' : 'default_rate');
-    if (($v === null || $v === '') && $mode === 'visio') $v = setting('default_rate');
-    return $v === null || $v === '' ? null : (float)$v;
+    // tarifs saisis par la tutrice dans « Mon compte » > Tarifs
+    try { $t = one('SELECT rate_presentiel, rate_visio FROM users WHERE role="tutor" AND (rate_presentiel IS NOT NULL OR rate_visio IS NOT NULL) ORDER BY id LIMIT 1'); } catch (PDOException) { $t = null; }
+    if (!$t) return null;
+    $v = $mode === 'visio' && $t['rate_visio'] !== null ? $t['rate_visio'] : ($t['rate_presentiel'] ?? $t['rate_visio']);
+    return $v === null ? null : (float)$v;
 }
 function rate_for(array $s, string $mode): ?float
 {

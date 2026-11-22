@@ -29,7 +29,7 @@ function tutor_route(string $r, bool $isPost): never
                 // identique au tarif par défaut : on ne fige rien, l'élève suit le tarif par défaut
                 $hr = $num('hourly_rate'); $hv = $num('hourly_rate_visio');
                 if ($hr !== null && default_rate('presentiel') !== null && abs($hr - default_rate('presentiel')) < 0.001) $hr = null;
-                $dv = setting('default_rate_visio');
+                $dv = default_rate('visio');
                 if ($hv !== null && $dv !== null && $dv !== '' && abs($hv - (float)$dv) < 0.001) $hv = null;
                 q('UPDATE students SET hourly_rate=?, hourly_rate_visio=? WHERE id=?', [$hr, $hv, $st['id']]);
                 $pct = $num('discount_pct'); $pct = $pct === null ? null : min(100, $pct);

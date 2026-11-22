@@ -2,7 +2,7 @@
 $upcoming = array_values(array_filter($sessions, fn($x) => strtotime($x['starts_at']) >= strtotime('today') && $x['status'] === 'planned'));
 $next = $upcoming[0] ?? null; ?>
 <div class="page-head"><div><h1>Bonjour <?= e($u['display_name']) ?></h1><p>Vue d’ensemble des cours de <?= e(kid($s['first_name'])) ?> : séances, bilans, contrôles et progression.</p></div></div>
-<?php require __DIR__ . '/_onboarding.php' ?>
+<?php if (!onboarding_available()) require __DIR__ . '/_onboarding.php' ?>
 <div class="grid-2 two-cols">
   <div class="col-stack">
     <div class="card">
