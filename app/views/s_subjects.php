@@ -139,3 +139,4 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
     <?php endforeach ?></div>
   </div>
 </div>
+<?php $kid = true; require __DIR__ . '/_skills_summary.php'; ?>

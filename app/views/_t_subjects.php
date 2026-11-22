@@ -5,6 +5,12 @@ $h = fn(array $extra = []) => csrf_field() . '<input type="hidden" name="sid" va
 $act = fn() => e(url('t_subjects'));
 $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
 <?php if (!subjects_available()): ?><p class="alert warn">La base de données doit être mise à jour (migration 009) pour activer les matières.</p><?php return; endif ?>
+<?php $kindSkills = function_exists('skills_available') && skills_available(); ?>
+<div class="kind-switch" role="tablist" data-kind-tabs>
+  <button type="button" class="on" data-kind-tab="subjects"><?= icon('book-open') ?> Matières scolaires <small><?= count($subjects) ?></small></button>
+  <button type="button" data-kind-tab="skills"><?= icon('sparkles') ?> Compétences transversales <small><?= count($skills ?? []) ?></small></button>
+</div>
+<div class="kind-pane" data-kind-pane="subjects">
 
 <div class="card">
   <div class="row between"><h2><?= icon('book-open') ?> Matières travaillées</h2><span class="muted"><small>Visibles par l'élève dans « Mes matières » et par le parent (moyennes).</small></span></div>
@@ -103,6 +109,10 @@ $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
     </details>
   </div>
 <?php endforeach ?>
+</div>
+</div>
+<div class="kind-pane" data-kind-pane="skills" hidden>
+<?php require __DIR__ . '/_t_skills.php' ?>
 </div>
 
 <h2 class="dash-sec">Suivi de l'élève</h2>

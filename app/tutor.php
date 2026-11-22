@@ -181,6 +181,7 @@ function tutor_route(string $r, bool $isPost): never
                 'goals' => all('SELECT * FROM goals WHERE student_id=? ORDER BY FIELD(status,"in_progress","rework","todo","acquired"), target_date', [$sid]),
                 'entries' => all('SELECT p.*, g.title goal FROM progress_entries p LEFT JOIN goals g ON g.id=p.goal_id WHERE p.student_id=? ORDER BY p.id DESC LIMIT 30', [$sid]),
                 'subjects' => $tab === 'matieres' ? subjects_of($sid) : [],
+                'skills' => $tab === 'matieres' ? skills_of($sid) : [],
                 'suggestions' => $tab === 'matieres' && subjects_available() ? subject_suggestions($sid) : [],
                 'files' => $tab === 'matieres' ? student_files($sid, null, 40) : [],
                 'blockers' => $tab === 'matieres' ? student_blockers($sid, null, 30) : [],
@@ -211,6 +212,56 @@ function tutor_route(string $r, bool $isPost): never
             $studentU = $s['user_id'] ? one('SELECT id, display_name, avatar FROM users WHERE id=?', [$s['user_id']]) : null;
             render('t_messages', ['s' => $s, 'threads' => $threads, 'messages' => family_messages((int)$s['family_id'], $ch), 'parent' => $parent, 'ch' => $ch, 'studentU' => $studentU,
                 'unreadCh' => ['family' => unread_count($u, (int)$s['family_id'], 'family'), 'student' => messages_have_channels() ? unread_count($u, (int)$s['family_id'], 'student') : 0]]);
+
+        case 't_skills':
+            if (!$isPost || !skills_available()) redirect('t_student', ['sid' => $sid, 'tab' => 'matieres']);
+            $act = (string)($_POST['action'] ?? '');
+            $sk = post_int('skill_id') ? one('SELECT * FROM student_skills WHERE id=? AND student_id=?', [post_int('skill_id'), $sid]) : null;
+            $anchor = $sk ? '#skill-' . $sk['id'] : '#competences';
+            $lvl = fn(string $k) => ($v = post_int($k)) >= 1 && $v <= 5 ? $v : null;
+            switch ($act) {
+                case 'skill_add':
+                    $key = array_key_exists($_POST['skill_key'] ?? '', SKILLS) ? $_POST['skill_key'] : null;
+                    $name = $key ? SKILLS[$key][0] : post_str('custom', 80);
+                    if ($name === '') { flash('Choisissez une compétence.', 'err'); break; }
+                    $start = skill_suggested_level(latest_analysis($sid), $key ? SKILLS[$key][1] : null);
+                    q('INSERT IGNORE INTO student_skills (student_id, skill_key, name, start_level, level, position) VALUES (?,?,?,?,?,?)',
+                        [$sid, $key, $name, $start, $start, (int)(one('SELECT COUNT(*) n FROM student_skills WHERE student_id=?', [$sid])['n'] ?? 0)]);
+                    $nid = (int)(one('SELECT id FROM student_skills WHERE student_id=? AND name=?', [$sid, $name])['id'] ?? 0);
+                    $anchor = '#skill-' . $nid;
+                    flash("Compétence « $name » ajoutée" . ($start ? ' (niveau de départ estimé d\'après l\'analyse : ' . mb_strtolower(SKILL_LEVELS[$start]) . ').' : '.'));
+                    break;
+                case 'skill_del':
+                    if ($sk) { q('DELETE FROM student_skills WHERE id=?', [$sk['id']]); flash('Compétence retirée.'); $anchor = '#competences'; }
+                    break;
+                case 'skill_level':
+                    if ($sk) { q('UPDATE student_skills SET start_level=?, level=?, note=? WHERE id=?', [$lvl('start_level'), $lvl('level'), post_str('note', 2000) ?: null, $sk['id']]); flash('Niveau enregistré.'); }
+                    break;
+                case 'practice_add':
+                    if ($sk && ($label = post_str('label', 160)) !== '') { q('INSERT INTO skill_practices (skill_id, label, done) VALUES (?,?,?)', [$sk['id'], $label, (int)!empty($_POST['done'])]); flash('Outil ajouté.'); }
+                    break;
+                case 'practice_toggle':
+                    q('UPDATE skill_practices p JOIN student_skills k ON k.id=p.skill_id SET p.done=1-p.done WHERE p.id=? AND k.student_id=?', [post_int('practice_id'), $sid]);
+                    break;
+                case 'practice_del':
+                    q('DELETE p FROM skill_practices p JOIN student_skills k ON k.id=p.skill_id WHERE p.id=? AND k.student_id=?', [post_int('practice_id'), $sid]);
+                    break;
+                case 'skill_obs':
+                    if ($sk && ($content = post_str('content', 3000)) !== '') {
+                        q('INSERT INTO tutor_observations (student_id, author_id, axis, skill_id, adjustment, content, visibility) VALUES (?,?,?,?,0,?,?)',
+                            [$sid, $u['id'], SKILLS[$sk['skill_key'] ?? ''][1] ?? null, $sk['id'], $content, post_enum('visibility', ['private' => 1, 'shared' => 1], 'private')]);
+                        flash('Observation ajoutée.');
+                    }
+                    break;
+                case 'skill_defi':
+                    if ($sk && ($title = post_str('title', 200)) !== '') {
+                        q('INSERT INTO goals (student_id, title, description, category, status, progress, is_mission, created_by) VALUES (?,?,?,?,?,0,1,?)',
+                            [$sid, $title, post_str('description', 1000) ?: null, SKILLS[$sk['skill_key'] ?? ''][1] ?? 'methodo', 'todo', $u['id']]);
+                        flash('Défi ajouté : il apparaît dans les missions de ' . $s['first_name'] . '.');
+                    }
+                    break;
+            }
+            header('Location: ' . url('t_student', ['sid' => $sid, 'tab' => 'matieres']) . $anchor, true, 303); exit;
 
         case 't_subjects':
             if (!$isPost || !subjects_available()) redirect('t_student', ['sid' => $sid, 'tab' => 'matieres']);

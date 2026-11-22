@@ -19,6 +19,7 @@
   </div>
 </div>
 <?php endforeach ?>
+<?php $kid = false; require __DIR__ . '/_skills_summary.php'; ?>
 </div>
 <aside class="pc-aside">
 <?php $tone = 'pc-side'; require __DIR__ . '/_tests.php'; $tone = ''; ?>

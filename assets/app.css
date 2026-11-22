@@ -1157,3 +1157,42 @@ body.page-t .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--
 .start-avg strong{color:var(--ink)}.start-avg .up{color:#2f8a57;font-weight:700}.start-avg .down{color:#c0392b;font-weight:700}
 .start-form{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
 .start-form label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;max-width:160px}.start-form .muted{padding-bottom:10px}
+
+/* Matières scolaires / compétences transversales */
+.kind-switch{display:flex;gap:4px;padding:4px;background:var(--beige);border-radius:14px;align-self:flex-start;flex-wrap:wrap}
+.kind-switch button{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:10px 16px;border-radius:11px;font:600 .95rem var(--font);color:var(--taupe-d);cursor:pointer}
+.kind-switch button small{font-size:.75rem;background:rgba(255,255,255,.6);border-radius:999px;padding:1px 8px}
+.kind-switch button.on{background:var(--surface);color:var(--accent-d);box-shadow:0 1px 4px rgba(60,45,30,.12)}
+.kind-pane{display:flex;flex-direction:column;gap:16px}
+.sk-emo{font-size:1.2rem}
+.sk-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+.sk-block{border:1px solid var(--beige);border-radius:14px;padding:14px 16px;background:var(--surface)}
+.sk-block h3{margin:0 0 10px;font-size:1rem}
+.sk-block .ed-head h3{margin:0}
+.sk-level-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sk-level{display:flex;gap:5px}
+.sk-dot{width:22px;height:10px;border-radius:999px;background:var(--beige)}
+.sk-dot.on{background:var(--accent-d)}
+.sk-dot.start{outline:2px solid #c9bdfc;outline-offset:2px}
+.sk-level-txt{font-weight:600}.sk-level-txt small{font-weight:500}.sk-level-txt .up{color:#2f8a57}.sk-level-txt .down{color:#c0392b}
+.sk-note{margin:8px 0 0;font-size:.92rem;background:var(--bg);border-radius:10px;padding:8px 10px}
+.sk-practices{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px}
+.sk-practices li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;background:var(--bg)}
+.sk-practices li>span{flex:1}
+.sk-practices li.done>span{color:var(--taupe-d)}
+.sk-check{border:0;background:none;padding:0;cursor:pointer;display:grid;place-items:center;color:#2f8a57}
+.sk-box{display:block;width:18px;height:18px;border:2px solid var(--beige-2);border-radius:5px;background:#fff}
+.sk-sugg{margin:8px 0 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sk-defi{margin-top:10px}.sk-defi summary{cursor:pointer;color:var(--accent-d);font-weight:600;display:inline-flex;align-items:center;gap:6px}.sk-defi form{margin-top:10px}
+.sk-obs{margin-top:8px}
+@media (max-width:900px){.sk-grid{grid-template-columns:1fr}}
+
+/* Compétences (élève, parent) */
+.sk-sum-list{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+.sk-sum{border:1px solid var(--beige);border-radius:14px;padding:12px 14px;background:var(--bg)}
+.sk-sum-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.sk-sum .sk-note{background:var(--surface)}
+.sk-sum .ra-chips{margin-top:8px}
+.ra-chip.sk-on{background:#e8f3ec;color:#2f6b4b}.ra-chip.sk-on .ic{width:12px;height:12px}
+.ra-chip.sk-off{background:var(--surface);color:var(--muted);border:1px dashed var(--beige-2)}
+.sk-obs-last{margin:8px 0 0}

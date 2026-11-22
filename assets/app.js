@@ -13,14 +13,17 @@
     const m = e.target.dataset.confirm || e.submitter?.dataset.confirm;
     if (m && !confirm(m)) e.preventDefault();
   });
-  // Matières en sous-onglets (fiche élève) : une matière visible à la fois, mémorisée dans l'adresse
-  const subjNav = $('[data-subj-tabs]');
-  if (subjNav) {
-    const panes = $$('[data-subj-pane]');
-    const show = id => { panes.forEach(p => p.hidden = p.id !== id); $$('[data-subj-tab]', subjNav).forEach(b => b.classList.toggle('on', b.dataset.subjTab === id)); };
-    $$('[data-subj-tab]', subjNav).forEach(b => b.addEventListener('click', () => { show(b.dataset.subjTab); history.replaceState(null, '', '#' + b.dataset.subjTab); }));
-    if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const pane = t?.closest('[data-subj-pane]'); if (pane) show(pane.id); }
-  }
+  // Matières / compétences en sous-onglets (fiche élève) : une seule visible à la fois, mémorisée dans l'adresse
+  const kindNav = $('[data-kind-tabs]');
+  const showKind = k => { if (!kindNav) return; $$('[data-kind-pane]').forEach(p => p.hidden = p.dataset.kindPane !== k); $$('[data-kind-tab]', kindNav).forEach(b => b.classList.toggle('on', b.dataset.kindTab === k)); };
+  if (kindNav) $$('[data-kind-tab]', kindNav).forEach(b => b.addEventListener('click', () => { showKind(b.dataset.kindTab); history.replaceState(null, '', b.dataset.kindTab === 'skills' ? '#competences' : location.pathname + location.search); }));
+  $$('[data-subj-tabs]').forEach(nav => {
+    const scope = nav.parentElement, panes = $$('[data-subj-pane]', scope);
+    const show = id => { panes.forEach(p => p.hidden = p.id !== id); $$('[data-subj-tab]', nav).forEach(b => b.classList.toggle('on', b.dataset.subjTab === id)); };
+    $$('[data-subj-tab]', nav).forEach(b => b.addEventListener('click', () => { show(b.dataset.subjTab); history.replaceState(null, '', '#' + b.dataset.subjTab); }));
+    if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const pane = t?.closest('[data-subj-pane]'); if (pane && panes.includes(pane)) show(pane.id); }
+  });
+  if (kindNav && location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const kp = t?.closest('[data-kind-pane]'); if (kp) showKind(kp.dataset.kindPane); }
   // Case « Autre » : affiche le champ associé
   $$('input[data-reveal]').forEach(cb => cb.addEventListener('change', () => { const t = document.querySelector(cb.dataset.reveal); if (t) { t.hidden = !cb.checked; if (cb.checked) t.focus(); else t.value = ''; } }));
   // Parcours d'accueil : volets affichés selon les cases cochées
