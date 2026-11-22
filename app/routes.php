@@ -304,6 +304,44 @@ function family_route(string $r, bool $isPost): never
         $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
         render('p_planning', ['u' => $u, 's' => $s] + family_view_data($s));
     }
+    if ($r === 'p_child') {
+        $u = require_login('parent');
+        $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
+        if ($isPost) {
+            $act = (string)($_POST['action'] ?? '');
+            try {
+                if ($act === 'identity') {
+                    $first = post_str('first_name', 80);
+                    if ($first === '') { flash('Le prénom est obligatoire.', 'err'); redirect('p_child', ['sid' => $s['id']]); }
+                    $bd = post_str('birth_date', 10); $bd = preg_match('/^\d{4}-\d{2}-\d{2}$/', $bd) && strtotime($bd) < time() ? $bd : null;
+                    $grade = isset(CLASSES[$_POST['grade'] ?? '']) ? $_POST['grade'] : $s['grade'];
+                    q('UPDATE students SET first_name=?, last_name=?, birth_date=?, grade=?, school=? WHERE id=?', [$first, post_str('last_name', 80) ?: null, $bd, $grade, post_str('school', 120) ?: null, $s['id']]);
+                    // le questionnaire parent reprend les mêmes informations
+                    $sub = qn_latest('parent', (int)$s['id']);
+                    if ($sub) qn_save($sub, 'parent', ['p_first_name' => $first, 'p_last_name' => post_str('last_name', 80), 'p_class' => $grade, 'p_class_school' => post_str('school', 120)]);
+                    flash('Informations de ' . $first . ' enregistrées.');
+                } elseif ($act === 'contacts') {
+                    $email = post_str('email', 120); $phone = preg_replace('/[^0-9+ ().-]/', '', post_str('phone', 30));
+                    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) { flash('Adresse e-mail invalide.', 'err'); redirect('p_child', ['sid' => $s['id']]); }
+                    q('UPDATE students SET student_phone=?, student_email=? WHERE id=?', [$phone ?: null, $email ?: null, $s['id']]);
+                    if ($s['user_id']) q('UPDATE users SET phone=?, email=? WHERE id=?', [$phone ?: null, $email ?: null, $s['user_id']]);
+                    flash('Coordonnées enregistrées.');
+                } elseif ($act === 'needs') {
+                    $allowedN = ['dys', 'tdah', 'hpi', 'anxiety', 'other']; $allowedA = ['pap', 'pps', 'pai', 'tiers_temps'];
+                    $needs = ['items' => array_values(array_intersect((array)($_POST['needs'] ?? []), $allowedN)), 'acc' => array_values(array_intersect((array)($_POST['acc'] ?? []), $allowedA))];
+                    q('UPDATE students SET needs_json=?, accommodations=?, parent_notes=? WHERE id=?', [json_encode($needs), post_str('accommodations', 500) ?: null, post_str('parent_notes', 2000) ?: null, $s['id']]);
+                    flash('Besoins particuliers enregistrés.');
+                } elseif ($act === 'perms') {
+                    q('UPDATE students SET perm_edit_contacts=?, perm_edit_photo=?, perm_help_requests=? WHERE id=?',
+                        [(int)!empty($_POST['perm_edit_contacts']), (int)!empty($_POST['perm_edit_photo']), (int)!empty($_POST['perm_help_requests']), $s['id']]);
+                    flash('Autorisations enregistrées.');
+                }
+                audit('child_info_' . $act, null, (int)$s['family_id']);
+            } catch (PDOException) { flash('La base de données doit être mise à jour.', 'err'); }
+            redirect('p_child', ['sid' => $s['id']]);
+        }
+        render('p_child', ['u' => $u, 's' => $s]);
+    }
     if ($r === 'p_messages') {
         $u = require_login('parent');
         $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
@@ -326,6 +364,9 @@ function family_route(string $r, bool $isPost): never
     $s = pick_student($u);
     if (!$s) render('error', ['msg' => 'Aucun dossier associé.']);
     if (!$s['guardian_consent_at']) render('error', ['msg' => "Ton espace sera disponible dès que ton parent aura validé l'autorisation d'utilisation."]);
+    if ($r === 's_planning') {
+        render('p_planning', ['u' => $u, 's' => $s] + family_view_data($s));
+    }
     if ($r === 's_tools') {
         $ssub = qn_latest('student', (int)$s['id']);
         render('s_tools', ['u' => $u, 's' => $s, 'memory' => $ssub ? (qn_answers((int)$ssub['id'])['s_memory'] ?? []) : []] + family_view_data($s));

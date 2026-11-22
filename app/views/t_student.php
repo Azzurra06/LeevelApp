@@ -54,6 +54,20 @@ $catOpts = fn($cur) => implode('', array_map(fn($a, $l) => '<option value="' . e
       </div>
     </div>
   </div>
+  <?php $nd = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 'acc' => []];
+    $ndL = ['dys' => 'Trouble « dys »', 'tdah' => 'TDAH / attention', 'hpi' => 'Haut potentiel', 'anxiety' => 'Anxiété scolaire', 'other' => 'Autre'];
+    $acL = ['pap' => 'PAP', 'pps' => 'PPS', 'pai' => 'PAI', 'tiers_temps' => 'Tiers-temps'];
+    if (!empty($s['birth_date']) || !empty($s['last_name']) || $nd['items'] || $nd['acc'] || !empty($s['accommodations']) || !empty($s['parent_notes'])): ?>
+  <div class="card tone-pink"><h2><?= icon('heart') ?> Transmis par le parent</h2>
+    <dl class="fields">
+      <?php if (!empty($s['last_name'])): ?><div><dt>Nom</dt><dd><?= e($s['first_name'] . ' ' . $s['last_name']) ?></dd></div><?php endif ?>
+      <?php if (!empty($s['birth_date'])): ?><div><dt>Né(e) le</dt><dd><?= e(fdate($s['birth_date'])) ?> (<?= (new DateTime($s['birth_date']))->diff(new DateTime('today'))->y ?> ans)</dd></div><?php endif ?>
+      <?php if ($nd['items'] || $nd['acc']): ?><div class="wide"><dt>Besoins particuliers</dt><dd><span class="ra-chips"><?php foreach ($nd['items'] as $k): ?><span class="ra-chip"><?= e($ndL[$k] ?? $k) ?></span><?php endforeach ?><?php foreach ($nd['acc'] as $k): ?><span class="ra-chip prio"><?= e($acL[$k] ?? $k) ?></span><?php endforeach ?></span></dd></div><?php endif ?>
+      <?php if (!empty($s['accommodations'])): ?><div class="wide"><dt>Aménagements</dt><dd><?= e($s['accommodations']) ?></dd></div><?php endif ?>
+      <?php if (!empty($s['parent_notes'])): ?><div class="wide"><dt>À savoir</dt><dd><?= nl2br(e($s['parent_notes'])) ?></dd></div><?php endif ?>
+    </dl>
+  </div>
+  <?php endif ?>
   <div class="card"><h2><?= icon('users') ?> Comptes associés</h2><ul class="list"><?php foreach ($users as $x): ?><li><?= icon('user') ?><div><?= e($x['display_name']) ?> · <code><?= e($x['username']) ?></code> · <?= e(ROLE_LABELS[$x['role']]) ?></div></li><?php endforeach ?></ul>
   </div>
   <div class="card"><h2><?= icon('target') ?> Priorités actuelles</h2><?php require __DIR__ . '/_axes.php' ?></div>

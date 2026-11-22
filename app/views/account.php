@@ -70,29 +70,8 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       <?php endif ?>
     </div>
 
-    <?php foreach ($children as $ch): $chUser = $ch['user_id'] ? one('SELECT id, username, display_name FROM users WHERE id=?', [$ch['user_id']]) : null; ?>
-    <div class="card editable">
-      <div class="ed-head"><h2><?= icon('smile') ?> Coordonnées de <?= e($ch['first_name']) ?></h2><?= $editBtn() ?></div>
-      <dl class="fields view">
-        <div><dt>Téléphone</dt><dd><?= $tel($ch['student_phone'] ?? null) ?></dd></div>
-        <div><dt>E-mail</dt><dd><?= $mail($ch['student_email'] ?? null) ?></dd></div>
-        <div class="wide"><dt>Compte</dt><dd><?= $chUser ? '<code>' . e($chUser['username']) . '</code>' : '<span class="muted">Pas encore créé</span>' ?></dd></div>
-      </dl>
-      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="child_contacts"><input type="hidden" name="sid" value="<?= (int)$ch['id'] ?>">
-        <div class="form-grid"><label>Téléphone<input type="tel" name="phone" maxlength="30" value="<?= e($ch['student_phone'] ?? '') ?>"></label>
-          <label>E-mail<input type="email" name="email" maxlength="120" value="<?= e($ch['student_email'] ?? '') ?>"></label></div>
-        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
-      </form>
-    </div>
-    <div class="card editable">
-      <div class="ed-head"><h2><?= icon('shield') ?> Autorisations de <?= e($ch['first_name']) ?></h2><?= $editBtn() ?></div>
-      <?php $perms = ['perm_edit_contacts' => 'Modifier lui-même ses coordonnées', 'perm_edit_photo' => 'Changer sa photo de profil', 'perm_help_requests' => "Utiliser le bouton « J'ai besoin d'aide »"]; ?>
-      <ul class="list view"><?php foreach ($perms as $k => $l): ?><li><?= icon((int)($ch[$k] ?? 1) ? 'circle-check' : 'x') ?><div><?= e($l) ?> <span class="badge <?= (int)($ch[$k] ?? 1) ? 'sage' : '' ?>"><?= (int)($ch[$k] ?? 1) ? 'Autorisé' : 'Non autorisé' ?></span></div></li><?php endforeach ?></ul>
-      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="child_perms"><input type="hidden" name="sid" value="<?= (int)$ch['id'] ?>">
-        <?php foreach ($perms as $k => $l): ?><label class="check"><input type="checkbox" name="<?= $k ?>" value="1" <?= (int)($ch[$k] ?? 1) ? 'checked' : '' ?>> <?= e($l) ?></label><?php endforeach ?>
-        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
-      </form>
-    </div>
+    <?php foreach ($children as $ch): ?>
+    <a class="card link-card tone-violet" href="<?= e(url('p_child', ['sid' => $ch['id']])) ?>"><span class="lc-emoji">🧒</span><div><h2>Informations de <?= e($ch['first_name']) ?></h2><small>Identité, coordonnées, besoins particuliers et autorisations : tout est dans « Mon enfant ».</small></div><?= icon('chevron-right', 'go') ?></a>
     <?php endforeach ?>
 
     <?php if ($me): ?>
