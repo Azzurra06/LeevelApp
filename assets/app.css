@@ -1056,3 +1056,10 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .wl-box{background:var(--bg);border:1px solid var(--beige);border-radius:14px;padding:16px 18px;margin:6px 0 16px;gap:16px 24px}
 .wl-note{display:flex;gap:8px;align-items:flex-start;margin:0;font-size:.9rem;color:var(--muted)}.wl-note .ic{flex:none;margin-top:3px;color:var(--accent-d)}
 .stack.wl-wish{gap:20px}
+
+/* Ajouter un compte */
+.auth-card .login-add-h{margin-top:22px;padding-top:20px;border-top:1px solid var(--beige)}
+.auth-card .login-add-h+p{margin:0 0 18px;line-height:1.55}
+.login-back{margin:16px 0 0;text-align:center}
+.login-back a{display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-weight:600}
+.login-back a:hover{text-decoration:underline}
