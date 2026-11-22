@@ -156,9 +156,6 @@ foreach ($goals as $g) $byStatus[$g['status']][] = $g;
 $groupInfo = ['in_progress' => ['En cours', 'tone-blue'], 'rework' => ['À retravailler', 'tone-orange'], 'todo' => ['À commencer', 'tone-violet'], 'acquired' => ['Acquis', 'tone-green']];
 $existing = array_map(fn($g) => mb_strtolower($g['title']), $goals);
 $sugg = array_values(array_filter($reco['goals'] ?? [], fn($sg) => !in_array(mb_strtolower($sg['title']), $existing, true))); ?>
-<div class="grid stat-grid goal-stats">
-  <?php foreach ($groupInfo as $k => [$l, $t]): ?><div class="card stat <?= $t ?>"><span class="muted"><?= $l ?></span><strong><?= count($byStatus[$k]) ?></strong></div><?php endforeach ?>
-</div>
 <div class="row between goal-bar"><h2 class="sec-h"><?= icon('target') ?> Objectifs de <?= e($s['first_name']) ?></h2><button class="btn sm" data-toggle="newgoal"><?= icon('plus') ?> Nouvel objectif</button></div>
 <div id="newgoal" class="card new-panel" hidden><h3>Nouvel objectif</h3><?php $goalForm(null) ?></div>
 <?php if ($sugg): ?>
