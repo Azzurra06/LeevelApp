@@ -863,3 +863,12 @@ body.parent .link-card{border-top-width:1px!important}
 @media (max-width:560px){.grade-row{grid-template-columns:1fr auto}.grade-dots{grid-column:1/-1;order:3}}
 .goal-list .goal-card.editing{grid-column:1/-1}
 body.tutor .card[class*="tone-"] h3 .ic{color:var(--tc)}
+
+/* Objectifs en liste */
+.goal-bar{margin-top:28px!important}
+.goal-list{grid-template-columns:1fr!important;gap:10px}
+.goal-card{border-top-width:1px!important;border-left:4px solid var(--tc)!important;padding:14px 18px}
+.goal-row{display:grid;grid-template-columns:minmax(0,1fr) 220px auto;gap:6px 24px;align-items:center}
+.goal-main .goal-tags{margin:6px 0 4px}.goal-main .goal-desc{margin:0 0 2px}
+.goal-row .goal-student,.goal-row .goal-comment{margin-top:4px}
+@media (max-width:760px){.goal-row{grid-template-columns:1fr auto}.goal-row .goal-main{grid-column:1/-1}}
