@@ -26,12 +26,18 @@ function tutor_route(string $r, bool $isPost): never
                 setting_set('pay_instructions', post_str('pay_instructions', 1000) ?: null);
                 flash('Réglages enregistrés.');
             } elseif ($act === 'rate' && ($st = $mine(post_int('sid')))) {
-                q('UPDATE students SET hourly_rate=?, hourly_rate_visio=? WHERE id=?', [$num('hourly_rate'), $num('hourly_rate_visio'), $st['id']]);
+                // identique au tarif par défaut : on ne fige rien, l'élève suit le tarif par défaut
+                $hr = $num('hourly_rate'); $hv = $num('hourly_rate_visio');
+                if ($hr !== null && default_rate('presentiel') !== null && abs($hr - default_rate('presentiel')) < 0.001) $hr = null;
+                $dv = setting('default_rate_visio');
+                if ($hv !== null && $dv !== null && $dv !== '' && abs($hv - (float)$dv) < 0.001) $hv = null;
+                q('UPDATE students SET hourly_rate=?, hourly_rate_visio=? WHERE id=?', [$hr, $hv, $st['id']]);
                 $pct = $num('discount_pct'); $pct = $pct === null ? null : min(100, $pct);
                 try { q('UPDATE students SET discount_pct=?, discount_label=? WHERE id=?', [$pct ?: null, $pct ? (post_str('discount_label', 80) ?: null) : null, $st['id']]); } catch (PDOException) {}
+                try { q('UPDATE families SET pay_frequency=?, pay_method=? WHERE id=?', [array_key_exists($_POST['pay_frequency'] ?? '', PAY_FREQUENCIES) ? $_POST['pay_frequency'] : null, array_key_exists($_POST['pay_method'] ?? '', PAY_METHODS) ? $_POST['pay_method'] : null, $st['family_id']]); } catch (PDOException) {}
                 flash('Tarif de ' . $st['first_name'] . ' enregistré.');
             } elseif ($act === 'create' && ($st = $mine(post_int('sid')))) {
-                $b = month_billing($st, $month);
+                $b = month_billing($st, $month); $ub = unbilled($st);
                 $manual = !empty($_POST['manual']);
                 if ($manual) {
                     $gross = $num('amount') ?? 0.0;
@@ -41,15 +47,15 @@ function tutor_route(string $r, bool $isPost): never
                     if ($isPct) { $dVal = min(100, (float)str_replace([',', '%', ' '], ['.', '', ''], $dRaw)); }
                     $disc = $isPct ? round($gross * $dVal / 100, 2) : min($gross, $dVal);
                     $dLabel = post_str('discount_label', 80) ?: null;
-                } else { $gross = $b['gross']; $disc = $b['discount']; $dLabel = $b['discount'] > 0 ? discount_text($b['discount_label'] ?: null, $b['discount_pct']) : null; }
+                } else { $ub = unbilled($st); $gross = $ub['gross']; $disc = $ub['discount']; $dLabel = $ub['discount'] > 0 ? discount_text($st['discount_label'] ?: null, (float)$st['discount_pct']) : null; }
                 $amount = round($gross - $disc, 2);
                 if ($amount <= 0) flash('Montant nul : renseignez le tarif ou le montant.', 'err');
                 else {
-                    $label = post_str('label', 160) ?: 'Séances de ' . mb_strtolower(month_label($month));
-                    $due = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_str('due_date', 10)) ? post_str('due_date', 10) : date('Y-m-d', strtotime($month . '-01 +1 month +9 days'));
-                    try { q('INSERT INTO payments (student_id, period, label, minutes, gross, discount, discount_label, amount, due_date) VALUES (?,?,?,?,?,?,?,?,?)', [$st['id'], $month, $label, $manual ? 0 : $b['minutes'], $gross, $disc ?: null, $disc ? ($dLabel ?: 'Remise') : null, $amount, $due]); }
+                    $label = post_str('label', 160) ?: unbilled_label($ub);
+                    $due = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_str('due_date', 10)) ? post_str('due_date', 10) : date('Y-m-d', strtotime('+7 days'));
+                    try { q('INSERT INTO payments (student_id, period, period_start, period_end, label, minutes, gross, discount, discount_label, amount, due_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [$st['id'], $manual ? $month : substr((string)$ub['end'], 0, 7), $manual ? null : $ub['start'], $manual ? null : $ub['end'], $label, $manual ? 0 : $ub['minutes'], $gross, $disc ?: null, $disc ? ($dLabel ?: 'Remise') : null, $amount, $due]); }
                     catch (PDOException) { q('INSERT INTO payments (student_id, period, label, minutes, amount, due_date) VALUES (?,?,?,?,?,?)', [$st['id'], $month, $label, $manual ? 0 : $b['minutes'], $amount, $due]); }
-                    if (!empty($_POST['notify'])) send_message((int)$st['family_id'], $u, "Nouvelle échéance pour " . $st['first_name'] . " : " . $label . " · " . money($amount) . ($disc > 0 ? " (après " . mb_strtolower($dLabel ?: 'remise') . " de " . money($disc) . ")" : '') . " à régler avant le " . fdate($due) . ".\nLe détail est dans « Finances » (menu Mon compte).");
+                    if (!empty($_POST['notify'])) send_message((int)$st['family_id'], $u, "Nouvelle échéance pour " . $st['first_name'] . " : " . $label . " · " . money($amount) . ($disc > 0 ? " (après " . mb_strtolower($dLabel ?: 'remise') . " de " . money($disc) . ")" : '') . " à régler avant le " . fdate($due) . ".\nLe détail est dans « Finances ».", 'family', 'system');
                     audit('payment_created', money($amount), (int)$st['family_id']);
                     flash('Échéance créée' . (!empty($_POST['notify']) ? ' et envoyée au parent.' : '.'));
                 }
@@ -66,15 +72,15 @@ function tutor_route(string $r, bool $isPost): never
             }
             redirect('t_finance', ['m' => $month]);
         }
-        $students = all('SELECT s.*, f.name family_name FROM students s JOIN families f ON f.id=s.family_id JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? AND fm.member_role="tutor" ORDER BY f.is_demo, s.first_name', [$u['id']]);
+        $students = all('SELECT s.*, f.name family_name, f.pay_frequency, f.pay_method FROM students s JOIN families f ON f.id=s.family_id JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? AND fm.member_role="tutor" ORDER BY f.is_demo, s.first_name', [$u['id']]);
         $rows = []; $sids = [0];
         foreach ($students as $st) {
             $sids[] = (int)$st['id'];
-            $rows[] = ['s' => $st, 'b' => month_billing($st, $month), 'pay' => one('SELECT * FROM payments WHERE student_id=? AND period=? ORDER BY id DESC LIMIT 1', [$st['id'], $month])];
+            $rows[] = ['s' => $st, 'b' => month_billing($st, $month), 'u' => unbilled($st), 'pay' => one('SELECT * FROM payments WHERE student_id=? ORDER BY id DESC LIMIT 1', [$st['id']])];
         }
         $in = implode(',', $sids);
         render('t_finance', ['month' => $month, 'rows' => $rows,
-            'pending' => all("SELECT p.*, s.first_name FROM payments p JOIN students s ON s.id=p.student_id WHERE p.student_id IN ($in) AND p.status='pending' ORDER BY p.due_date"),
+            'pending' => all("SELECT p.*, s.first_name, f.pay_method FROM payments p JOIN students s ON s.id=p.student_id JOIN families f ON f.id=s.family_id WHERE p.student_id IN ($in) AND p.status='pending' ORDER BY p.due_date"),
             'paid' => all("SELECT p.*, s.first_name FROM payments p JOIN students s ON s.id=p.student_id WHERE p.student_id IN ($in) AND p.status='paid' ORDER BY p.paid_at DESC, p.id DESC LIMIT 15"),
             'cashed' => (float)(one("SELECT SUM(amount) t FROM payments WHERE student_id IN ($in) AND status='paid' AND paid_at >= ? AND paid_at < ?", [$month . '-01', date('Y-m-d', strtotime($month . '-01 +1 month'))])['t'] ?? 0)]);
     }
@@ -304,7 +310,7 @@ function tutor_route(string $r, bool $isPost): never
                 send_message((int)$s['family_id'], $u, 'Bilan de la séance du ' . fdatetime($se['starts_at']) . " :\n\n" . ($subj ? 'Matières abordées : ' . implode(', ', $subj) . "\n\n" : '') . $summary . ($next !== '' ? "\n\nPour la prochaine séance : " . $next : ''));
                 q('UPDATE session_reports SET sent_at=NOW() WHERE session_id=?', [$se['id']]);
                 audit('session_report_sent', null, (int)$s['family_id']);
-                flash('Bilan enregistré et envoyé au parent (visible dans « Échanges » et son suivi).');
+                flash('Bilan enregistré et envoyé au parent (visible dans « Messagerie » et son suivi).');
             } else flash('Bilan enregistré.');
             redirect('t_student', ['sid' => $sid, 'tab' => 'seances']);
 
@@ -388,7 +394,7 @@ function tutor_route(string $r, bool $isPost): never
             if (!empty($_POST['notify'])) {
                 send_message((int)$s['family_id'], $u, "Voici le rythme des séances de {$s['first_name']}, comme convenu :\n\n• " . implode("\n• ", schedule_lines($sched))
                     . "\n\nSoit " . fdur(schedule_minutes_per_week($sched)) . ' par semaine, pendant ' . (int)$sched['weeks'] . ' semaine' . ((int)$sched['weeks'] > 1 ? 's' : '') . ', à partir du ' . fdate($sched['start']) . '.'
-                    . ($sched['note'] !== '' ? "\n\nÀ noter : " . $sched['note'] : '') . "\n\nToutes les séances sont visibles dans « Planning ».");
+                    . ($sched['note'] !== '' ? "\n\nÀ noter : " . $sched['note'] : '') . "\n\nToutes les séances sont visibles dans « Planning ».", 'family', 'system');
                 $msg .= ' Le parent a reçu le récapitulatif.';
             }
             audit('schedule_saved', null, (int)$s['family_id']);

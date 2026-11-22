@@ -6,7 +6,7 @@ $qDone = $sub && $sub['status'] === 'completed';
 $steps = $isParent ? [
     ['done' => !empty($me['phone']) || !empty($me['email']), 'req' => true, 'icon' => 'message-circle', 'title' => 'Compléter mes coordonnées', 'desc' => 'Téléphone et e-mail, pour que la tutrice puisse vous joindre.', 'url' => url('account'), 'cta' => 'Compléter'],
     ['done' => $qDone, 'req' => true, 'icon' => 'clipboard-list', 'title' => 'Répondre au questionnaire', 'desc' => 'Une dizaine de minutes pour présenter la situation de ' . $s['first_name'] . '.', 'url' => url('q'), 'cta' => $sub ? 'Reprendre' : 'Commencer'],
-    ['done' => (bool)one('SELECT 1 FROM messages WHERE sender_id=? LIMIT 1', [$u['id']]), 'req' => false, 'icon' => 'send', 'title' => 'Dire bonjour à la tutrice', 'desc' => 'Facultatif : un premier message dans « Échanges ».', 'url' => url('p_messages'), 'cta' => 'Écrire'],
+    ['done' => (bool)one('SELECT 1 FROM messages WHERE sender_id=? LIMIT 1', [$u['id']]), 'req' => false, 'icon' => 'send', 'title' => 'Dire bonjour à la tutrice', 'desc' => 'Facultatif : un premier message dans « Messagerie ».', 'url' => url('p_messages'), 'cta' => 'Écrire'],
 ] : [
     ['done' => $qDone, 'req' => true, 'icon' => 'clipboard-list', 'title' => 'Répondre à mon questionnaire', 'desc' => 'Pour que les séances soient vraiment faites pour toi.', 'url' => url('q'), 'cta' => $sub ? 'Reprendre' : 'Commencer'],
     ['done' => $sub && !empty(qn_answers((int)$sub['id'])['s_interests']), 'req' => false, 'icon' => 'sparkles', 'title' => 'Compléter mon profil', 'desc' => "Ta classe, tes centres d'intérêt… pour des séances qui te ressemblent.", 'url' => url('account'), 'cta' => 'Compléter'],

@@ -137,6 +137,12 @@ function dispatch(string $r, string $method): void
                 flash('Ton profil est enregistré.');
                 redirect('account');
             }
+            if ($isPost && $act === 'rates' && $u['role'] === 'tutor') {
+                $n = fn(string $k) => ($v = str_replace([',', ' ', '€'], ['.', '', ''], trim((string)($_POST[$k] ?? '')))) === '' ? null : (string)max(0, min(9999, round((float)$v, 2)));
+                setting_set('default_rate', $n('default_rate')); setting_set('default_rate_visio', $n('default_rate_visio'));
+                flash('Tarifs enregistrés : ils sont repris dans « Finances ».');
+                redirect('account');
+            }
             if ($isPost && $act === 'ai_key' && $u['role'] === 'tutor') {
                 if (!empty($_POST['remove'])) { ai_save_key(null); ai_save_workspace(null); audit('ai_key_removed'); flash('Clé API supprimée.'); }
                 elseif (($_POST['only'] ?? '') === 'workspace') {
@@ -317,6 +323,7 @@ function family_route(string $r, bool $isPost): never
         $u = require_login('parent');
         $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
         if (!finance_available()) render('error', ['msg' => 'Cette page sera bientôt disponible.']);
+        try { $s += one('SELECT pay_frequency, pay_method FROM families WHERE id=?', [$s['family_id']]) ?? []; } catch (PDOException) {}
         render('p_finance', ['u' => $u, 's' => $s, 'billing' => month_billing($s, date('Y-m')), 'payments' => payments_of((int)$s['id'])]);
     }
     if ($r === 'p_child') {

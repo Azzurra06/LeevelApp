@@ -5,7 +5,7 @@ $due = array_sum(array_map(fn($p) => (float)$p['amount'], $pending));
 $yearPaid = array_sum(array_map(fn($p) => substr((string)$p['paid_at'], 0, 4) === date('Y') ? (float)$p['amount'] : 0, $paid));
 $tax = tax_credit_on(); $instr = setting('pay_instructions');
 $late = fn($p) => $p['due_date'] && $p['due_date'] < date('Y-m-d'); ?>
-<div class="page-head"><div><h1><?= icon('file-text') ?> Finances</h1><p>Tarif, montants à régler et paiements pour les cours de <?= e(kid($s['first_name'])) ?>.</p></div></div>
+<div class="page-head"><div><h1><?= icon('file-text') ?> Finances</h1><p>Tarif, montants à régler et paiements pour les cours de <?= e(kid($s['first_name'])) ?>.</p><?php if ($t = family_terms($s)): ?><p class="fin-terms-p"><?= icon('calendar') ?> Paiement convenu : <strong><?= e(mb_strtolower($t)) ?></strong></p><?php endif ?></div></div>
 
 <div class="card"><h2><?= icon('chart-column') ?> En bref</h2>
   <div class="month-stats">

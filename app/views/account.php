@@ -64,7 +64,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
           <label class="check"><input type="checkbox" name="notify_messages" value="1" <?= (int)($full['notify_messages'] ?? 1) ? 'checked' : '' ?>> Me prévenir par e-mail des messages non lus</label>
           <p class="muted"><small>Un seul e-mail regroupé, si un message reste non lu plus de 30 minutes, au maximum un toutes les 2 heures.</small></p>
         <?php endif ?>
-        <p class="muted"><small><?= $isTutor ? 'Téléphone et e-mail sont affichés aux familles dans « Échanges ».' : 'Ces coordonnées sont visibles uniquement par votre tutrice.' ?></small></p>
+        <p class="muted"><small><?= $isTutor ? 'Téléphone et e-mail sont affichés aux familles dans « Messagerie ».' : 'Ces coordonnées sont visibles uniquement par votre tutrice.' ?></small></p>
         <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
       </form>
       <?php endif ?>
@@ -97,6 +97,22 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
         <label>Établissement<input name="s_school" maxlength="120" value="<?= e($pv('s_school') ?? '') ?>"></label>
         <div><span class="ql">Centres d'intérêt</span><?= $pills('s_interests', STUDENT_INTERESTS, $pv('s_interests')) ?></div>
         <div><span class="ql">Pour retenir, ce qui marche le mieux pour moi</span><?= $pills('s_memory', MEMORY_TYPES, $pv('s_memory')) ?></div>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+      </form>
+    </div>
+    <?php endif ?>
+
+    <?php if ($isTutor && function_exists('finance_available') && finance_available()): $dr = setting('default_rate'); $drv = setting('default_rate_visio'); ?>
+    <div class="card editable">
+      <div class="ed-head"><h2><?= icon('file-text') ?> Mes tarifs</h2><?= $editBtn('Modifier') ?></div>
+      <dl class="fields view">
+        <div><dt>Tarif horaire</dt><dd><?= $dr !== null && $dr !== '' ? e(money((float)$dr)) . ' / h' : '<span class="muted">Non renseigné</span>' ?></dd></div>
+        <div><dt>En visio</dt><dd><?= $drv !== null && $drv !== '' ? e(money((float)$drv)) . ' / h' : '<span class="muted">Même tarif</span>' ?></dd></div>
+      </dl>
+      <p class="muted view"><small>Repris automatiquement pour chaque élève dans « Finances » (modifiable élève par élève).</small></p>
+      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="rates">
+        <div class="form-grid"><label>Tarif horaire (€)<input name="default_rate" inputmode="decimal" value="<?= e($dr ?? '') ?>" placeholder="ex. 25"></label>
+          <label>En visio (€) <small class="muted">si différent</small><input name="default_rate_visio" inputmode="decimal" value="<?= e($drv ?? '') ?>" placeholder="—"></label></div>
         <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
       </form>
     </div>

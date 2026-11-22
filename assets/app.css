@@ -966,3 +966,28 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .ok-txt{color:#2f8a57}
 @media (max-width:760px){.fin-rate-form{grid-template-columns:1fr 1fr}.fin-rate-form .wide-l,.fin-rate-btns{grid-column:1/-1}}
 .consent-more{margin:-6px 0 0 30px;font-size:.9rem}
+
+/* Pastille des messages non lus, posée sur l'icône */
+.nav .nav-ic{position:relative;display:inline-flex}.nav a:has(.nav-badge) .lbl{margin-left:6px}
+.nav .nav-ic .nav-badge{position:absolute;top:-9px;right:-13px;margin:0;min-width:15px;height:15px;padding:0 3px;font-size:.6rem;line-height:1;border:2px solid var(--surface);box-sizing:content-box;background:#e0553b}
+@media (max-width:720px){.nav-main .nav-ic .nav-badge{top:-4px;right:8px}}
+
+/* Notification système dans la messagerie */
+.msg-sys{display:flex;gap:10px;align-items:flex-start;max-width:520px;margin:6px auto;padding:10px 14px;background:var(--accent-l);border:1px dashed #c9bdfc;border-radius:12px;font-size:.9rem}
+.msg-sys-ic{flex:none;color:var(--accent-d);margin-top:1px}
+.msg-sys-from{display:block;font-size:.75rem;font-weight:700;color:var(--accent-d);text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
+.msg-sys .msg-time{display:block;margin-top:4px;font-size:.72rem;color:var(--muted)}
+
+.fin-terms{color:var(--accent-d);font-size:.78rem;margin-top:2px}
+.fin-terms-p{margin:6px 0 0;font-size:.92rem}
+.fin-status{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.fin-rate-form{grid-template-columns:repeat(3,minmax(0,120px)) minmax(0,1fr) minmax(0,170px) minmax(0,150px)}
+.fin-rate-form .fin-rate-btns{grid-column:1/-1}
+
+/* Mon enfant > Matières : contrôles à venir en colonne latérale */
+.pc-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.pc-main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.pc-aside{position:sticky;top:86px}
+.card.pc-side{background:var(--accent-l)!important;border-color:#ddd3ff!important}
+.card.pc-side .test-item,.card.pc-side li{background:rgba(255,255,255,.7)}
+@media (max-width:900px){.pc-layout{grid-template-columns:1fr}.pc-aside{position:static;order:-1}}

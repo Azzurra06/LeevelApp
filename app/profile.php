@@ -100,10 +100,15 @@ function family_messages(int $familyId, string $channel = 'family'): array
     return all('SELECT m.*, u.display_name, u.role, u.avatar, u.id uid FROM messages m LEFT JOIN users u ON u.id=m.sender_id WHERE m.family_id=?' . chan_sql($channel) . ' ORDER BY m.created_at, m.id', [$familyId]);
 }
 
-function send_message(int $familyId, array $sender, string $body, string $channel = 'family'): bool
+function send_message(int $familyId, array $sender, string $body, string $channel = 'family', ?string $kind = null): bool
 {
     $body = trim(mb_substr($body, 0, 4000));
     if ($body === '') return false;
+    if ($kind !== null) {
+        // notification automatique : enregistrée comme message système (repli sur un message classique si la colonne manque)
+        try { q('INSERT INTO messages (family_id, channel, sender_id, body, kind) VALUES (?,?,?,?,?)', [$familyId, $channel === 'student' ? 'student' : 'family', $sender['id'], $body, $kind]); return true; }
+        catch (PDOException) {}
+    }
     if (messages_have_channels()) q('INSERT INTO messages (family_id, channel, sender_id, body) VALUES (?,?,?,?)', [$familyId, $channel === 'student' ? 'student' : 'family', $sender['id'], $body]);
     elseif ($channel === 'family') q('INSERT INTO messages (family_id, sender_id, body) VALUES (?,?,?)', [$familyId, $sender['id'], $body]);
     else return false;

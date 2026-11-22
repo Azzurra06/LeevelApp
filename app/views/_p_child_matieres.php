@@ -1,4 +1,6 @@
 <?php // Parent : matières suivies (lecture seule). $subjects, $tests, $s ?>
+<div class="pc-layout">
+<div class="pc-main">
 <?php if (!$subjects): ?><div class="card"><div class="empty-ill sm"><span>📚</span><p class="muted">Les matières suivies apparaîtront ici dès que la tutrice les aura ajoutées.</p></div></div><?php endif ?>
 <?php foreach ($subjects as $sub): $acq = count(array_filter($sub['chapters'], fn($c) => $c['status'] === 'acquired')); $nc = count($sub['chapters']); ?>
 <div class="card pc-subj">
@@ -17,4 +19,8 @@
   </div>
 </div>
 <?php endforeach ?>
-<?php require __DIR__ . '/_tests.php' ?>
+</div>
+<aside class="pc-aside">
+<?php $tone = 'pc-side'; require __DIR__ . '/_tests.php'; $tone = ''; ?>
+</aside>
+</div>

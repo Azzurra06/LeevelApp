@@ -4,6 +4,9 @@ $readonly ??= false; $channel ??= 'family'; ?>
   <?php if (!$messages): ?><p class="muted thread-empty"><?= $readonly ? 'Aucun message pour l\'instant.' : ($me['role'] === 'student' ? 'Aucun message pour l\'instant. Écris le premier !' : 'Aucun message pour l\'instant. Écrivez le premier !') ?></p><?php endif ?>
   <?php $prevDay = null; foreach ($messages as $m): $mine = (int)$m['sender_id'] === (int)$me['id']; $day = substr($m['created_at'], 0, 10); ?>
     <?php if ($day !== $prevDay): $prevDay = $day; ?><div class="thread-day"><?= e(fdate($m['created_at'], 'd/m/Y')) ?></div><?php endif ?>
+    <?php if (($m['kind'] ?? null) === 'system'): ?>
+    <div class="msg-sys"><span class="msg-sys-ic"><?= icon('sparkles') ?></span><div><span class="msg-sys-from">Notification automatique<?= $me['role'] === 'tutor' ? ' · envoyée au parent' : '' ?></span><div><?= nl2br(e($m['body'])) ?></div><span class="msg-time"><?= e(date('H\hi', strtotime($m['created_at']))) ?></span></div></div>
+    <?php continue; endif ?>
     <div class="msg <?= $mine ? 'mine' : '' ?>">
       <?php if (!$mine): ?><?= avatar_html(['id' => $m['uid'], 'avatar' => $m['avatar'], 'display_name' => $m['display_name'] ?? '?'], 'sm') ?><?php endif ?>
       <div class="bubble">

@@ -1,6 +1,7 @@
 <?php
 // Finances : tarifs, montants à régler, suivi des paiements.
 
+const PAY_FREQUENCIES = ['session' => 'Après chaque séance', 'weekly' => 'Chaque semaine', 'monthly' => 'Chaque mois', 'package' => 'Par forfait (à l\'avance)'];
 const PAY_METHODS = ['virement' => 'Virement', 'especes' => 'Espèces', 'cheque' => 'Chèque', 'cesu' => 'CESU', 'urssaf' => 'Avance immédiate (Urssaf)', 'autre' => 'Autre'];
 
 function setting(string $k, ?string $default = null): ?string
@@ -19,10 +20,43 @@ function money(float $v): string
 {
     return (fmod($v, 1.0) == 0.0 ? number_format($v, 0, ',', ' ') : number_format($v, 2, ',', ' ')) . ' €';
 }
+/** Tarifs par défaut de la tutrice (Mon compte), repris quand l'élève n'a pas de tarif propre. */
+function default_rate(string $mode): ?float
+{
+    $v = setting($mode === 'visio' ? 'default_rate_visio' : 'default_rate');
+    if (($v === null || $v === '') && $mode === 'visio') $v = setting('default_rate');
+    return $v === null || $v === '' ? null : (float)$v;
+}
 function rate_for(array $s, string $mode): ?float
 {
-    $r = $mode === 'visio' && ($s['hourly_rate_visio'] ?? null) !== null ? $s['hourly_rate_visio'] : ($s['hourly_rate'] ?? null);
-    return $r === null ? null : (float)$r;
+    if ($mode === 'visio' && ($s['hourly_rate_visio'] ?? null) !== null) return (float)$s['hourly_rate_visio'];
+    if (($s['hourly_rate'] ?? null) !== null) return (float)$s['hourly_rate'];
+    return default_rate($mode);
+}
+function rate_is_default(array $s): bool { return ($s['hourly_rate'] ?? null) === null && default_rate('presentiel') !== null; }
+/** Séances réalisées pas encore couvertes par une échéance (quel que soit le rythme de paiement). */
+function unbilled(array $s): array
+{
+    try { $last = one('SELECT MAX(period_end) d FROM payments WHERE student_id=? AND period_end IS NOT NULL', [$s['id']])['d'] ?? null; } catch (PDOException) { $last = null; }
+    $rows = all('SELECT id, starts_at, duration_min, mode FROM sessions WHERE student_id=? AND starts_at < NOW() AND (status="done" OR status="planned")' . ($last ? ' AND DATE(starts_at) > ?' : '') . ' ORDER BY starts_at', $last ? [$s['id'], $last] : [$s['id']]);
+    $gross = 0.0; $min = 0; $missing = false;
+    foreach ($rows as $x) { $r = rate_for($s, $x['mode']); if ($r === null) $missing = true; else $gross += $r * (int)$x['duration_min'] / 60; $min += (int)$x['duration_min']; }
+    $pct = (float)($s['discount_pct'] ?? 0); $gross = round($gross, 2); $disc = $pct > 0 ? round($gross * $pct / 100, 2) : 0.0;
+    return ['sessions' => $rows, 'minutes' => $min, 'gross' => $gross, 'discount' => $disc, 'amount' => round($gross - $disc, 2), 'missing_rate' => $missing,
+            'start' => $rows ? substr($rows[0]['starts_at'], 0, 10) : null, 'end' => $rows ? substr(end($rows)['starts_at'], 0, 10) : null];
+}
+/** Libellé d'une échéance selon les séances couvertes. */
+function unbilled_label(array $u): string
+{
+    $n = count($u['sessions']);
+    if ($n === 1) return 'Séance du ' . fdate($u['start']);
+    if (substr($u['start'], 0, 7) === substr($u['end'], 0, 7) && substr($u['start'], 8) <= '07') return 'Séances de ' . mb_strtolower(month_label(substr($u['start'], 0, 7)));
+    return $n . ' séances du ' . date('d/m', strtotime($u['start'])) . ' au ' . date('d/m', strtotime($u['end']));
+}
+function family_terms(array $s): string
+{
+    $f = trim((string)($s['pay_frequency'] ?? '')); $m = trim((string)($s['pay_method'] ?? ''));
+    return implode(' · ', array_filter([PAY_FREQUENCIES[$f] ?? '', PAY_METHODS[$m] ?? '']));
 }
 /** Séances réalisées d'un mois et montant correspondant. */
 function month_billing(array $s, string $month): array

@@ -1,5 +1,4 @@
-<?php $title = 'Messages'; $me = $u; $postUrl = url('s_messages'); $channel = 'student'; ?>
-<div class="page-head"><div><h1><?= icon('message-circle') ?> Messages</h1><p>Pose tes questions à ta tutrice, quand tu veux.</p></div></div>
+<?php $title = 'Messagerie'; $me = $u; $postUrl = url('s_messages'); $channel = 'student'; ?>
 <div class="msg-layout">
   <aside class="card contact-card">
     <?php if ($tutor): ?><div class="contact-head"><?= avatar_html($tutor, 'lg') ?><strong><?= e($tutor['display_name']) ?></strong><small class="muted">Ta tutrice</small></div><?php endif ?>

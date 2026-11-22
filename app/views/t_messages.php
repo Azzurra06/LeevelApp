@@ -1,5 +1,4 @@
-<?php $title = 'Échanges'; $me = current_user(); $channel = $ch; $postUrl = url('t_messages', ['sid' => $s['id']] + ($ch === 'student' ? ['ch' => 'student'] : [])); ?>
-<div class="page-head"><div><h1><?= icon('message-circle') ?> Échanges</h1><p>Messagerie avec les familles.</p></div></div>
+<?php $title = 'Messagerie'; $me = current_user(); $channel = $ch; $postUrl = url('t_messages', ['sid' => $s['id']] + ($ch === 'student' ? ['ch' => 'student'] : [])); ?>
 <div class="msg-layout">
   <aside class="card thread-list">
     <h2>Familles</h2>

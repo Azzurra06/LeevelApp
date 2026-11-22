@@ -1,5 +1,4 @@
-<?php $title = 'Échanges'; $me = $u; $postUrl = url('p_messages', ['sid' => $s['id']]); $readonly = $ch === 'student'; $channel = $ch; ?>
-<div class="page-head"><div><h1><?= icon('message-circle') ?> Échanges</h1><p>Vos échanges avec la tutrice au sujet de <?= e(kid($s['first_name'])) ?>.</p></div></div>
+<?php $title = 'Messagerie'; $me = $u; $postUrl = url('p_messages', ['sid' => $s['id']]); $readonly = $ch === 'student'; $channel = $ch; ?>
 <div class="msg-layout">
   <aside class="card contact-card">
     <h2>Votre tutrice</h2>

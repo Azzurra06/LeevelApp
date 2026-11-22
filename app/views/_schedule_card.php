@@ -47,7 +47,7 @@ $durations = [30, 45, 60, 75, 90, 120, 150, 180]; ?>
       <label class="check"><input type="checkbox" name="generate" value="1" checked> Créer les séances correspondantes dans le planning</label>
       <label class="check"><input type="checkbox" name="replace" value="1" <?= $sched ? 'checked' : '' ?>> Remplacer les séances futures encore prévues</label>
       <label class="check"><input type="checkbox" name="with_goals" value="1"> Ajouter les objectifs suggérés par l'analyse</label>
-      <label class="check"><input type="checkbox" name="notify" value="1" checked> Envoyer le rythme au parent (message dans « Échanges »)</label>
+      <label class="check"><input type="checkbox" name="notify" value="1" checked> Envoyer le rythme au parent (message dans « Messagerie »)</label>
     </fieldset>
     <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer le rythme</button><?php if ($sched): ?><button type="button" class="btn ghost sm" data-edit>Annuler</button><?php endif ?></div>
   </form>
