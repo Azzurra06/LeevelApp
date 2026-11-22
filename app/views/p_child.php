@@ -8,7 +8,12 @@ $editBtn = '<button type="button" class="btn ghost sm" data-edit>' . icon('penci
 $age = !empty($s['birth_date']) ? (new DateTime($s['birth_date']))->diff(new DateTime('today'))->y : null;
 $h = fn(string $action) => csrf_field() . '<input type="hidden" name="sid" value="' . (int)$s['id'] . '"><input type="hidden" name="action" value="' . $action . '">';
 $perms = ['perm_edit_contacts' => 'Modifier lui-même ses coordonnées', 'perm_edit_photo' => 'Changer sa photo de profil', 'perm_help_requests' => 'Signaler qu\'il bloque et demander de l\'aide']; ?>
-<div class="page-head"><div><h1><?= icon('smile') ?> Mon enfant</h1><p>Les informations de <?= e($s['first_name']) ?>, visibles par la tutrice. Vous pouvez les compléter à tout moment.</p></div></div>
+<?php $tab ??= 'profil'; $sidq = ['sid' => $s['id']];
+$childTabs = ['profil' => 'Profil', 'matieres' => 'Matières', 'progression' => 'Progression', 'bilans' => 'Bilans']; ?>
+<div class="page-head"><div><h1><?= e($s['first_name']) ?><?= !empty($s['last_name']) ? ' ' . e($s['last_name']) : '' ?></h1><p><?= e(CLASSES[$s['grade']] ?? $s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?></p></div></div>
+<nav class="tabs" aria-label="Mon enfant"><?php foreach ($childTabs as $k => $l): ?><a href="<?= e(url('p_child', $sidq + ['tab' => $k])) ?>" class="<?= $tab === $k ? 'on' : '' ?>"<?= $tab === $k ? ' aria-current="page"' : '' ?>><?= e($l) ?></a><?php endforeach ?></nav>
+<?php if ($tab !== 'profil') { require __DIR__ . '/_p_child_' . $tab . '.php'; return; } ?>
+<p class="muted child-intro">Les informations de <?= e($s['first_name']) ?>, visibles par la tutrice. Vous pouvez les compléter à tout moment.</p>
 
 <div class="grid-2">
   <div class="card editable tone-violet">

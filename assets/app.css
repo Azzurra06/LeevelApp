@@ -945,3 +945,14 @@ body.page-t_student .card[class*="tone-"],body.page-t_rdv .card[class*="tone-"]{
 .fin-help{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .err-txt{color:#c0392b}
 @media (max-width:760px){.fin-row{grid-template-columns:1fr auto}.fin-rate,.fin-rate-form{grid-column:1/-1}.fin-month{grid-column:1}.fin-status{grid-column:2}}
+
+/* Parent : Mon enfant (sous-onglets) */
+.child-intro{margin:0}
+.pc-avg{display:flex;align-items:baseline;gap:6px}.pc-avg strong{font-size:1.15rem}.pc-avg .up{color:#2f8a57}.pc-avg .down{color:#c0392b}
+.pc-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px}.pc-cols .ql{display:block;margin-bottom:8px}
+.pc-spark{margin-top:10px}.pc-spark svg{max-width:100%;height:auto}
+.pc-chap{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pc-chap li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--beige);font-size:.92rem}.pc-chap li:first-child{border-top:0}
+.pc-month{border-top:1px solid var(--beige);padding:10px 0}.pc-month:first-of-type{border-top:0}.pc-month summary{cursor:pointer}.pc-month p{margin:10px 0 0}
+@media (max-width:760px){.pc-cols{grid-template-columns:1fr}}
+body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--tc:var(--accent-d);--tb:var(--accent-l)}

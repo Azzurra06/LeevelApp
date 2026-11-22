@@ -355,7 +355,17 @@ function family_route(string $r, bool $isPost): never
             } catch (PDOException) { flash('La base de données doit être mise à jour.', 'err'); }
             redirect('p_child', ['sid' => $s['id']]);
         }
-        render('p_child', ['u' => $u, 's' => $s]);
+        $tab = in_array($_GET['tab'] ?? '', ['profil', 'matieres', 'progression', 'bilans'], true) ? $_GET['tab'] : 'profil';
+        $extra = [];
+        if ($tab === 'matieres') $extra = ['subjects' => subjects_of((int)$s['id']), 'tests' => tests_upcoming((int)$s['id'])];
+        if ($tab === 'progression') {
+            $extra = ['goals' => all('SELECT * FROM goals WHERE student_id=? ORDER BY FIELD(status,"in_progress","rework","todo","acquired"), target_date', [$s['id']]),
+                'subjects' => subjects_of((int)$s['id']),
+                'doneSe' => all('SELECT id, starts_at, duration_min FROM sessions WHERE student_id=? AND (status="done" OR (status="planned" AND starts_at < NOW())) ORDER BY starts_at DESC', [$s['id']])];
+            try { $extra['fbs'] = all('SELECT f.mood, s.starts_at FROM session_feedback f JOIN sessions s ON s.id=f.session_id WHERE s.student_id=? ORDER BY s.starts_at DESC LIMIT 8', [$s['id']]); } catch (PDOException) { $extra['fbs'] = []; }
+        }
+        if ($tab === 'bilans') $extra = ['monthlies' => monthly_published((int)$s['id'], 24), 'reports' => sent_reports((int)$s['id'], 30)];
+        render('p_child', ['u' => $u, 's' => $s, 'tab' => $tab] + $extra);
     }
     if ($r === 'p_messages') {
         $u = require_login('parent');
