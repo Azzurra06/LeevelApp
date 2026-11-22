@@ -357,6 +357,10 @@ function tutor_route(string $r, bool $isPost): never
         case 't_profile':
             if (!$isPost) $back();
             q('UPDATE students SET first_name=?, grade=?, school=? WHERE id=?', [post_str('first_name', 80) ?: $s['first_name'], post_str('grade', 30) ?: '3e', post_str('school', 120) ?: null, $sid]);
+            if (isset($_POST['birth_date']) || isset($_POST['last_name'])) {
+                $bd = post_str('birth_date', 10); $bd = preg_match('/^\d{4}-\d{2}-\d{2}$/', $bd) && strtotime($bd) < time() ? $bd : null;
+                try { q('UPDATE students SET last_name=?, birth_date=? WHERE id=?', [post_str('last_name', 80) ?: null, $bd, $sid]); } catch (PDOException) {}
+            }
             flash('Profil mis à jour.');
             $back('profil');
 

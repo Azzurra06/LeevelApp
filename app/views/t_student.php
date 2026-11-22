@@ -8,77 +8,108 @@ $catOpts = fn($cur) => implode('', array_map(fn($a, $l) => '<option value="' . e
 <?php else: $ficheTab = $tab; require __DIR__ . '/_fiche_head.php'; endif ?>
 
 <?php if ($tab === 'profil'): ?>
-<div class="grid-2 align-start">
-  <?php $parentU = array_values(array_filter($users, fn($x) => $x['role'] === 'parent'))[0] ?? null; $pane = ($_GET['pane'] ?? '') === 'parent' ? 'parent' : 'student'; ?>
-  <div class="card" data-views>
-    <div class="row between"><h2><?= icon('user') ?> Profil</h2>
-      <div class="seg seg-tight" role="tablist"><button type="button" data-view="student" class="<?= $pane === 'student' ? 'on' : '' ?>"><?= icon('smile') ?> Élève</button><button type="button" data-view="parent" class="<?= $pane === 'parent' ? 'on' : '' ?>"><?= icon('user') ?> Parent</button></div></div>
-    <?php $val = fn($v) => ($v ?? '') !== '' ? e($v) : '<span class="muted">Non renseigné</span>';
-    $editBtn = '<button type="button" class="edit-btn" data-edit title="Modifier" aria-label="Modifier">' . icon('pencil') . '</button>'; ?>
+<?php
+$parentU = array_values(array_filter($users, fn($x) => $x['role'] === 'parent'))[0] ?? null;
+$studentU = array_values(array_filter($users, fn($x) => $x['role'] === 'student'))[0] ?? null;
+$val = fn($v) => ($v ?? '') !== '' ? e($v) : '<span class="muted">Non renseigné</span>';
+$editBtn = '<button type="button" class="btn ghost sm" data-edit>' . icon('pencil') . ' Modifier</button>';
+$tel = fn($v) => !empty($v) ? '<a href="tel:' . e(preg_replace('/[^0-9+]/', '', $v)) . '">' . e($v) . '</a>' : $val(null);
+$mail = fn($v) => !empty($v) ? '<a href="mailto:' . e($v) . '">' . e($v) . '</a>' : $val(null);
+$age = !empty($s['birth_date']) ? (new DateTime($s['birth_date']))->diff(new DateTime('today'))->y : null;
+$nd = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 'acc' => []];
+$ndL = ['dys' => 'Trouble « dys »', 'tdah' => 'TDAH / attention', 'hpi' => 'Haut potentiel', 'anxiety' => 'Anxiété scolaire', 'other' => 'Autre'];
+$acL = ['pap' => 'PAP', 'pps' => 'PPS', 'pai' => 'PAI', 'tiers_temps' => 'Tiers-temps'];
+$hasNeeds = $nd['items'] || $nd['acc'] || !empty($s['accommodations']) || !empty($s['parent_notes']);
+$nextSe = one('SELECT starts_at, mode FROM sessions WHERE student_id=? AND status="planned" AND starts_at >= NOW() ORDER BY starts_at LIMIT 1', [$s['id']]);
+$doneN = (int)(one('SELECT COUNT(*) n FROM sessions WHERE student_id=? AND (status="done" OR (status="planned" AND starts_at < NOW()))', [$s['id']])['n'] ?? 0);
+$sched = schedule_available() ? schedule_of($s) : null;
+$hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_work']; ?>
 
-    <div data-pane="student" <?= $pane === 'student' ? '' : 'hidden' ?>>
-      <div class="editable">
-        <div class="ed-head"><h3><?= icon('book-open') ?> Scolarité</h3><?= $editBtn ?></div>
-        <dl class="fields view"><div><dt>Prénom</dt><dd><?= $val($s['first_name']) ?></dd></div><div><dt>Classe</dt><dd><?= $val(CLASSES[$s['grade']] ?? $s['grade']) ?></dd></div><div class="wide"><dt>Établissement</dt><dd><?= $val($s['school']) ?></dd></div></dl>
-        <form method="post" action="<?= e(url('t_profile')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student">
-          <div class="form-grid"><label>Prénom<input name="first_name" value="<?= e($s['first_name']) ?>" maxlength="80"></label><label>Classe<?= grade_select('grade', $s['grade']) ?></label></div>
-          <label>Établissement<input name="school" value="<?= e($s['school']) ?>" maxlength="120"></label>
-          <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
-      </div>
-      <div class="editable ed-sep">
-        <div class="ed-head"><h3><?= icon('message-circle') ?> Coordonnées de l'élève</h3><?= $editBtn ?></div>
-        <dl class="fields view"><div><dt>Téléphone</dt><dd><?= !empty($s['student_phone']) ? '<a href="tel:' . e(preg_replace('/[^0-9+]/', '', $s['student_phone'])) . '">' . e($s['student_phone']) . '</a>' : $val(null) ?></dd></div><div><dt>E-mail</dt><dd><?= !empty($s['student_email']) ? '<a href="mailto:' . e($s['student_email']) . '">' . e($s['student_email']) . '</a>' : $val(null) ?></dd></div></dl>
-        <form method="post" action="<?= e(url('t_contacts')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="who" value="student">
-          <div class="form-grid"><label>Téléphone<input type="tel" name="student_phone" value="<?= e($s['student_phone'] ?? '') ?>" maxlength="30" autocomplete="off"></label>
-          <label>E-mail<input type="email" name="student_email" value="<?= e($s['student_email'] ?? '') ?>" maxlength="120" autocomplete="off"></label></div>
-          <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
-      </div>
+<div class="glance">
+  <?php $lastRep = one('SELECT s.starts_at, r.sent_at FROM sessions s LEFT JOIN session_reports r ON r.session_id=s.id WHERE s.student_id=? AND s.status IN ("done","planned") AND s.starts_at < NOW() ORDER BY s.starts_at DESC LIMIT 1', [$s['id']]); ?>
+  <div><small>Dernière séance</small><strong><?= $lastRep ? e(fdate($lastRep['starts_at'])) : '—' ?></strong><?php if ($lastRep): ?><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>"><?= $lastRep['sent_at'] ? 'Bilan envoyé' : 'Bilan à envoyer' ?></a><?php endif ?></div>
+  <div><small>Rythme</small><strong><?= $sched ? fdur(schedule_minutes_per_week($sched)) . ' / sem.' : '—' ?></strong><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>#rythme"><?= $sched ? 'Voir' : 'À définir' ?></a></div>
+  <div><small>Prochaine séance</small><strong><?= $nextSe ? e(fdatetime($nextSe['starts_at'])) : '—' ?></strong><?php if ($nextSe): ?><span class="muted"><?= e(MODES[$nextSe['mode']]) ?></span><?php endif ?></div>
+  <div><small>Séances faites</small><strong><?= $doneN ?></strong><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>">Planning</a></div>
+</div>
+
+<div class="grid-2 two-cols">
+ <div class="col-stack">
+  <div class="card tone-violet">
+    <h2><?= icon('smile') ?> <?= e($s['first_name'] . (!empty($s['last_name']) ? ' ' . $s['last_name'] : '')) ?></h2>
+    <div class="editable">
+      <div class="ed-head"><h3>Identité et scolarité</h3><?= $editBtn ?></div>
+      <dl class="fields view">
+        <div><dt>Prénom</dt><dd><?= $val($s['first_name']) ?></dd></div>
+        <div><dt>Nom</dt><dd><?= $val($s['last_name'] ?? null) ?></dd></div>
+        <div><dt>Date de naissance</dt><dd><?= !empty($s['birth_date']) ? e(fdate($s['birth_date'])) . ' <span class="muted">(' . $age . ' ans)</span>' : $val(null) ?></dd></div>
+        <div><dt>Classe</dt><dd><?= $val(CLASSES[$s['grade']] ?? $s['grade']) ?></dd></div>
+        <div class="wide"><dt>Établissement</dt><dd><?= $val($s['school']) ?></dd></div>
+      </dl>
+      <form method="post" action="<?= e(url('t_profile')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student">
+        <div class="form-grid"><label>Prénom<input name="first_name" value="<?= e($s['first_name']) ?>" maxlength="80" required></label><label>Nom<input name="last_name" value="<?= e($s['last_name'] ?? '') ?>" maxlength="80"></label>
+        <label>Date de naissance<input type="date" name="birth_date" value="<?= e($s['birth_date'] ?? '') ?>" max="<?= date('Y-m-d') ?>"></label><label>Classe<?= grade_select('grade', $s['grade']) ?></label></div>
+        <label>Établissement<input name="school" value="<?= e($s['school']) ?>" maxlength="120"></label>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
     </div>
-
-    <div data-pane="parent" <?= $pane === 'parent' ? '' : 'hidden' ?>>
-      <div class="editable">
-        <div class="ed-head"><h3><?= $parentU ? e($parentU['display_name']) : 'Parent' ?></h3><?= $editBtn ?></div>
-        <?php if ($parentU): ?><p class="muted"><small>Compte <code><?= e($parentU['username']) ?></code></small></p><?php endif ?>
-        <dl class="fields view">
-          <div><dt>Téléphone</dt><dd><?= !empty($s['parent_phone']) ? '<a href="tel:' . e(preg_replace('/[^0-9+]/', '', $s['parent_phone'])) . '">' . e($s['parent_phone']) . '</a>' : $val(null) ?></dd></div>
-          <div><dt>E-mail</dt><dd><?= !empty($s['parent_email']) ? '<a href="mailto:' . e($s['parent_email']) . '">' . e($s['parent_email']) . '</a>' : $val(null) ?></dd></div>
-          <div class="wide"><dt>Adresse</dt><dd><?= $val($s['parent_address'] ?? null) ?></dd></div>
-          <div class="wide"><dt>Remarques</dt><dd><?= $val($s['contact_notes'] ?? null) ?></dd></div>
-        </dl>
-        <form method="post" action="<?= e(url('t_contacts')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="who" value="parent">
-          <div class="form-grid"><label>Téléphone<input type="tel" name="parent_phone" value="<?= e($s['parent_phone'] ?? '') ?>" maxlength="30" autocomplete="off"></label>
-          <label>E-mail<input type="email" name="parent_email" value="<?= e($s['parent_email'] ?? '') ?>" maxlength="120" autocomplete="off"></label></div>
-          <label>Adresse (pour les séances en présentiel)<input name="parent_address" value="<?= e($s['parent_address'] ?? '') ?>" maxlength="255" autocomplete="off"></label>
-          <label>Remarques (préférences de contact, disponibilités…)<input name="contact_notes" value="<?= e($s['contact_notes'] ?? '') ?>" maxlength="500"></label>
-          <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
-      </div>
+    <div class="editable ed-sep">
+      <div class="ed-head"><h3>Coordonnées de l'élève</h3><?= $editBtn ?></div>
+      <dl class="fields view"><div><dt>Téléphone</dt><dd><?= $tel($s['student_phone'] ?? null) ?></dd></div><div><dt>E-mail</dt><dd><?= $mail($s['student_email'] ?? null) ?></dd></div>
+        <div class="wide"><dt>Compte leevel.app</dt><dd><?= $studentU ? '<code>' . e($studentU['username']) . '</code>' : '<span class="muted">Pas de compte élève</span> · <a href="' . e(url('t_users')) . '">Créer</a>' ?></dd></div></dl>
+      <form method="post" action="<?= e(url('t_contacts')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="who" value="student">
+        <div class="form-grid"><label>Téléphone<input type="tel" name="student_phone" value="<?= e($s['student_phone'] ?? '') ?>" maxlength="30" autocomplete="off"></label>
+        <label>E-mail<input type="email" name="student_email" value="<?= e($s['student_email'] ?? '') ?>" maxlength="120" autocomplete="off"></label></div>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
     </div>
   </div>
-  <?php $nd = json_decode((string)($s['needs_json'] ?? ''), true) ?: ['items' => [], 'acc' => []];
-    $ndL = ['dys' => 'Trouble « dys »', 'tdah' => 'TDAH / attention', 'hpi' => 'Haut potentiel', 'anxiety' => 'Anxiété scolaire', 'other' => 'Autre'];
-    $acL = ['pap' => 'PAP', 'pps' => 'PPS', 'pai' => 'PAI', 'tiers_temps' => 'Tiers-temps'];
-    if (!empty($s['birth_date']) || !empty($s['last_name']) || $nd['items'] || $nd['acc'] || !empty($s['accommodations']) || !empty($s['parent_notes'])): ?>
-  <div class="card tone-pink"><h2><?= icon('heart') ?> Transmis par le parent</h2>
-    <dl class="fields">
-      <?php if (!empty($s['last_name'])): ?><div><dt>Nom</dt><dd><?= e($s['first_name'] . ' ' . $s['last_name']) ?></dd></div><?php endif ?>
-      <?php if (!empty($s['birth_date'])): ?><div><dt>Né(e) le</dt><dd><?= e(fdate($s['birth_date'])) ?> (<?= (new DateTime($s['birth_date']))->diff(new DateTime('today'))->y ?> ans)</dd></div><?php endif ?>
-      <?php if ($nd['items'] || $nd['acc']): ?><div class="wide"><dt>Besoins particuliers</dt><dd><span class="ra-chips"><?php foreach ($nd['items'] as $k): ?><span class="ra-chip"><?= e($ndL[$k] ?? $k) ?></span><?php endforeach ?><?php foreach ($nd['acc'] as $k): ?><span class="ra-chip prio"><?= e($acL[$k] ?? $k) ?></span><?php endforeach ?></span></dd></div><?php endif ?>
-      <?php if (!empty($s['accommodations'])): ?><div class="wide"><dt>Aménagements</dt><dd><?= e($s['accommodations']) ?></dd></div><?php endif ?>
-      <?php if (!empty($s['parent_notes'])): ?><div class="wide"><dt>À savoir</dt><dd><?= nl2br(e($s['parent_notes'])) ?></dd></div><?php endif ?>
+
+  <div class="card tone-pink"><h2><?= icon('heart') ?> Besoins particuliers</h2>
+    <?php if (!$hasNeeds): ?><p class="muted">Rien de signalé par le parent pour l'instant (il peut le renseigner dans « Mon enfant »).</p><?php else: ?>
+    <?php if ($nd['items'] || $nd['acc']): ?><div class="ra-chips child-chips"><?php foreach ($nd['items'] as $k): ?><span class="ra-chip"><?= e($ndL[$k] ?? $k) ?></span><?php endforeach ?><?php foreach ($nd['acc'] as $k): ?><span class="ra-chip prio"><?= e($acL[$k] ?? $k) ?></span><?php endforeach ?></div><?php endif ?>
+    <?php if (!empty($s['accommodations'])): ?><p class="child-note"><strong>Aménagements :</strong> <?= e($s['accommodations']) ?></p><?php endif ?>
+    <?php if (!empty($s['parent_notes'])): ?><p class="child-note"><strong>À savoir :</strong> <?= nl2br(e($s['parent_notes'])) ?></p><?php endif ?>
+    <p class="muted"><small>Renseigné par le parent.</small></p>
+    <?php endif ?>
+  </div>
+
+  <div class="card tone-blue editable">
+    <div class="ed-head"><h2><?= icon('users') ?> Famille</h2><?= $editBtn ?></div>
+    <p class="fam-name view"><strong><?= $parentU ? e($parentU['display_name']) : 'Parent' ?></strong><?php if ($parentU): ?> · <code><?= e($parentU['username']) ?></code><?php else: ?> · <span class="muted">pas de compte parent</span><?php endif ?></p>
+    <dl class="fields view">
+      <div><dt>Téléphone</dt><dd><?= $tel($s['parent_phone'] ?? null) ?></dd></div>
+      <div><dt>E-mail</dt><dd><?= $mail($s['parent_email'] ?? null) ?></dd></div>
+      <div class="wide"><dt>Adresse</dt><dd><?= $val($s['parent_address'] ?? null) ?></dd></div>
+      <div class="wide"><dt>Remarques</dt><dd><?= $val($s['contact_notes'] ?? null) ?></dd></div>
     </dl>
+    <form method="post" action="<?= e(url('t_contacts')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="who" value="parent">
+      <div class="form-grid"><label>Téléphone<input type="tel" name="parent_phone" value="<?= e($s['parent_phone'] ?? '') ?>" maxlength="30" autocomplete="off"></label>
+      <label>E-mail<input type="email" name="parent_email" value="<?= e($s['parent_email'] ?? '') ?>" maxlength="120" autocomplete="off"></label></div>
+      <label>Adresse (pour les séances en présentiel)<input name="parent_address" value="<?= e($s['parent_address'] ?? '') ?>" maxlength="255" autocomplete="off"></label>
+      <label>Remarques (préférences de contact, disponibilités…)<input name="contact_notes" value="<?= e($s['contact_notes'] ?? '') ?>" maxlength="500"></label>
+      <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div></form>
   </div>
-  <?php endif ?>
-  <div class="card"><h2><?= icon('users') ?> Comptes associés</h2><ul class="list"><?php foreach ($users as $x): ?><li><?= icon('user') ?><div><?= e($x['display_name']) ?> · <code><?= e($x['username']) ?></code> · <?= e(ROLE_LABELS[$x['role']]) ?></div></li><?php endforeach ?></ul>
+ </div>
+
+ <div class="col-stack">
+  <div class="card tone-orange"><h2><?= icon('target') ?> Priorités actuelles</h2><?php require __DIR__ . '/_axes.php' ?>
+    <a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'analyse'])) ?>">Voir l'analyse pédagogique →</a></div>
+
+  <div class="card tone-green editable<?= $hasShared ? '' : ' editing' ?>">
+    <div class="ed-head"><h2><?= icon('message-circle') ?> Bilan partagé avec la famille</h2><?= $hasShared ? $editBtn : '' ?></div>
+    <p class="muted"><small><?= icon('eye') ?> Visible par le parent et l'élève sur leur page d'accueil.</small></p>
+    <div class="view">
+      <?php if ($s['shared_message']): ?><p><?= nl2br(e($s['shared_message'])) ?></p><?php endif ?>
+      <?php if ($s['shared_strengths']): ?><h3 class="mini-h">Points forts</h3><p><?= nl2br(e($s['shared_strengths'])) ?></p><?php endif ?>
+      <?php if ($s['shared_to_work']): ?><h3 class="mini-h">Points à travailler</h3><p><?= nl2br(e($s['shared_to_work'])) ?></p><?php endif ?>
+      <?php if ($s['shared_updated_at']): ?><p class="muted"><small>Publié le <?= e(fdate($s['shared_updated_at'], 'd/m/Y H:i')) ?></small></p><?php endif ?>
+    </div>
+    <form method="post" action="<?= e(url('t_shared')) ?>" class="stack edit-form"><?= $hidden() ?><input type="hidden" name="back" value="t_student">
+      <label>Message de la tutrice<textarea name="shared_message" maxlength="3000" rows="3"><?= e($s['shared_message']) ?></textarea></label>
+      <label>Points forts<textarea name="shared_strengths" maxlength="3000" rows="3" placeholder="<?= e(implode("\n", array_slice($an['strengths'] ?? [], 0, 4))) ?>"><?= e($s['shared_strengths']) ?></textarea></label>
+      <label>Points à travailler<textarea name="shared_to_work" maxlength="3000" rows="3" placeholder="<?= e(implode("\n", array_map(fn($a) => AXES[$a], $prio['axes']))) ?>"><?= e($s['shared_to_work']) ?></textarea></label>
+      <div class="row"><button class="btn sm"><?= icon('send') ?> Publier</button><?php if ($hasShared): ?><button type="button" class="btn ghost sm" data-edit>Annuler</button><?php endif ?></div></form>
   </div>
-  <div class="card"><h2><?= icon('target') ?> Priorités actuelles</h2><?php require __DIR__ . '/_axes.php' ?></div>
-  <div class="card"><h2><?= icon('users') ?> Bilan partagé avec la famille</h2>
-    <p class="muted"><small>Visible par le parent et l'élève. N'y mettez que des informations partageables.</small></p>
-    <form method="post" action="<?= e(url('t_shared')) ?>" class="stack"><?= $hidden() ?><input type="hidden" name="back" value="t_student">
-      <label>Message / bilan de la tutrice<textarea name="shared_message" maxlength="3000"><?= e($s['shared_message']) ?></textarea></label>
-      <label>Points forts<textarea name="shared_strengths" maxlength="3000" placeholder="<?= e(implode("\n", array_slice($an['strengths'] ?? [], 0, 4))) ?>"><?= e($s['shared_strengths']) ?></textarea></label>
-      <label>Points à travailler<textarea name="shared_to_work" maxlength="3000" placeholder="<?= e(implode("\n", array_map(fn($a) => AXES[$a], $prio['axes']))) ?>"><?= e($s['shared_to_work']) ?></textarea></label>
-      <button class="btn"><?= icon('save') ?> Publier</button>
-      <?php if ($s['shared_updated_at']): ?><small class="muted">Mis à jour le <?= e(fdate($s['shared_updated_at'], 'd/m/Y H:i')) ?></small><?php endif ?></form></div>
+ </div>
 </div>
 
 <?php elseif ($tab === 'parent' || $tab === 'eleve'): $code = $tab === 'parent' ? 'parent' : 'student'; $d = $data[$code]; $cfg = qn_config($code); ?>
