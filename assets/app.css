@@ -760,3 +760,20 @@ body.tutor .todo-card{border-color:var(--beige)}
 @media (max-width:720px){.sched-row{grid-template-columns:1fr 1fr}.sched-row-dur{margin-top:0}}
 body.tutor .card[class*="tone-"] .rank{background:var(--tc)}
 body.tutor .card[class*="tone-"] .axis:not(.prio) .bar>i{background:var(--tc);opacity:.45}
+
+/* Planning (parent, élève) : séances dépliables */
+.plan-list{display:flex;flex-direction:column;gap:22px;margin-top:6px}
+.plan-week-h{margin:0 0 8px;font-size:1rem}.plan-week-h .muted{font-weight:500;font-size:.88rem}
+.plan-item{border:1px solid var(--beige);border-radius:12px;background:var(--surface);margin-bottom:8px;transition:border-color .15s}
+.plan-item[open]{border-color:#d9cfff}
+.plan-item>summary{list-style:none;display:flex;align-items:center;gap:14px;padding:10px 14px;cursor:pointer}
+.plan-item>summary::-webkit-details-marker{display:none}
+.plan-date{width:44px;height:44px;border-radius:12px;background:var(--accent-l);color:var(--accent-d);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;flex:none}
+.plan-date b{font-size:1.05rem}.plan-date small{font-size:.66rem;text-transform:uppercase;font-weight:600}
+.plan-item.off .plan-date{background:var(--beige);color:var(--muted)}.plan-item.off .plan-title{color:var(--muted);text-decoration:line-through}
+.plan-main{display:flex;flex-direction:column;min-width:0;flex:1}
+.plan-meta{font-size:.82rem;color:var(--muted)}.plan-title{font-size:.98rem;overflow:hidden;text-overflow:ellipsis}
+.plan-chev{color:var(--muted);transition:transform .2s;flex:none}.plan-item[open] .plan-chev{transform:rotate(90deg)}
+.plan-detail{padding:4px 14px 14px 72px}.plan-detail .fields{gap:10px 20px}.plan-detail dd .ic{width:1em;height:1em;color:var(--accent-d)}
+@media (max-width:720px){.plan-detail{padding:4px 14px 14px}.plan-item>summary{gap:10px;padding:10px 12px}}
+.plan-item>summary{color:var(--ink);font-weight:inherit}.plan-item.off .plan-title{color:var(--muted)}
