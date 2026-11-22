@@ -11,11 +11,12 @@
       <label>Classe<?= grade_select('grade', $old['grade'] ?? '3e') ?></label>
       <label>Établissement (facultatif)<input name="school" maxlength="120"></label>
     </div>
-    <?php $pm = $old['parent_mode'] ?? 'create'; $sm = $old['student_mode'] ?? 'create';
+    <?php $pm = $old['parent_mode'] ?? 'later'; $sm = $old['student_mode'] ?? 'later';
     $modeSwitch = function (string $who, string $cur): void { ?>
       <div class="seg seg-tight" role="radiogroup">
         <label class="seg-opt"><input type="radio" name="<?= $who ?>_mode" value="create" data-switch="<?= $who ?>" <?= $cur === 'create' ? 'checked' : '' ?>><span><?= icon('lock') ?> Créer le compte moi-même</span></label>
         <label class="seg-opt"><input type="radio" name="<?= $who ?>_mode" value="invite" data-switch="<?= $who ?>" <?= $cur === 'invite' ? 'checked' : '' ?>><span><?= icon('message-circle') ?> Inviter par e-mail</span></label>
+        <label class="seg-opt"><input type="radio" name="<?= $who ?>_mode" value="later" data-switch="<?= $who ?>" <?= $cur === 'later' ? 'checked' : '' ?>><span><?= icon('clock') ?> Plus tard</span></label>
       </div>
     <?php }; ?>
     <fieldset><legend>Compte parent</legend>
@@ -29,6 +30,7 @@
         <label>E-mail du parent</label>
         <div class="copy-row"><input type="email" name="parent_email" required maxlength="120" value="<?= e($old['parent_email'] ?? '') ?>" placeholder="prenom.nom@exemple.fr" aria-label="E-mail du parent"><button class="btn sm" name="quick_invite" value="parent" formnovalidate data-quick="parent_email"><?= icon('send') ?> Envoyer</button></div>
         <p class="muted"><small>Le parent recevra un lien (valable 7 jours) pour choisir son identifiant et son mot de passe, et valider l'autorisation de représentant légal.</small></p></div>
+      <p class="muted later-note" data-switch-pane="parent:later" <?= $pm === 'later' ? '' : 'hidden' ?>><small>Le dossier est créé sans compte parent : vous pourrez préparer les tarifs, le rythme et le planning, puis inviter le parent quand vous le souhaitez depuis cette page.</small></p>
     </fieldset>
     <fieldset><legend>Compte élève</legend>
       <?php $modeSwitch('student', $sm) ?>
@@ -39,6 +41,7 @@
         <label>E-mail de l'élève</label>
         <div class="copy-row"><input type="email" name="student_email" required maxlength="120" value="<?= e($old['student_email'] ?? '') ?>" aria-label="E-mail de l'élève"><button class="btn sm" name="quick_invite" value="student" formnovalidate data-quick="student_email"><?= icon('send') ?> Envoyer</button></div>
         <p class="muted"><small>L'élève créera son compte via le lien. Son espace s'ouvrira une fois l'autorisation du parent validée.</small></p></div>
+      <p class="muted later-note" data-switch-pane="student:later" <?= $sm === 'later' ? '' : 'hidden' ?>><small>Le compte élève pourra être ajouté plus tard depuis cette page.</small></p>
     </fieldset>
     <p class="muted"><small>Mots de passe : 10 caractères minimum avec lettres et chiffres. Si l'e-mail ne part pas, le lien d'invitation s'affiche pour que vous puissiez l'envoyer vous-même (SMS, WhatsApp…).</small></p>
     <button class="btn"><?= icon('save') ?> Créer le dossier</button>

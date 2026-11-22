@@ -489,18 +489,19 @@ function tutor_route(string $r, bool $isPost): never
 function create_family(array $tutor): void
 {
     require_once APP_ROOT . '/app/invitations.php';
-    $modes = ['parent' => post_enum('parent_mode', ['create' => 1, 'invite' => 1], 'create'), 'student' => post_enum('student_mode', ['create' => 1, 'invite' => 1], 'create')];
+    $modes = ['parent' => post_enum('parent_mode', ['create' => 1, 'invite' => 1, 'later' => 1], 'later'), 'student' => post_enum('student_mode', ['create' => 1, 'invite' => 1, 'later' => 1], 'later')];
+    foreach ($modes as $k => $m) if ($m === 'later') $modes[$k] = 'none'; // compte ajouté plus tard (depuis « Familles et dossiers »)
     $v = [];
     foreach (['family_name', 'student_first_name', 'parent_name', 'parent_username', 'student_username', 'parent_email', 'student_email'] as $f) $v[$f] = post_str($f, 120);
     foreach (['parent_username', 'student_username', 'parent_email', 'student_email'] as $f) $v[$f] = mb_strtolower($v[$f]);
-    $v['parent_mode'] = $modes['parent']; $v['student_mode'] = $modes['student'];
+    $v['parent_mode'] = $modes['parent'] === 'none' ? 'later' : $modes['parent']; $v['student_mode'] = $modes['student'] === 'none' ? 'later' : $modes['student'];
     $pw = ['parent' => (string)($_POST['parent_password'] ?? ''), 'student' => (string)($_POST['student_password'] ?? '')];
     $quick = post_enum('quick_invite', ['parent' => 1, 'student' => 1], '');
     if ($quick) {
         // Bouton « Envoyer » : seul l'e-mail de cette personne est obligatoire, le reste peut être complété plus tard
         $modes[$quick] = 'invite';
         $other = $quick === 'parent' ? 'student' : 'parent';
-        $filled = $modes[$other] === 'invite' ? $v["{$other}_email"] !== '' : ($v["{$other}_username"] !== '' && $pw[$other] !== '');
+        $filled = $modes[$other] === 'none' ? false : ($modes[$other] === 'invite' ? $v["{$other}_email"] !== '' : ($v["{$other}_username"] !== '' && $pw[$other] !== ''));
         if (!$filled) $modes[$other] = 'none';
         if ($v['student_first_name'] === '') $v['student_first_name'] = 'Élève (à compléter)';
         if ($v['family_name'] === '') $v['family_name'] = 'Dossier ' . (strstr($v["{$quick}_email"], '@', true) ?: 'sans nom');

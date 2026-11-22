@@ -1135,3 +1135,4 @@ body.page-t .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--
 
 .wl-perms{padding:14px 16px;border:1px solid var(--beige);border-radius:12px;display:flex;flex-direction:column;gap:8px}
 .wl-perms .ql{display:block;margin-bottom:2px}.wl-perms .check{align-items:flex-start}.wl-perms .check input{margin-top:3px}.wl-perms p{margin:2px 0 0}
+.later-note{margin:10px 0 0}
