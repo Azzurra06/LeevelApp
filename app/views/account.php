@@ -20,31 +20,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
 <div class="page-head"><div><h1><?= icon('settings') ?> Mon compte</h1><p><?= e(ROLE_LABELS[$u['role']]) ?> · identifiant <code><?= e($u['username']) ?></code></p></div></div>
 
 <div class="grid-2 align-start">
-    <div class="card">
-      <h2><?= icon('user') ?> Photo de profil</h2>
-      <div class="avatar-edit">
-        <?= avatar_html($full, 'lg') ?>
-        <?php if ($canPhoto): ?>
-        <div class="stack">
-          <form method="post" enctype="multipart/form-data" class="row" data-avatar-form><?= csrf_field() ?><input type="hidden" name="action" value="avatar">
-            <label class="btn soft sm file-btn"><?= icon('download') ?> Choisir une photo<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required data-crop-input></label>
-          </form>
-          <?php if (!empty($full['avatar'])): ?><form method="post" data-confirm="Supprimer la photo ?"><?= csrf_field() ?><input type="hidden" name="action" value="avatar_remove"><button class="btn ghost sm"><?= icon('trash-2') ?> Supprimer</button></form><?php endif ?>
-          <p class="muted"><small>JPEG, PNG ou WebP, 4 Mo maximum. Vous pourrez recadrer la photo avant l'envoi.</small></p>
-        </div>
-        <?php else: ?><p class="muted"><small>C'est ton parent qui gère ta photo de profil.</small></p><?php endif ?>
-      </div>
-      <?php if ($canPhoto): ?>
-      <div class="cropper" data-cropper hidden>
-        <div class="crop-stage" data-crop-stage><canvas width="320" height="320" data-crop-canvas></canvas><div class="crop-mask"></div></div>
-        <label class="crop-zoom"><?= icon('eye') ?> Zoom<input type="range" min="1" max="4" step="0.01" value="1" data-crop-zoom></label>
-        <p class="muted"><small>Faites glisser l'image pour la placer dans le cercle.</small></p>
-        <div class="row"><button type="button" class="btn sm" data-crop-save><?= icon('save') ?> Enregistrer la photo</button><button type="button" class="btn ghost sm" data-crop-cancel>Annuler</button></div>
-      </div>
-      <?php endif ?>
-    </div>
-
-    <div class="card editable">
+    <div class="card editable acc-l">
       <div class="ed-head"><h2><?= icon('message-circle') ?> Mes coordonnées</h2><?= $canContacts ? $editBtn() : '' ?></div>
       <dl class="fields view">
         <div class="wide"><dt>Nom affiché</dt><dd><?= $val($full['display_name']) ?></dd></div>
@@ -70,7 +46,31 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       <?php endif ?>
     </div>
 
-    <div class="card editable">
+    <div class="card acc-r">
+      <h2><?= icon('user') ?> Photo de profil</h2>
+      <div class="avatar-edit">
+        <?= avatar_html($full, 'lg') ?>
+        <?php if ($canPhoto): ?>
+        <div class="stack">
+          <form method="post" enctype="multipart/form-data" class="row" data-avatar-form><?= csrf_field() ?><input type="hidden" name="action" value="avatar">
+            <label class="btn soft sm file-btn"><?= icon('download') ?> Choisir une photo<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required data-crop-input></label>
+          </form>
+          <?php if (!empty($full['avatar'])): ?><form method="post" data-confirm="Supprimer la photo ?"><?= csrf_field() ?><input type="hidden" name="action" value="avatar_remove"><button class="btn ghost sm"><?= icon('trash-2') ?> Supprimer</button></form><?php endif ?>
+          <p class="muted"><small>JPEG, PNG ou WebP, 4 Mo maximum. Vous pourrez recadrer la photo avant l'envoi.</small></p>
+        </div>
+        <?php else: ?><p class="muted"><small>C'est ton parent qui gère ta photo de profil.</small></p><?php endif ?>
+      </div>
+      <?php if ($canPhoto): ?>
+      <div class="cropper" data-cropper hidden>
+        <div class="crop-stage" data-crop-stage><canvas width="320" height="320" data-crop-canvas></canvas><div class="crop-mask"></div></div>
+        <label class="crop-zoom"><?= icon('eye') ?> Zoom<input type="range" min="1" max="4" step="0.01" value="1" data-crop-zoom></label>
+        <p class="muted"><small>Faites glisser l'image pour la placer dans le cercle.</small></p>
+        <div class="row"><button type="button" class="btn sm" data-crop-save><?= icon('save') ?> Enregistrer la photo</button><button type="button" class="btn ghost sm" data-crop-cancel>Annuler</button></div>
+      </div>
+      <?php endif ?>
+    </div>
+
+    <div class="card editable acc-l">
       <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
       <dl class="fields view">
         <div><dt>Identifiant</dt><dd><code><?= e($u['username']) ?></code></dd></div>
@@ -122,7 +122,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
     <?php endif ?>
 
     <?php if ($isTutor): $aiKey = ai_api_key(); $aiFromConfig = (string)(config('anthropic_api_key') ?? '') !== ''; ?>
-    <div class="card editable span-2">
+    <div class="card editable acc-r">
       <div class="ed-head"><h2><?= icon('sparkles') ?> Intelligence artificielle</h2><?= $aiFromConfig ? '' : $editBtn($aiKey ? 'Changer la clé' : 'Ajouter une clé') ?></div>
       <div class="view">
         <p><?= $aiKey ? '<span class="badge ok">Activée</span> Clé enregistrée (se termine par <code>…' . e(substr($aiKey, -4)) . '</code>)' . ($aiFromConfig ? ', définie dans le fichier de configuration du serveur.' : '.') : '<span class="badge">Non configurée</span>' ?></p>
