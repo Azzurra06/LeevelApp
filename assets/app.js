@@ -13,6 +13,8 @@
     const m = e.target.dataset.confirm || e.submitter?.dataset.confirm;
     if (m && !confirm(m)) e.preventDefault();
   });
+  // Case « Autre » : affiche le champ associé
+  $$('input[data-reveal]').forEach(cb => cb.addEventListener('change', () => { const t = document.querySelector(cb.dataset.reveal); if (t) { t.hidden = !cb.checked; if (cb.checked) t.focus(); else t.value = ''; } }));
   // Parcours d'accueil : volets affichés selon les cases cochées
   $$('[data-wish-mode]').forEach(r => r.addEventListener('change', () => { const b = document.querySelector('[data-wish-mode-box]'); if (b) b.hidden = r.value !== 'other'; }));
   $$('[data-wish-subj],[data-wish-other]').forEach(cb => cb.addEventListener('change', () => {

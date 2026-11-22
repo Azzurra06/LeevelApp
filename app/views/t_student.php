@@ -290,11 +290,9 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
       <details <?= $rep ? '' : 'open' ?>><summary><?= $rep ? 'Modifier le bilan' : 'Rédiger le bilan' ?></summary>
         <form method="post" action="<?= e(url('t_report')) ?>" class="stack"><?= $hidden() ?><input type="hidden" name="session_id" value="<?= (int)$se['id'] ?>">
           <?php $chosen = report_subjects($rep); $choices = report_subject_choices((int)$s['id']); $others = array_diff($chosen, $choices, REPORT_TOPICS); ?>
-          <div class="subj-pick"><span class="ql">Matières abordées</span>
-            <div class="pills sm"><?php foreach ($choices as $x): ?><label class="pill"><input type="checkbox" name="subjects[]" value="<?= e($x) ?>" <?= in_array($x, $chosen, true) ? 'checked' : '' ?>><span><?= e($x) ?></span></label><?php endforeach ?></div>
-            <span class="ql">Et aussi</span>
-            <div class="pills sm"><?php foreach (REPORT_TOPICS as $x): ?><label class="pill topic"><input type="checkbox" name="subjects[]" value="<?= e($x) ?>" <?= in_array($x, $chosen, true) ? 'checked' : '' ?>><span><?= e($x) ?></span></label><?php endforeach ?></div>
-            <input name="subjects_other" maxlength="200" value="<?= e(implode(', ', $others)) ?>" placeholder="Autre (séparer par des virgules)" aria-label="Autre matière ou thème">
+          <div class="subj-pick"><span class="ql">Matières / sujets abordés</span>
+            <div class="pills sm"><?php foreach ($choices as $x): ?><label class="pill"><input type="checkbox" name="subjects[]" value="<?= e($x) ?>" <?= in_array($x, $chosen, true) ? 'checked' : '' ?>><span><?= e($x) ?></span></label><?php endforeach ?><?php foreach (REPORT_TOPICS as $x): ?><label class="pill topic"><input type="checkbox" name="subjects[]" value="<?= e($x) ?>" <?= in_array($x, $chosen, true) ? 'checked' : '' ?>><span><?= e($x) ?></span></label><?php endforeach ?><label class="pill"><input type="checkbox" data-reveal="#autre-<?= (int)$se['id'] ?>" <?= $others ? 'checked' : '' ?>><span>Autre</span></label></div>
+            <input id="autre-<?= (int)$se['id'] ?>" name="subjects_other" maxlength="200" value="<?= e(implode(', ', $others)) ?>" placeholder="Précisez (séparez par des virgules)" aria-label="Autre matière ou sujet" <?= $others ? '' : 'hidden' ?>>
           </div>
           <label>Ce qu'on a travaillé <span class="q-hint"><?= icon('eye') ?> visible par l'élève</span><textarea name="worked_on" maxlength="3000" rows="2"><?= e($rep['worked_on'] ?? '') ?></textarea></label>
           <label><?= icon('lock') ?> Note pour moi (privée)<textarea name="tutor_note" maxlength="3000" rows="2"><?= e($rep['tutor_note'] ?? '') ?></textarea></label>

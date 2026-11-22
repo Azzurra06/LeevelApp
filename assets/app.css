@@ -1142,3 +1142,4 @@ body.page-t .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--
 .missing-acc .seg{align-self:flex-start}
 .missing-acc p{margin:0}
 .missing-acc .form-grid label{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:0}
+.subj-pick .pill.topic input:checked+span{background:var(--accent-d);border-color:var(--accent-d)}
