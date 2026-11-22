@@ -125,14 +125,13 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
       <?php if ($se['id']): ?><button class="btn ghost" name="delete" value="1" data-confirm="Supprimer cette séance ?"><?= icon('trash-2') ?> Supprimer</button><?php endif ?></div>
   </form>
 <?php }; ?>
+<?php $scheduleEdit = true; if (schedule_available()) require __DIR__ . '/_schedule_card.php'; ?>
 <div class="card"><div class="row between"><h2><?= icon('calendar') ?> Séances · <?= fdur(array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' ? (int)$x['duration_min'] : 0, $sessions))) ?> au total</h2>
-  <div class="row"><button class="btn ghost" data-toggle="genplan"><?= icon('sparkles') ?> Générer le plan</button><button class="btn" data-toggle="newsess"><?= icon('plus') ?> Ajouter</button></div></div>
+  <div class="row"><button class="btn" data-toggle="newsess"><?= icon('plus') ?> Ajouter une séance</button></div></div>
   <div id="newsess" hidden><?php $sessForm(null) ?></div>
   <?php $calView = ($_GET['view'] ?? '') === 'cal'; ?>
   <div class="seg" role="tablist"><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>" class="<?= $calView ? '' : 'on' ?>"><?= icon('list-checks') ?> Liste</a><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances', 'view' => 'cal'])) ?>" class="<?= $calView ? 'on' : '' ?>"><?= icon('calendar') ?> Calendrier</a></div>
-  <div id="genplan" hidden><form method="post" action="<?= e(url('t_plan')) ?>" class="row"><?= $hidden() ?><input type="hidden" name="back" value="t_student">
-    <label>Lundi de la semaine 1<input type="date" name="start" required value="<?= e((new DateTime('next monday'))->format('Y-m-d')) ?>"></label>
-    <label class="check"><input type="checkbox" name="replace" value="1"> Remplacer les séances prévues du plan</label><label class="check"><input type="checkbox" name="with_goals" value="1"> + objectifs suggérés</label><button class="btn">Générer</button></form></div></div><br>
+</div><br>
 <?php if ($calView): $calBase = url('t_student', $sidp + ['tab' => 'seances']); ?><div class="card"><?php require __DIR__ . '/_calendar.php' ?></div><?php else: ?>
 <?php foreach ($sessions as $se): $notes = all('SELECT * FROM session_notes WHERE session_id=? ORDER BY id DESC', [$se['id']]); ?>
   <div class="card" id="sess-<?= (int)$se['id'] ?>"><div class="row between"><h3><?= icon($se['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(fdatetime($se['starts_at'])) ?> · <?= fdur((int)$se['duration_min']) ?> · <?= e(MODES[$se['mode']]) ?></h3>

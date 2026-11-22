@@ -43,7 +43,6 @@ $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
           <form method="post" action="<?= $act() ?>" class="chap-form"><?= $h(['action' => 'chapter_save', 'chapter_id' => $c['id']]) ?>
             <input name="title" value="<?= e($c['title']) ?>" maxlength="160" aria-label="Titre du chapitre">
             <select name="status" aria-label="Niveau"><?php foreach (CHAPTER_STATUS as $k => $l): ?><option value="<?= $k ?>" <?= $c['status'] === $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach ?></select>
-            <label class="check"><input type="checkbox" name="is_current" value="1" <?= $c['is_current'] ? 'checked' : '' ?>> En cours</label>
             <button class="btn ghost sm" title="Enregistrer"><?= icon('save') ?></button>
           </form>
           <details class="quiz-admin" id="quiz-<?= (int)$c['id'] ?>"><summary><?= icon('brain') ?> Quiz · <?= count($qs) ?> question<?= count($qs) > 1 ? 's' : '' ?><?= $att ? ' · dernier essai ' . (int)$att['score'] . '/' . (int)$att['total'] : '' ?></summary>

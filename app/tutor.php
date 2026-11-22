@@ -144,15 +144,16 @@ function tutor_route(string $r, bool $isPost): never
                     break;
                 case 'chapter_add':
                     if ($subject && post_str('title', 160) !== '') {
-                        q('INSERT INTO subject_chapters (subject_id, title, status) VALUES (?,?,?)', [$subject['id'], post_str('title', 160), post_enum('status', CHAPTER_STATUS, 'in_progress')]);
+                        $st = post_enum('status', CHAPTER_STATUS, 'in_progress');
+                        q('INSERT INTO subject_chapters (subject_id, title, status, is_current) VALUES (?,?,?,?)', [$subject['id'], post_str('title', 160), $st, (int)($st === 'in_progress')]);
                         flash('Chapitre ajouté.');
                     }
                     break;
                 case 'chapter_save':
                     if ($chapter) {
-                        $isCur = !empty($_POST['is_current']);
-                        if ($isCur) q('UPDATE subject_chapters SET is_current=0 WHERE subject_id=?', [$chapter['subject_id']]);
-                        q('UPDATE subject_chapters SET title=?, status=?, is_current=? WHERE id=?', [post_str('title', 160) ?: $chapter['title'], post_enum('status', CHAPTER_STATUS, $chapter['status']), (int)$isCur, $chapter['id']]);
+                        // le chapitre « en cours » est celui dont le niveau est « En cours »
+                        $st = post_enum('status', CHAPTER_STATUS, $chapter['status']);
+                        q('UPDATE subject_chapters SET title=?, status=?, is_current=? WHERE id=?', [post_str('title', 160) ?: $chapter['title'], $st, (int)($st === 'in_progress'), $chapter['id']]);
                         flash('Chapitre mis à jour.');
                     }
                     break;
@@ -299,6 +300,27 @@ function tutor_route(string $r, bool $isPost): never
                 flash('Observation ajoutée' . ($adj ? ' - analyse recalculée.' : '.'));
             }
             $back('analyse');
+
+        case 't_schedule':
+            if (!$isPost || !schedule_available()) redirect('t_student', ['sid' => $sid, 'tab' => 'seances']);
+            [$sched, $err] = schedule_from_post();
+            if ($err) { flash($err, 'err'); redirect('t_student', ['sid' => $sid, 'tab' => 'seances']); }
+            q('UPDATE students SET schedule_json=? WHERE id=?', [json_encode($sched, JSON_UNESCAPED_UNICODE), $sid]);
+            $msg = 'Rythme enregistré : ' . fdur(schedule_minutes_per_week($sched)) . ' par semaine.';
+            if (!empty($_POST['generate'])) {
+                $n = schedule_generate($s, $u, $sched, !empty($_POST['replace']), !empty($_POST['with_goals']));
+                $msg .= " $n séance" . ($n > 1 ? 's' : '') . ' ajoutée' . ($n > 1 ? 's' : '') . ' au planning.';
+            }
+            if (!empty($_POST['notify'])) {
+                send_message((int)$s['family_id'], $u, "Voici le rythme des séances de {$s['first_name']}, comme convenu :\n\n• " . implode("\n• ", schedule_lines($sched))
+                    . "\n\nSoit " . fdur(schedule_minutes_per_week($sched)) . ' par semaine, pendant ' . (int)$sched['weeks'] . ' semaine' . ((int)$sched['weeks'] > 1 ? 's' : '') . ', à partir du ' . fdate($sched['start']) . '.'
+                    . ($sched['note'] !== '' ? "\n\nÀ noter : " . $sched['note'] : '') . "\n\nToutes les séances sont visibles dans « Planning ».");
+                $msg .= ' Le parent a reçu le récapitulatif.';
+            }
+            audit('schedule_saved', null, (int)$s['family_id']);
+            flash($msg);
+            header('Location: ' . url('t_student', ['sid' => $sid, 'tab' => 'seances']) . '#rythme', true, 303);
+            exit;
 
         case 't_plan':
             if (!$isPost) $back();

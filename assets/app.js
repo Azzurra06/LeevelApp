@@ -194,6 +194,18 @@
   $$('[data-ai-form]').forEach(f => f.addEventListener('submit', () => {
     const b = $('.ai-btn', f); b.disabled = true; b.classList.add('loading'); $('span', b).textContent = 'Génération en cours… (jusqu\'à 1 min)';
   }));
+  // Rythme des séances : ajouter / retirer un créneau, total hebdomadaire en direct
+  $$('[data-sched-rows]').forEach(box => {
+    const form = box.closest('form'), out = $('[data-sched-total]', form);
+    const total = () => { const m = $$('select[name="slot_duration[]"]', box).reduce((a, s) => a + (+s.value || 0), 0); const n = $$('[data-sched-row]', box).length;
+      if (out) out.textContent = n + ' créneau' + (n > 1 ? 'x' : '') + ' · ' + Math.floor(m / 60) + 'h' + (m % 60 ? String(m % 60).padStart(2, '0') : '') + ' par semaine'; };
+    form.addEventListener('click', e => {
+      if (e.target.closest('[data-sched-add]')) { const rows = $$('[data-sched-row]', box); const c = rows[rows.length - 1].cloneNode(true); box.appendChild(c); total(); }
+      const del = e.target.closest('[data-sched-del]');
+      if (del) { const rows = $$('[data-sched-row]', box); if (rows.length > 1) del.closest('[data-sched-row]').remove(); total(); }
+    });
+    form.addEventListener('change', total); total();
+  });
   // Dépôt de fichier : envoi dès que le fichier est choisi
   $$('[data-autosubmit-file]').forEach(i => i.addEventListener('change', () => { if (i.files.length) { const l = i.closest('label'); if (l) l.classList.add('loading'); i.form.submit(); } })); // partout : ordre gauche → droite, hauteurs libres
 

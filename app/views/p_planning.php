@@ -8,4 +8,5 @@ $total = array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' ? (int)$x['d
   <div class="card stat"><span class="muted">Séances réalisées</span><strong><?= $done ?> / <?= count(array_filter($sessions, fn($x) => $x['status'] !== 'cancelled')) ?></strong></div>
   <div class="card stat"><span class="muted">Volume prévu</span><strong><?= fdur($total) ?></strong></div>
 </div><br>
+<?php $scheduleEdit = false; if (schedule_available() && schedule_of($s)) require __DIR__ . '/_schedule_card.php'; ?>
 <div class="card"><?php require __DIR__ . '/_planning.php' ?></div>

@@ -712,3 +712,18 @@ main.wrap>h2 .ic{color:var(--accent-d)}
 .month-alert{margin:0 0 16px}
 .month-form>*+*{margin-top:14px}
 .field-help{display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin:2px 0 0;line-height:1.35}
+
+/* Rythme convenu avec la famille */
+.sched-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.sched-total{background:var(--bg);border:1px solid var(--beige);border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.sched-total strong{font-size:1.3rem;color:var(--accent-d);line-height:1.2}.sched-total small{color:var(--muted)}
+.sched-slots{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.sched-slots li{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--beige);flex-wrap:wrap}.sched-slots li:first-child{border-top:0}
+.sched-day{font-weight:650;min-width:90px}.sched-slots .badge{margin-left:auto}.sched-slots .badge .ic{width:.9em;height:.9em}
+.sched-note{margin:12px 0 0;display:flex;gap:6px;align-items:flex-start;color:var(--taupe-d)}.sched-note .ic{color:var(--accent-d);margin-top:3px}
+.sched-rows{display:flex;flex-direction:column;gap:8px}
+.sched-row{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.2fr auto;gap:8px;align-items:end;padding:10px;border:1px solid var(--beige);border-radius:12px;background:var(--bg)}
+.sched-row label{font-size:.82rem}.sched-row input,.sched-row select{margin-top:3px}.sched-row [data-sched-del]{margin-bottom:6px}
+.sched-live{font-size:.88rem}.sched-opts{display:flex;flex-direction:column;gap:8px}.sched-opts legend{font-size:.88rem}
+@media (max-width:720px){.sched-row{grid-template-columns:1fr 1fr}.sched-row [data-sched-del]{grid-column:2;justify-self:end}}
+.acct-btn{white-space:nowrap}
