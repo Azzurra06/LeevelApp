@@ -1072,3 +1072,11 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .acct-menu form .acct-out:hover{color:var(--err);background:var(--err-l)}.acct-menu form .acct-out:hover .ic{color:var(--err)}
 .acct-menu form:has(.acct-switch),.acct-menu form:has(.acct-out)+form:has(.acct-out){border-top:0;margin-top:0;padding-top:0}
 .acct-menu .acct-switch{gap:8px}.acct-switch .avatar{width:22px;height:22px;font-size:.66rem}
+
+/* Cartes d'accès : marque discrète au-dessus, séparée du titre */
+.auth-brand{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--beige)}
+.auth-brand .logo{font-size:1.3rem}
+.auth-brand small{color:var(--muted);font-size:.8rem}
+.auth-card h1{margin:0 0 8px}
+.auth-card .login-add-h{margin-top:0;padding-top:0;border-top:0}
+.auth-card h1+p.muted{margin:0 0 18px}

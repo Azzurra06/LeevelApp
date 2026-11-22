@@ -1,6 +1,6 @@
 <?php $title = 'Créer mon compte'; $isParent = $inv['role'] === 'parent'; ?>
 <div class="card auth-card">
-  <span class="logo logo-lg">leevel<span>.app</span></span>
+  <div class="auth-brand"><span class="logo">leevel<span>.app</span></span><small>Suivi et accompagnement scolaire personnalisé</small></div>
   <h1><?= $isParent ? 'Bienvenue !' : 'Salut ' . e($inv['display_name']) . ' 👋' ?></h1>
   <p class="muted"><?= $isParent
       ? 'Créez votre compte pour suivre l\'accompagnement scolaire de ' . e(kid($inv['first_name'])) . '.'

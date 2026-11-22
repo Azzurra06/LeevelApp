@@ -1,6 +1,6 @@
 <?php $title = 'Connexion' ?>
 <div class="card auth-card">
-  <div class="row"><span class="brand"><span class="logo logo-lg">leevel<span>.app</span></span></span></div><p class="muted">Suivi et accompagnement scolaire personnalisé</p>
+  <div class="auth-brand"><span class="logo">leevel<span>.app</span></span><small>Suivi et accompagnement scolaire personnalisé</small></div>
   <h1 class="<?= !empty($adding) ? 'login-add-h' : '' ?>"><?= !empty($adding) ? 'Ajouter un compte' : 'Connexion' ?></h1>
   <?php if (!empty($adding)): ?><p class="muted">Connectez un autre compte (parent, élève…) : vous pourrez ensuite passer de l'un à l'autre depuis le menu « Mon compte », sans vous reconnecter.</p><?php endif ?>
   <?php if ($err): ?><p class="alert err"><?= e($err) ?></p><?php endif ?>
