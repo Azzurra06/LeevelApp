@@ -147,13 +147,30 @@
 
   // ---------- Grille masonry (gauche à droite) ----------
   const masonry = grid => {
-    const ROW = 4, GAP = 16;
+    const GAP = 16; // lignes de grille de 1 px : placement au pixel près
     grid.classList.add('js-masonry');
-    const fit = () => [...grid.children].forEach(c => {
-      c.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil((c.getBoundingClientRect().height + GAP) / ROW));
-    });
+    let busy = false;
+    const fit = () => {
+      if (busy) return; busy = true;
+      const items = [...grid.children].filter(c => c.offsetParent !== null);
+      items.forEach(c => { c.style.alignSelf = 'start'; });
+      items.forEach(c => { c.style.gridRowEnd = 'span ' + Math.max(1, Math.round(c.getBoundingClientRect().height + GAP)); });
+      // Bas de grille aligné : la dernière carte de chaque colonne plus courte s'allonge jusqu'au bas de la plus haute
+      // (par tronçon : une carte pleine largeur « span-2 » commence un nouveau tronçon)
+      const segments = [[]];
+      items.forEach(c => { if (c.classList.contains('span-2')) segments.push([]); else segments[segments.length - 1].push(c); });
+      segments.forEach(seg => {
+        const cols = {};
+        seg.forEach(c => { const r = c.getBoundingClientRect(); const k = Math.round(r.left); if (!cols[k] || r.bottom > cols[k].b) cols[k] = { el: c, b: r.bottom }; });
+        const keys = Object.keys(cols);
+        if (keys.length < 2) return;
+        const max = Math.max(...keys.map(k => cols[k].b));
+        keys.forEach(k => { const { el, b } = cols[k]; if (max - b > 1) { el.style.gridRowEnd = 'span ' + Math.round(el.getBoundingClientRect().height + GAP + (max - b)); el.style.alignSelf = 'stretch'; } });
+      });
+      requestAnimationFrame(() => { busy = false; });
+    };
     fit();
-    if ('ResizeObserver' in window) { const ro = new ResizeObserver(fit); [...grid.children].forEach(c => ro.observe(c)); }
+    if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => requestAnimationFrame(fit)); [...grid.children].forEach(c => ro.observe(c)); }
     window.addEventListener('resize', fit);
   };
   $$('.grid:not(.stat-grid), .grid-2').forEach(masonry);

@@ -300,7 +300,7 @@ body.student .bar>i{background:linear-gradient(90deg,#7c5cff,#b39cff)}
 
 /* Masonry horizontal : ordre de gauche à droite, chaque carte garde sa hauteur */
 .grid,.grid-2{align-items:start}
-.js-masonry{grid-auto-rows:4px;row-gap:0!important;margin-bottom:-16px}
+.js-masonry{grid-auto-rows:1px;row-gap:0!important;margin-bottom:-16px}
 .js-masonry>*{margin-bottom:16px}
 
 /* Élève : blocs colorés et visuels */
@@ -640,3 +640,12 @@ body.student .s-badges h2{margin:0}
   .page-head .row.fiche-actions .btn{flex:0 0 auto;width:auto;min-height:36px}
   .page-head:has(.fiche-actions){align-items:center;flex-wrap:nowrap}
 }
+
+/* Espacement vertical homogène : 16 px entre tous les blocs d'une page */
+main.wrap{display:flex;flex-direction:column;gap:16px}
+main.wrap>br{display:none}
+main.wrap>*{min-width:0}
+main.wrap>*:not(.js-masonry){margin-top:0!important;margin-bottom:0!important}
+main.wrap>.js-masonry{margin-top:0!important}
+main.wrap>.btn,main.wrap>.seg,main.wrap>a.card-link{align-self:flex-start}
+main.wrap>.page-head{margin-bottom:4px!important}
