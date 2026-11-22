@@ -170,10 +170,16 @@
       requestAnimationFrame(() => { busy = false; });
     };
     fit();
-    if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => requestAnimationFrame(fit)); [...grid.children].forEach(c => ro.observe(c)); }
+    refitters.push(fit);
+    // une carte étirée ne change pas de taille quand son contenu grandit : on observe aussi son contenu
+    if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => requestAnimationFrame(fit)); [...grid.children].forEach(c => { ro.observe(c); [...c.children].forEach(x => ro.observe(x)); }); }
     window.addEventListener('resize', fit);
   };
+  const refitters = [];
+  const refitAll = () => requestAnimationFrame(() => refitters.forEach(f => f()));
   $$('.grid:not(.stat-grid), .grid-2:not(.two-cols)').forEach(masonry);
+  document.addEventListener('click', e => { if (e.target.closest('[data-edit], [data-toggle], summary, [data-view]')) { refitAll(); setTimeout(refitAll, 60); } });
+  document.addEventListener('toggle', refitAll, true);
   // Retour sur un bloc précis après enregistrement : on rouvre les volets qui le contiennent
   if (location.hash.length > 1) {
     const tgt = document.getElementById(decodeURIComponent(location.hash.slice(1)));
