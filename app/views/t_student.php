@@ -134,9 +134,9 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
 </div><br>
 <?php if ($calView): $calBase = url('t_student', $sidp + ['tab' => 'seances']); ?><div class="card"><?php require __DIR__ . '/_calendar.php' ?></div><?php else: ?>
 <?php foreach ($sessions as $se): $notes = all('SELECT * FROM session_notes WHERE session_id=? ORDER BY id DESC', [$se['id']]); ?>
-  <div class="card" id="sess-<?= (int)$se['id'] ?>"><div class="row between"><h3><?= icon($se['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(fdatetime($se['starts_at'])) ?> · <?= fdur((int)$se['duration_min']) ?> · <?= e(MODES[$se['mode']]) ?></h3>
+  <div class="card" id="sess-<?= (int)$se['id'] ?>"><div class="row between"><p class="sess-meta"><?= e(fdatetime($se['starts_at'])) ?> · <?= fdur((int)$se['duration_min']) ?> · <?= e(MODES[$se['mode']]) ?></p>
     <span class="badge <?= ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancelled' => 'err'][$se['status']] ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span></div>
-    <p><strong><?= e(session_label($se)) ?></strong></p><?php if ($se['objectives']): ?><p class="muted"><?= nl2br(e($se['objectives'])) ?></p><?php endif ?>
+    <h3 class="sess-title"><?= e(session_label($se)) ?></h3><?php if ($se['objectives']): ?><p class="muted"><?= nl2br(e($se['objectives'])) ?></p><?php endif ?>
     <?php foreach ($notes as $n): ?><p><small><?= icon($n['visibility'] === 'shared' ? 'users' : 'lock') ?> <?= nl2br(e($n['content'])) ?></small></p><?php endforeach ?>
     <?php if (strtotime($se['starts_at']) < time() && $se['status'] !== 'cancelled'): $rep = session_report((int)$se['id']); $fb = session_feedback_of((int)$se['id']); ?>
     <div class="report-box">

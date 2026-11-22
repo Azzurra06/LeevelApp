@@ -727,3 +727,5 @@ main.wrap>h2 .ic{color:var(--accent-d)}
 .sched-live{font-size:.88rem}.sched-opts{display:flex;flex-direction:column;gap:8px}.sched-opts legend{font-size:.88rem}
 @media (max-width:720px){.sched-row{grid-template-columns:1fr 1fr}.sched-row [data-sched-del]{grid-column:2;justify-self:end}}
 .acct-btn{white-space:nowrap}
+.sess-meta{margin:0;font-size:.88rem;color:var(--muted)}
+.sess-title{margin:4px 0 6px;font-size:1.02rem}
