@@ -5,7 +5,7 @@
 <?php foreach ($subjects as $sub): $acq = count(array_filter($sub['chapters'], fn($c) => $c['status'] === 'acquired')); $nc = count($sub['chapters']); ?>
 <div class="card pc-subj">
   <div class="row between"><h2><?= icon('book-open') ?> <?= e($sub['name']) ?></h2>
-    <div class="pc-avg"><?php if ($sub['avg'] !== null): ?><strong><?= fmt_grade($sub['avg']) ?>/20</strong> <span class="<?= $sub['trend'] > 0 ? 'up' : ($sub['trend'] < 0 ? 'down' : '') ?>"><?= $sub['trend'] > 0 ? '↗' : ($sub['trend'] < 0 ? '↘' : '') ?></span><small class="muted">moyenne</small><?php else: ?><small class="muted">Pas encore de note</small><?php endif ?></div></div>
+    <div class="pc-avg"><?php if ($sub['avg'] !== null): ?><strong><?= fmt_grade($sub['avg']) ?>/20</strong> <span class="<?= $sub['trend'] > 0 ? 'up' : ($sub['trend'] < 0 ? 'down' : '') ?>"><?= $sub['trend'] > 0 ? '↗' : ($sub['trend'] < 0 ? '↘' : '') ?></span><small class="muted">moyenne</small><?= start_avg_html($sub) ?><?php else: ?><small class="muted">Pas encore de note</small><?php endif ?></div></div>
   <div class="pc-cols">
     <div><span class="ql">Notes</span>
       <?php if (!$sub['grades']): ?><p class="muted"><small>Aucune note saisie.</small></p><?php else: ?>

@@ -223,6 +223,13 @@ function tutor_route(string $r, bool $isPost): never
                     $name = post_str('name', 80) ?: post_str('custom', 80);
                     if ($name !== '') { q('INSERT IGNORE INTO student_subjects (student_id, name, position) VALUES (?,?,?)', [$sid, $name, (int)(one('SELECT COUNT(*) n FROM student_subjects WHERE student_id=?', [$sid])['n'] ?? 0)]); flash("Matière « $name » ajoutée."); }
                     break;
+                case 'subject_start':
+                    if ($subject) {
+                        $v = str_replace(',', '.', trim((string)($_POST['start_avg'] ?? '')));
+                        $v = $v === '' ? null : max(0, min(20, round((float)$v, 2)));
+                        try { q('UPDATE student_subjects SET start_avg=? WHERE id=?', [$v, $subject['id']]); flash('Moyenne de départ enregistrée.'); } catch (PDOException) { flash('La base de données doit être mise à jour.', 'err'); }
+                    }
+                    break;
                 case 'subject_del':
                     if ($subject) { q('DELETE FROM student_subjects WHERE id=?', [$subject['id']]); flash('Matière retirée.'); $anchor = ''; }
                     break;

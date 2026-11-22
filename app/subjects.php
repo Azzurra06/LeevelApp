@@ -29,6 +29,20 @@ function subjects_of(int $studentId): array
     return $out;
 }
 
+/** Écart entre la moyenne actuelle et la moyenne de départ (null si l'une manque). */
+function avg_delta(array $sub): ?float
+{
+    return $sub['avg'] !== null && ($sub['start_avg'] ?? null) !== null ? round($sub['avg'] - (float)$sub['start_avg'], 2) : null;
+}
+/** « Départ 9,5 → 12,13 (+2,63) » */
+function start_avg_html(array $sub): string
+{
+    if (($sub['start_avg'] ?? null) === null) return '';
+    $d = avg_delta($sub);
+    return '<span class="start-avg">Départ <strong>' . fmt_grade((float)$sub['start_avg']) . '</strong>/20'
+        . ($d !== null ? ' <span class="' . ($d > 0 ? 'up' : ($d < 0 ? 'down' : '')) . '">' . ($d > 0 ? '+' : '') . fmt_grade($d) . '</span>' : '') . '</span>';
+}
+
 /** Moyenne pondérée ramenée sur 20 (null sans note). */
 function grades_average(array $grades): ?float
 {

@@ -49,7 +49,7 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
   <div class="card" id="notes">
     <h2><?= icon('chart-column') ?> Mes notes</h2>
     <div class="avg-row">
-      <div class="avg-big"><strong><?= fmt_grade($cur['avg']) ?></strong><small>/20 de moyenne</small></div>
+      <div class="avg-big"><strong><?= fmt_grade($cur['avg']) ?></strong><small>/20 de moyenne</small></div><?= start_avg_html($cur) ?>
       <?php if ($cur['trend']): ?><span class="trend <?= $cur['trend'] > 0 ? 'up' : 'down' ?>"><?= $cur['trend'] > 0 ? '↗ En progrès' : '↘ En baisse' ?></span><?php endif ?>
     </div>
     <?= grades_sparkline($cur['grades']) ?>

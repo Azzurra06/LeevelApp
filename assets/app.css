@@ -1151,3 +1151,9 @@ body.page-t .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--
 .subj-tab:hover{border-color:var(--accent);color:var(--accent-d)}
 .subj-tab.on{background:var(--accent-d);border-color:var(--accent-d);color:#fff}.subj-tab.on small{background:rgba(255,255,255,.2);color:#fff}
 .subj-panes{display:flex;flex-direction:column}
+
+/* Moyenne de départ */
+.start-avg{display:inline-flex;align-items:baseline;gap:5px;font-size:.85rem;color:var(--muted);background:var(--bg);border-radius:999px;padding:4px 10px}
+.start-avg strong{color:var(--ink)}.start-avg .up{color:#2f8a57;font-weight:700}.start-avg .down{color:#c0392b;font-weight:700}
+.start-form{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+.start-form label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;max-width:160px}.start-form .muted{padding-bottom:10px}

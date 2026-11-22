@@ -28,7 +28,10 @@ $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
     <div class="row between"><h2><?= icon('book-open') ?> <?= e($sub['name']) ?></h2>
       <form method="post" action="<?= $act() ?>" data-confirm="Retirer cette matière, ses notes et ses chapitres ?"><?= $h(['action' => 'subject_del', 'subject_id' => $sub['id']]) ?><button class="edit-btn" title="Retirer la matière" aria-label="Retirer la matière"><?= icon('trash-2') ?></button></form></div>
     <div class="avg-row"><div class="avg-big"><strong><?= fmt_grade($sub['avg']) ?></strong><small>/20 · <?= count($sub['grades']) ?> note<?= count($sub['grades']) > 1 ? 's' : '' ?></small></div>
-      <?php if ($sub['trend']): ?><span class="trend <?= $sub['trend'] > 0 ? 'up' : 'down' ?>"><?= $sub['trend'] > 0 ? '↗ En progrès' : '↘ En baisse' ?></span><?php endif ?></div>
+      <?= start_avg_html($sub) ?><?php if ($sub['trend']): ?><span class="trend <?= $sub['trend'] > 0 ? 'up' : 'down' ?>"><?= $sub['trend'] > 0 ? '↗ En progrès' : '↘ En baisse' ?></span><?php endif ?></div>
+    <form method="post" action="<?= $act() ?>" class="start-form"><?= $h(['action' => 'subject_start', 'subject_id' => $sub['id']]) ?>
+      <label>Moyenne de départ<input name="start_avg" inputmode="decimal" value="<?= ($sub['start_avg'] ?? null) !== null ? e(fmt_grade((float)$sub['start_avg'])) : '' ?>" placeholder="ex. 9,5"></label><span class="muted">/20</span>
+      <button class="btn ghost sm"><?= icon('save') ?> Enregistrer</button></form>
     <?= grades_sparkline($sub['grades']) ?>
 
     <details class="t-sub" id="notes-<?= (int)$sub['id'] ?>"><summary>Notes (<?= count($sub['grades']) ?>)</summary>
