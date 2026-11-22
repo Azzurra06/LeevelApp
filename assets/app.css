@@ -1036,3 +1036,10 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .del-family-form label{flex:1;min-width:200px;max-width:320px}
 .del-family-form .btn{margin-bottom:1px}
 .del-family p{margin:10px 0 0}
+
+/* Case de consentement (invitation) */
+.check.consent{display:flex;align-items:flex-start;gap:10px;line-height:1.5}
+.check.consent input{flex:none;margin-top:4px}
+.check.consent span{display:flex;flex-direction:column;gap:6px}
+.check.consent .consent-more{margin:0;font-size:.9rem;align-self:flex-start}
+.check.consent{margin:4px 0 6px}
