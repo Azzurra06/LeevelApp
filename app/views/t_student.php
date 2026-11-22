@@ -139,16 +139,20 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
     <?php endif ?>
     <label>Objectifs de la séance<textarea name="objectives" maxlength="3000"><?= e($se['objectives']) ?></textarea></label>
     <?php if ($se['id']): ?><div class="form-grid"><label>Ajouter une note de séance<textarea name="note" maxlength="3000"></textarea></label><label>Visibilité de la note<select name="note_visibility"><option value="private">Privée</option><option value="shared">Partagée</option></select></label></div><?php endif ?>
-    <div class="row"><button class="btn"><?= icon('save') ?> <?= $se['id'] ? 'Enregistrer' : 'Ajouter' ?></button>
+    <div class="row"><button class="btn"><?= icon('save') ?> <?= $se['id'] ? 'Enregistrer' : 'Ajouter la séance' ?></button><?php if (!$se['id']): ?><button type="button" class="btn ghost" data-toggle="newsess">Annuler</button><?php endif ?>
       <?php if ($se['id']): ?><button class="btn ghost" name="delete" value="1" data-confirm="Supprimer cette séance ?"><?= icon('trash-2') ?> Supprimer</button><?php endif ?></div>
   </form>
 <?php }; ?>
 <?php $scheduleEdit = true; if (schedule_available()) require __DIR__ . '/_schedule_card.php'; ?>
 <div class="card"><div class="row between"><h2><?= icon('calendar') ?> Séances · <?= fdur(array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' ? (int)$x['duration_min'] : 0, $sessions))) ?> au total</h2>
   <div class="row"><button class="btn" data-toggle="newsess"><?= icon('plus') ?> Ajouter une séance</button></div></div>
-  <div id="newsess" hidden><?php $sessForm(null) ?></div>
   <?php $calView = ($_GET['view'] ?? '') === 'cal'; ?>
   <div class="seg" role="tablist"><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances'])) ?>" class="<?= $calView ? '' : 'on' ?>"><?= icon('list-checks') ?> Liste</a><a href="<?= e(url('t_student', $sidp + ['tab' => 'seances', 'view' => 'cal'])) ?>" class="<?= $calView ? 'on' : '' ?>"><?= icon('calendar') ?> Calendrier</a></div>
+  <div id="newsess" class="new-panel" hidden>
+    <div class="row between new-panel-head"><h3><?= icon('plus') ?> Nouvelle séance</h3><button type="button" class="edit-btn" data-toggle="newsess" aria-label="Fermer"><?= icon('x') ?></button></div>
+    <p class="field-help">Pour une séance ponctuelle en dehors du rythme habituel (rattrapage, séance en plus avant un contrôle…).</p>
+    <?php $sessForm(null) ?>
+  </div>
 </div><br>
 <?php if ($calView): $calBase = url('t_student', $sidp + ['tab' => 'seances']); ?><div class="card"><?php require __DIR__ . '/_calendar.php' ?></div><?php else: ?>
 <?php foreach ($sessions as $se): $notes = all('SELECT * FROM session_notes WHERE session_id=? ORDER BY id DESC', [$se['id']]); ?>

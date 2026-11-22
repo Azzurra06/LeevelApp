@@ -740,3 +740,8 @@ main.wrap>h2 .ic{color:var(--accent-d)}
 .sess-status-info{margin:4px 0 8px;padding:8px 12px;border-radius:10px;background:var(--bg);font-size:.9rem}
 .sess-status-info p{margin:2px 0}.sess-status-info .ic{width:.95em;height:.95em;color:var(--accent-d)}
 @media (max-width:720px){.resched-row{grid-template-columns:1fr 1fr}.resched-row [data-resched-del]{grid-column:2;justify-self:end}}
+
+/* Ajout d'une séance ponctuelle */
+.new-panel{margin-top:14px;padding:16px;border:1px solid #d9cfff;border-radius:14px;background:#faf8ff}
+.new-panel-head h3{display:flex;align-items:center;gap:8px;margin:0}.new-panel-head h3 .ic{color:var(--accent-d)}
+.new-panel .field-help{margin:4px 0 12px}
