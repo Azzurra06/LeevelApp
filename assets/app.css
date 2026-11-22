@@ -1119,3 +1119,4 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 body.touring .top,body.touring header{z-index:205!important}body.touring .nav a:not(.tour-hl),body.touring .acct-btn:not(.tour-hl){opacity:.45}
 .child-h1{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.child-class{font-size:.9rem;padding:4px 12px;background:var(--accent-l);color:var(--accent-d)}
 .tour-pop .tour-btns{flex-wrap:nowrap}.tour-skip{background:none;border:0;padding:0;color:var(--muted);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer;white-space:nowrap}.tour-skip:hover{color:var(--accent-d)}
+.tour-pop .tour-step{margin-bottom:8px}.tour-pop h3{margin-top:0}
