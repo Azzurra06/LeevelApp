@@ -206,6 +206,26 @@
     });
     form.addEventListener('change', total); total();
   });
+  // Séance : champs selon le statut (raison, report)
+  $$('select[data-status-select]').forEach(sel => {
+    const form = sel.closest('form');
+    const apply = () => $$('[data-show-for]', form).forEach(el => { el.hidden = !el.dataset.showFor.split(' ').includes(sel.value); });
+    sel.addEventListener('change', apply); apply();
+  });
+  // Report découpable : ajouter / retirer un créneau, total comparé à la durée d'origine
+  $$('[data-resched]').forEach(box => {
+    const rows = $('[data-resched-rows]', box), out = $('[data-resched-total]', box), orig = +box.dataset.total || 0;
+    const fmt = m => Math.floor(m / 60) + 'h' + (m % 60 ? String(m % 60).padStart(2, '0') : '');
+    const total = () => { const filled = $$('[data-resched-row]', rows).filter(r => $('input[type=date]', r).value);
+      const m = filled.reduce((a, r) => a + (+$('input[type=number]', r).value || 0), 0);
+      if (out) out.textContent = filled.length ? fmt(m) + ' reprogrammé' + (m === orig ? '' : ' sur ' + fmt(orig)) : ''; };
+    box.addEventListener('click', e => {
+      if (e.target.closest('[data-resched-add]')) { const all = $$('[data-resched-row]', rows); const c = all[all.length - 1].cloneNode(true); $('input[type=date]', c).value = ''; rows.appendChild(c); total(); }
+      const del = e.target.closest('[data-resched-del]');
+      if (del) { const all = $$('[data-resched-row]', rows); if (all.length > 1) del.closest('[data-resched-row]').remove(); else $$('input[type=date]', rows).forEach(i => { i.value = ''; }); total(); }
+    });
+    box.addEventListener('input', total); total();
+  });
   // Dépôt de fichier : envoi dès que le fichier est choisi
   $$('[data-autosubmit-file]').forEach(i => i.addEventListener('change', () => { if (i.files.length) { const l = i.closest('label'); if (l) l.classList.add('loading'); i.form.submit(); } })); // partout : ordre gauche → droite, hauteurs libres
 

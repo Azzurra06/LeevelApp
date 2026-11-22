@@ -13,7 +13,7 @@ foreach ($sessions as $se) $byWeek[$se['week_no'] ? 'Semaine ' . $se['week_no'] 
     <li><?= icon($se['mode'] === 'visio' ? 'video' : 'map-pin') ?>
       <div><strong><?= e(fdatetime($se['starts_at'])) ?></strong> · <?= fdur((int)$se['duration_min']) ?> · <?= e(MODES[$se['mode']]) ?>
         <?php if ($se['status'] !== 'planned'): ?><span class="badge <?= $se['status'] === 'done' ? 'sage' : 'warn' ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span><?php endif ?>
-        <br><small class="muted"><?= e(session_label($se)) ?></small></div></li>
+        <br><small class="muted"><?= e(session_label($se)) ?><?= !empty($se['status_reason']) && in_array($se['status'], ['postponed', 'cancelled'], true) ? ' · ' . e($se['status_reason']) : '' ?><?= !empty($se['rescheduled_from']) ? ' · report' : '' ?></small></div></li>
   <?php endforeach ?>
   </ul>
 <?php endforeach ?>

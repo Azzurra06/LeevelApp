@@ -118,7 +118,25 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
       <label>Heure<input type="time" name="time" required value="<?= e(substr($se['starts_at'], 11, 5)) ?>"></label>
       <label>Durée (min)<input type="number" name="duration_min" min="15" max="600" step="15" value="<?= (int)$se['duration_min'] ?>"></label>
       <label>Format<select name="mode"><?php foreach (MODES as $k => $l): ?><option value="<?= $k ?>" <?= $se['mode'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label>
-      <label>Statut<select name="status"><?php foreach (SESSION_STATUS as $k => $l): ?><option value="<?= $k ?>" <?= $se['status'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label></div>
+      <label>Statut<select name="status" data-status-select><?php foreach (SESSION_STATUS as $k => $l): ?><option value="<?= $k ?>" <?= $se['status'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label></div>
+    <?php $isOff = in_array($se['status'], ['postponed', 'cancelled'], true); ?>
+    <label data-show-for="postponed cancelled"<?= $isOff ? '' : ' hidden' ?>>Raison<input name="status_reason" maxlength="500" value="<?= e($se['status_reason'] ?? '') ?>" placeholder="ex. élève malade, voyage scolaire, indisponibilité de la tutrice…"></label>
+    <?php if ($se['id']): ?>
+    <div class="resched" data-show-for="postponed"<?= $se['status'] === 'postponed' ? '' : ' hidden' ?> data-resched data-total="<?= (int)$se['duration_min'] ?>">
+      <span class="ql">Reporter à</span>
+      <p class="field-help">Une ou plusieurs dates : vous pouvez découper la séance (par exemple 30 min un jour, 30 min un autre). Chaque créneau devient une séance du planning.</p>
+      <div class="resched-rows" data-resched-rows>
+        <div class="resched-row" data-resched-row>
+          <label>Date<input type="date" name="rs_date[]"></label>
+          <label>Heure<input type="time" name="rs_time[]" value="<?= e(substr($se['starts_at'], 11, 5)) ?>"></label>
+          <label>Durée (min)<input type="number" name="rs_dur[]" min="15" max="600" step="15" value="<?= (int)$se['duration_min'] ?>"></label>
+          <label>Format<select name="rs_mode[]"><?php foreach (MODES as $k => $l): ?><option value="<?= $k ?>" <?= $se['mode'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label>
+          <button type="button" class="edit-btn" data-resched-del title="Retirer ce créneau" aria-label="Retirer ce créneau"><?= icon('trash-2') ?></button>
+        </div>
+      </div>
+      <div class="row between"><button type="button" class="btn ghost sm" data-resched-add><?= icon('plus') ?> Découper : ajouter un créneau</button><span class="muted resched-live" data-resched-total></span></div>
+    </div>
+    <?php endif ?>
     <label>Objectifs de la séance<textarea name="objectives" maxlength="3000"><?= e($se['objectives']) ?></textarea></label>
     <?php if ($se['id']): ?><div class="form-grid"><label>Ajouter une note de séance<textarea name="note" maxlength="3000"></textarea></label><label>Visibilité de la note<select name="note_visibility"><option value="private">Privée</option><option value="shared">Partagée</option></select></label></div><?php endif ?>
     <div class="row"><button class="btn"><?= icon('save') ?> <?= $se['id'] ? 'Enregistrer' : 'Ajouter' ?></button>
@@ -136,7 +154,15 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
 <?php foreach ($sessions as $se): $notes = all('SELECT * FROM session_notes WHERE session_id=? ORDER BY id DESC', [$se['id']]); ?>
   <div class="card" id="sess-<?= (int)$se['id'] ?>"><div class="row between"><p class="sess-meta"><?= e(fdatetime($se['starts_at'])) ?> · <?= fdur((int)$se['duration_min']) ?> · <?= e(MODES[$se['mode']]) ?></p>
     <span class="badge <?= ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancelled' => 'err'][$se['status']] ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span></div>
-    <h3 class="sess-title"><?= e(session_label($se)) ?></h3><?php if ($se['objectives']): ?><p class="muted"><?= nl2br(e($se['objectives'])) ?></p><?php endif ?>
+    <h3 class="sess-title"><?= e(session_label($se)) ?></h3>
+    <?php $from = !empty($se['rescheduled_from']) ? one('SELECT starts_at FROM sessions WHERE id=?', [$se['rescheduled_from']]) : null;
+      $kids = in_array($se['status'], ['postponed', 'cancelled'], true) && array_key_exists('rescheduled_from', $se) ? all('SELECT id, starts_at, duration_min, mode FROM sessions WHERE rescheduled_from=? ORDER BY starts_at', [$se['id']]) : []; ?>
+    <?php if (!empty($se['status_reason']) || $kids || $from): ?><div class="sess-status-info">
+      <?php if (!empty($se['status_reason'])): ?><p><strong>Raison :</strong> <?= e($se['status_reason']) ?></p><?php endif ?>
+      <?php if ($kids): ?><p><strong>Reportée au :</strong> <?= implode(' + ', array_map(fn($k) => '<a href="#sess-' . (int)$k['id'] . '">' . e(fdatetime($k['starts_at'])) . ' (' . fdur((int)$k['duration_min']) . ')</a>', $kids)) ?></p><?php endif ?>
+      <?php if ($from): ?><p><?= icon('refresh-cw') ?> Report de la séance du <?= e(fdatetime($from['starts_at'])) ?></p><?php endif ?>
+    </div><?php endif ?>
+    <?php if ($se['objectives']): ?><p class="muted"><?= nl2br(e($se['objectives'])) ?></p><?php endif ?>
     <?php foreach ($notes as $n): ?><p><small><?= icon($n['visibility'] === 'shared' ? 'users' : 'lock') ?> <?= nl2br(e($n['content'])) ?></small></p><?php endforeach ?>
     <?php if (strtotime($se['starts_at']) < time() && $se['status'] !== 'cancelled'): $rep = session_report((int)$se['id']); $fb = session_feedback_of((int)$se['id']); ?>
     <div class="report-box">

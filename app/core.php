@@ -173,7 +173,7 @@ function session_label(array $se): string
     $t = session_base_title((string)$se['title']);
     return $n ? "S$n - $t" : $t;
 }
-function fdur(int $min): string { return intdiv($min, 60) . 'h' . ($min % 60 ? sprintf('%02d', $min % 60) : ''); }
+function fdur(int $min): string { return $min < 60 ? $min . ' min' : intdiv($min, 60) . 'h' . ($min % 60 ? sprintf('%02d', $min % 60) : ''); }
 
 // ---------- CSRF ----------
 function csrf_token(): string

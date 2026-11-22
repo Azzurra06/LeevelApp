@@ -729,3 +729,14 @@ main.wrap>h2 .ic{color:var(--accent-d)}
 .acct-btn{white-space:nowrap}
 .sess-meta{margin:0;font-size:.88rem;color:var(--muted)}
 .sess-title{margin:4px 0 6px;font-size:1.02rem}
+
+/* Report / annulation d'une séance */
+.resched{padding:12px;border:1px solid #f3d9c4;border-radius:12px;background:var(--warn-l)}
+.resched .ql{margin-bottom:2px}.resched .field-help{margin:0 0 10px}
+.resched-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.resched-row{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.1fr auto;gap:8px;align-items:end;padding:10px;border-radius:10px;background:var(--surface)}
+.resched-row label{font-size:.82rem}.resched-row input,.resched-row select{margin-top:3px}.resched-row [data-resched-del]{margin-bottom:6px}
+.resched-live{font-size:.88rem}
+.sess-status-info{margin:4px 0 8px;padding:8px 12px;border-radius:10px;background:var(--bg);font-size:.9rem}
+.sess-status-info p{margin:2px 0}.sess-status-info .ic{width:.95em;height:.95em;color:var(--accent-d)}
+@media (max-width:720px){.resched-row{grid-template-columns:1fr 1fr}.resched-row [data-resched-del]{grid-column:2;justify-self:end}}

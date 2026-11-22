@@ -541,8 +541,27 @@ function save_session(int $sid): void
         post_enum('mode', MODES, 'presentiel'), post_enum('status', SESSION_STATUS, 'planned'), post_str('objectives', 3000) ?: null];
     if ($id) q('UPDATE sessions SET title=?, starts_at=?, duration_min=?, mode=?, status=?, objectives=? WHERE id=? AND student_id=?', [...$vals, $id, $sid]);
     else q('INSERT INTO sessions (title, starts_at, duration_min, mode, status, objectives, student_id) VALUES (?,?,?,?,?,?,?)', [...$vals, $sid]);
+    $status = $vals[4]; $extra = '';
+    try {
+        $sessId = $id ?: (int)db()->lastInsertId();
+        q('UPDATE sessions SET status_reason=? WHERE id=?', [in_array($status, ['postponed', 'cancelled'], true) ? (post_str('status_reason', 500) ?: null) : null, $sessId]);
+        if ($id && $status === 'postponed') { // nouvelles dates : une séance par créneau (report découpable)
+            $orig = one('SELECT * FROM sessions WHERE id=?', [$id]);
+            $dates = (array)($_POST['rs_date'] ?? []); $times = (array)($_POST['rs_time'] ?? []); $durs = (array)($_POST['rs_dur'] ?? []); $modes = (array)($_POST['rs_mode'] ?? []);
+            $n = 0;
+            foreach ($dates as $i => $d) {
+                $ndt = DateTime::createFromFormat('Y-m-d H:i', (string)$d . ' ' . (string)($times[$i] ?? ''));
+                if (!$ndt) continue;
+                q('INSERT INTO sessions (student_id, week_no, title, starts_at, duration_min, mode, status, objectives, rescheduled_from) VALUES (?,?,?,?,?,?,"planned",?,?)',
+                    [$sid, $orig['week_no'], session_base_title($orig['title']), $ndt->format('Y-m-d H:i:00'), max(15, min(600, (int)($durs[$i] ?? 0) ?: (int)$orig['duration_min'])),
+                     isset(MODES[$modes[$i] ?? '']) ? $modes[$i] : $orig['mode'], $orig['objectives'], $id]);
+                $n++;
+            }
+            if ($n) $extra = " $n nouveau" . ($n > 1 ? 'x' : '') . ' créneau' . ($n > 1 ? 'x' : '') . ' ajouté' . ($n > 1 ? 's' : '') . ' au planning.';
+        }
+    } catch (PDOException) { /* base pas encore migrée */ }
     if (($note = post_str('note', 3000)) !== '' && $id) q('INSERT INTO session_notes (session_id, author_id, content, visibility) VALUES (?,?,?,?)', [$id, current_user()['id'], $note, post_enum('note_visibility', ['private' => 1, 'shared' => 1], 'private')]);
-    flash($id ? 'Séance mise à jour.' : 'Séance ajoutée.');
+    flash(($id ? 'Séance mise à jour.' : 'Séance ajoutée.') . $extra);
 }
 
 function save_goal(int $sid, int $uid): void
