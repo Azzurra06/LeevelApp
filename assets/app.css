@@ -1026,3 +1026,13 @@ body.page-p_child .card[class*="tone-"]{border-top:1px solid var(--beige)!import
 .acct-sep{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:10px 12px 4px;border-top:1px solid var(--beige);margin-top:4px}
 .acct-switch{display:flex!important;align-items:center;gap:10px;width:100%;text-align:left}
 .acct-switch span{display:flex;flex-direction:column;line-height:1.25}.acct-switch small{color:var(--muted);font-size:.75rem}
+
+/* Suppression d'un dossier (familles) */
+.del-family{margin-top:16px;padding-top:14px;border-top:1px solid var(--beige)}
+.del-family summary{cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:#c0392b;font-weight:600;font-size:.92rem}
+.del-family summary .ic{color:#c0392b}
+.del-family[open]{background:#fdf3f1;border:1px solid #f0c9c4;border-radius:12px;padding:14px 16px;margin-top:16px}
+.del-family-form{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:12px}
+.del-family-form label{flex:1;min-width:200px;max-width:320px}
+.del-family-form .btn{margin-bottom:1px}
+.del-family p{margin:10px 0 0}

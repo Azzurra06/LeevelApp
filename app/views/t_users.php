@@ -73,9 +73,9 @@
         <button class="btn ghost sm" name="do" value="cancel" data-confirm="Annuler cette invitation ?"><?= icon('x') ?></button></form></li>
   <?php endforeach ?></ul><?php endif ?>
   <?php foreach ($f['students'] as $st): ?>
-  <details><summary>Supprimer définitivement ce dossier</summary>
-    <form method="post" action="<?= e(url('t_delete_family')) ?>" class="row" data-confirm="Suppression définitive et irréversible de toutes les données de ce dossier. Continuer ?"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$st['id'] ?>">
-      <label>Tapez SUPPRIMER<input name="confirm" required></label><button class="btn danger sm"><?= icon('trash-2') ?> Supprimer</button></form>
+  <details class="del-family"><summary><?= icon('trash-2') ?> Supprimer définitivement ce dossier</summary>
+    <form method="post" action="<?= e(url('t_delete_family')) ?>" class="del-family-form" data-confirm="Suppression définitive et irréversible de toutes les données de ce dossier. Continuer ?"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$st['id'] ?>">
+      <label>Tapez SUPPRIMER pour confirmer<input name="confirm" required pattern="SUPPRIMER" autocomplete="off" placeholder="SUPPRIMER"></label><button class="btn danger"><?= icon('trash-2') ?> Supprimer</button></form>
     <p class="muted"><small>Exportez les données avant si nécessaire. Les comptes parent et élève sont aussi supprimés.</small></p></details>
   <?php endforeach ?>
 </details><br>
