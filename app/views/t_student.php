@@ -73,6 +73,15 @@ $hasShared = $s['shared_message'] || $s['shared_strengths'] || $s['shared_to_wor
     <?php endif ?>
   </div>
 
+  <?php $mem = (array)($data['student']['all']['s_memory'] ?? []);
+  $memInfo = ['visual' => ['👀', 'Visuelle', 'Schémas, couleurs, cartes mentales, fiches illustrées.'], 'auditory' => ['👂', 'Auditive', 'Expliquer à voix haute, s\'enregistrer, réciter.'], 'kinesthetic' => ['✋', 'En faisant', 'Écrire, refaire des exercices, manipuler, bouger.']]; ?>
+  <div class="card tone-violet"><h2><?= icon('brain') ?> Comment <?= e($s['first_name']) ?> retient</h2>
+    <div class="mem-grid"><?php foreach ($memInfo as $k => [$emo, $lb, $tip]): $on = in_array($k, $mem, true); ?>
+      <div class="mem<?= $on ? ' on' : '' ?>"><span class="mem-emo"><?= $emo ?></span><strong><?= $lb ?></strong><small><?= e($tip) ?></small><?php if ($on): ?><span class="badge">Sa préférence</span><?php endif ?></div>
+    <?php endforeach ?></div>
+    <p class="muted"><small><?= !$mem ? 'Pas encore renseigné dans le questionnaire élève.' : (in_array('not_sure', $mem, true) ? 'L\'élève ne sait pas encore : à observer en séance.' : 'D\'après le questionnaire élève (modifiable par l\'élève dans son compte).') ?></small></p>
+  </div>
+
   <div class="card tone-blue editable">
     <div class="ed-head"><h2><?= icon('users') ?> Famille</h2><?= $editBtn ?></div>
     <p class="fam-name view"><strong><?= $parentU ? e($parentU['display_name']) : 'Parent' ?></strong><?php if ($parentU): ?> · <code><?= e($parentU['username']) ?></code><?php else: ?> · <span class="muted">pas de compte parent</span><?php endif ?></p>
