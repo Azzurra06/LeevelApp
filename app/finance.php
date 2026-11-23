@@ -36,15 +36,35 @@ function rate_for(array $s, string $mode): ?float
     return default_rate($mode);
 }
 function rate_is_default(array $s): bool { return ($s['hourly_rate'] ?? null) === null && default_rate('presentiel') !== null; }
+/** Id de la première séance de l'élève si elle est offerte (sinon 0). */
+function free_session_id(array $s): int
+{
+    if (empty($s['first_free'])) return 0;
+    return (int)(one('SELECT id FROM sessions WHERE student_id=? AND status IN ("done","planned") ORDER BY starts_at, id LIMIT 1', [$s['id']])['id'] ?? 0);
+}
+/** Totaux d'un élève : facturé, encaissé, à recevoir (dont en retard). */
+function student_money(int $sid): array
+{
+    $r = one('SELECT COALESCE(SUM(amount),0) billed, COALESCE(SUM(CASE WHEN status="paid" THEN amount END),0) paid, COALESCE(SUM(CASE WHEN status="pending" THEN amount END),0) pending,
+              COALESCE(SUM(CASE WHEN status="pending" AND due_date < CURDATE() THEN amount END),0) late FROM payments WHERE student_id=?', [$sid]);
+    return array_map('floatval', $r ?: ['billed' => 0, 'paid' => 0, 'pending' => 0, 'late' => 0]);
+}
 /** Séances réalisées pas encore couvertes par une échéance (quel que soit le rythme de paiement). */
 function unbilled(array $s): array
 {
     try { $last = one('SELECT MAX(period_end) d FROM payments WHERE student_id=? AND period_end IS NOT NULL', [$s['id']])['d'] ?? null; } catch (PDOException) { $last = null; }
     $rows = all('SELECT id, starts_at, duration_min, mode FROM sessions WHERE student_id=? AND starts_at < NOW() AND (status="done" OR status="planned")' . ($last ? ' AND DATE(starts_at) > ?' : '') . ' ORDER BY starts_at', $last ? [$s['id'], $last] : [$s['id']]);
-    $gross = 0.0; $min = 0; $missing = false;
-    foreach ($rows as $x) { $r = rate_for($s, $x['mode']); if ($r === null) $missing = true; else $gross += $r * (int)$x['duration_min'] / 60; $min += (int)$x['duration_min']; }
+    $gross = 0.0; $min = 0; $missing = false; $free = free_session_id($s);
+    foreach ($rows as &$x) {
+        $x['free'] = $free && (int)$x['id'] === $free; $r = rate_for($s, $x['mode']);
+        $x['amount'] = $x['free'] ? 0.0 : ($r === null ? null : round($r * (int)$x['duration_min'] / 60, 2));
+        if (!$x['free']) { if ($r === null) $missing = true; else $gross += $x['amount']; }
+        $min += (int)$x['duration_min'];
+    }
+    unset($x);
+    $billable = array_values(array_filter($rows, fn($x) => !$x['free']));
     $pct = (float)($s['discount_pct'] ?? 0); $gross = round($gross, 2); $disc = $pct > 0 ? round($gross * $pct / 100, 2) : 0.0;
-    return ['sessions' => $rows, 'minutes' => $min, 'gross' => $gross, 'discount' => $disc, 'amount' => round($gross - $disc, 2), 'missing_rate' => $missing,
+    return ['sessions' => $rows, 'billable' => $billable, 'minutes' => $min, 'gross' => $gross, 'discount' => $disc, 'amount' => round($gross - $disc, 2), 'missing_rate' => $missing,
             'start' => $rows ? substr($rows[0]['starts_at'], 0, 10) : null, 'end' => $rows ? substr(end($rows)['starts_at'], 0, 10) : null];
 }
 /** Libellé d'une échéance selon les séances couvertes. */
@@ -65,11 +85,11 @@ function month_billing(array $s, string $month): array
 {
     $start = $month . '-01'; $end = date('Y-m-d', strtotime($start . ' +1 month'));
     $rows = all('SELECT id, starts_at, duration_min, mode FROM sessions WHERE student_id=? AND starts_at >= ? AND starts_at < ? AND (status="done" OR (status="planned" AND starts_at < NOW())) ORDER BY starts_at', [$s['id'], $start, $end]);
-    $min = 0; $amount = 0.0; $missingRate = false;
+    $min = 0; $amount = 0.0; $missingRate = false; $free = free_session_id($s);
     foreach ($rows as &$x) {
-        $rate = rate_for($s, $x['mode']);
-        $x['amount'] = $rate === null ? null : round($rate * (int)$x['duration_min'] / 60, 2);
-        if ($rate === null) $missingRate = true; else $amount += $x['amount'];
+        $rate = rate_for($s, $x['mode']); $x['free'] = $free && (int)$x['id'] === $free;
+        $x['amount'] = $x['free'] ? 0.0 : ($rate === null ? null : round($rate * (int)$x['duration_min'] / 60, 2));
+        if ($x['free']) {} elseif ($rate === null) $missingRate = true; else $amount += $x['amount'];
         $min += (int)$x['duration_min'];
     }
     unset($x);

@@ -34,6 +34,7 @@ function tutor_route(string $r, bool $isPost): never
                 q('UPDATE students SET hourly_rate=?, hourly_rate_visio=? WHERE id=?', [$hr, $hv, $st['id']]);
                 $pct = $num('discount_pct'); $pct = $pct === null ? null : min(100, $pct);
                 try { q('UPDATE students SET discount_pct=?, discount_label=? WHERE id=?', [$pct ?: null, $pct ? (post_str('discount_label', 80) ?: null) : null, $st['id']]); } catch (PDOException) {}
+                try { q('UPDATE students SET first_free=? WHERE id=?', [(int)!empty($_POST['first_free']), $st['id']]); } catch (PDOException) {}
                 try { q('UPDATE families SET pay_frequency=?, pay_method=? WHERE id=?', [array_key_exists($_POST['pay_frequency'] ?? '', PAY_FREQUENCIES) ? $_POST['pay_frequency'] : null, array_key_exists($_POST['pay_method'] ?? '', PAY_METHODS) ? $_POST['pay_method'] : null, $st['family_id']]); } catch (PDOException) {}
                 flash('Tarif de ' . $st['first_name'] . ' enregistré.');
             } elseif ($act === 'create' && ($st = $mine(post_int('sid')))) {
@@ -51,7 +52,7 @@ function tutor_route(string $r, bool $isPost): never
                 $amount = round($gross - $disc, 2);
                 if ($amount <= 0) flash('Montant nul : renseignez le tarif ou le montant.', 'err');
                 else {
-                    $label = post_str('label', 160) ?: unbilled_label($ub);
+                    $label = post_str('label', 160) ?: unbilled_label(['sessions' => $ub['billable'] ?: $ub['sessions']] + $ub);
                     $due = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_str('due_date', 10)) ? post_str('due_date', 10) : date('Y-m-d', strtotime('+7 days'));
                     try { q('INSERT INTO payments (student_id, period, period_start, period_end, label, minutes, gross, discount, discount_label, amount, due_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [$st['id'], $manual ? $month : substr((string)$ub['end'], 0, 7), $manual ? null : $ub['start'], $manual ? null : $ub['end'], $label, $manual ? 0 : $ub['minutes'], $gross, $disc ?: null, $disc ? ($dLabel ?: 'Remise') : null, $amount, $due]); }
                     catch (PDOException) { q('INSERT INTO payments (student_id, period, label, minutes, amount, due_date) VALUES (?,?,?,?,?,?)', [$st['id'], $month, $label, $manual ? 0 : $b['minutes'], $amount, $due]); }
@@ -70,7 +71,7 @@ function tutor_route(string $r, bool $isPost): never
                 } elseif ($act === 'unpay') { q('UPDATE payments SET status="pending", paid_at=NULL, method=NULL WHERE id=?', [$p['id']]); flash('Paiement remis en attente.'); }
                 else { q('DELETE FROM payments WHERE id=?', [$p['id']]); flash('Échéance supprimée.'); }
             }
-            redirect('t_finance', ['m' => $month]);
+            redirect('t_finance', ['m' => $month] + (($_POST['view'] ?? '') === 'eleve' ? ['view' => 'eleve', 'sid' => post_int('vsid') ?: post_int('sid')] : []));
         }
         $students = all('SELECT s.*, f.name family_name, f.pay_frequency, f.pay_method FROM students s JOIN families f ON f.id=s.family_id JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? AND fm.member_role="tutor" ORDER BY f.is_demo, s.first_name', [$u['id']]);
         $rows = []; $sids = [0];
@@ -79,7 +80,18 @@ function tutor_route(string $r, bool $isPost): never
             $rows[] = ['s' => $st, 'b' => month_billing($st, $month), 'u' => unbilled($st), 'pay' => one('SELECT * FROM payments WHERE student_id=? ORDER BY id DESC LIMIT 1', [$st['id']])];
         }
         $in = implode(',', $sids);
-        render('t_finance', ['month' => $month, 'rows' => $rows,
+        foreach ($rows as &$row) $row['m'] = student_money((int)$row['s']['id']);
+        unset($row);
+        $series = [];
+        for ($i = 11; $i >= 0; $i--) $series[date('Y-m', strtotime(date('Y-m-01') . " -$i month"))] = 0.0;
+        foreach (all("SELECT YEAR(paid_at) y, MONTH(paid_at) mo, SUM(amount) t FROM payments WHERE student_id IN ($in) AND status='paid' AND paid_at >= ? GROUP BY YEAR(paid_at), MONTH(paid_at)", [array_key_first($series) . '-01']) as $x) {
+            $k = sprintf('%04d-%02d', $x['y'], $x['mo']); if (isset($series[$k])) $series[$k] = (float)$x['t'];
+        }
+        $yearPaid = (float)(one("SELECT COALESCE(SUM(amount),0) t FROM payments WHERE student_id IN ($in) AND status='paid' AND paid_at >= ?", [date('Y') . '-01-01'])['t'] ?? 0);
+        $view = ($_GET['view'] ?? '') === 'eleve' ? 'eleve' : 'ensemble';
+        $vsid = (int)($_GET['sid'] ?? 0); if (!array_filter($rows, fn($r) => (int)$r['s']['id'] === $vsid)) $vsid = (int)($rows[0]['s']['id'] ?? 0);
+        $studentPayments = $vsid ? payments_of($vsid) : [];
+        render('t_finance', ['month' => $month, 'rows' => $rows, 'series' => $series, 'yearPaid' => $yearPaid, 'fview' => $view, 'vsid' => $vsid, 'studentPayments' => $studentPayments,
             'pending' => all("SELECT p.*, s.first_name, f.pay_method FROM payments p JOIN students s ON s.id=p.student_id JOIN families f ON f.id=s.family_id WHERE p.student_id IN ($in) AND p.status='pending' ORDER BY p.due_date"),
             'paid' => all("SELECT p.*, s.first_name FROM payments p JOIN students s ON s.id=p.student_id WHERE p.student_id IN ($in) AND p.status='paid' ORDER BY p.paid_at DESC, p.id DESC LIMIT 15"),
             'cashed' => (float)(one("SELECT SUM(amount) t FROM payments WHERE student_id IN ($in) AND status='paid' AND paid_at >= ? AND paid_at < ?", [$month . '-01', date('Y-m-d', strtotime($month . '-01 +1 month'))])['t'] ?? 0)]);

@@ -1339,3 +1339,27 @@ body.student .card.s-hero .s-hero-title{color:#fff;font-size:1.5rem;font-weight:
   body.page-p .pd-bilans{order:1}body.page-p .pd-next{order:2}body.page-p .pd-tests{order:3}body.page-p .pd-subj{order:4}
   body.page-p .pd-goals{order:5}body.page-p .pd-month{order:6}body.page-p .pd-mot{order:7}
 }
+/* Finances : graphique du CA et tableau par élève */
+.ca-chart{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;align-items:end;height:160px;margin:18px 0 6px}
+.ca-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;min-width:0}
+.ca-bar{width:100%;max-width:34px;border-radius:6px 6px 2px 2px;background:#D9CFFF}
+.ca-bar.now{background:var(--accent-d)}
+.ca-val{font-size:.62rem;color:var(--muted);white-space:nowrap}
+.ca-col small{font-size:.7rem;color:var(--muted)}
+.fin-table td small{display:block}
+.fin-table td{vertical-align:top}
+.t-right{text-align:right}
+.fin-rate-v{font-size:1rem!important}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+a.subj-tab{text-decoration:none}
+@media (max-width:720px){.ca-val{display:none}.ca-chart{height:120px;gap:3px}}
+.link-card.fb-cta{border:1.5px solid var(--accent-d)!important}
+/* Missions sur ordinateur : action alignée à droite */
+@media (min-width:721px){
+  .mission-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:12px}
+  .mission-body{display:contents}
+  .mission-title,.mission-desc,.mission-item>.mission-body>.badge{grid-column:2}
+  .mission-act{grid-column:3;grid-row:1 / span 3;align-self:center;justify-self:end}
+  .mission-act[open]{grid-column:2 / 4;grid-row:auto;justify-self:stretch}
+}
+@media (min-width:721px){.mission-act{grid-row:1 / span 2;align-self:start}}
