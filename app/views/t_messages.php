@@ -6,7 +6,7 @@
       <?php foreach ($threads as $th): $x = $th['s']; ?>
         <li class="li-link<?= (int)$x['id'] === (int)$s['id'] ? ' current' : '' ?>"><a href="<?= e(url('t_messages', ['sid' => $x['id']])) ?>">
           <div><strong><?= e($x['first_name']) ?></strong><?php if ($th['unread']): ?> <span class="nav-badge"><?= $th['unread'] ?></span><?php endif ?><br>
-            <small class="muted"><?= $th['last'] ? e(mb_strimwidth($th['last']['body'], 0, 48, '…')) : 'Aucun message' ?></small></div></a></li>
+            <small class="muted"><?= $th['last'] ? e(mb_strimwidth($th['last']['body'], 0, 48, '…') ?: '📎 Pièce jointe') : 'Aucun message' ?></small></div></a></li>
       <?php endforeach ?>
     </ul>
   </aside>

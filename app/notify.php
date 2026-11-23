@@ -62,7 +62,7 @@ function run_message_notifications(string $host, int $delayMin = NOTIFY_DELAY_MI
             // Total des non-lus du fil (y compris ceux déjà signalés mais toujours pas lus)
             $n = (int)one('SELECT COUNT(*) n FROM messages m JOIN users u ON u.id=m.sender_id WHERE m.family_id=? AND m.read_at IS NULL' . chan_sql($chan) . ' AND ' . ($side === 'family' ? 'u.role="tutor"' : 'u.role<>"tutor"'), [$fid])['n'];
             $last = end($msgs);
-            $excerpt = mb_strimwidth(preg_replace('/\s+/', ' ', $last['body']), 0, 160, '…');
+            $excerpt = mb_strimwidth(preg_replace('/\s+/', ' ', $last['body']), 0, 160, '…') ?: '📎 Pièce jointe';
             $link = $base . '?' . http_build_query($toStudent ? ['r' => 's_messages'] : ['r' => $side === 'family' ? 'p_messages' : 't_messages', 'sid' => $student['id']] + ($chan === 'student' ? ['ch' => 'student'] : []));
             $subject = $n > 1 ? "$n nouveaux messages sur leevel.app" : 'Nouveau message sur leevel.app';
             $who = $side === 'family' ? ($toStudent ? 'de ta tutrice' : 'de votre tutrice') : ($chan === 'student' ? 'de ' . $student['first_name'] : 'au sujet de ' . $student['first_name']);

@@ -100,10 +100,10 @@ function family_messages(int $familyId, string $channel = 'family'): array
     return all('SELECT m.*, u.display_name, u.role, u.avatar, u.id uid FROM messages m LEFT JOIN users u ON u.id=m.sender_id WHERE m.family_id=?' . chan_sql($channel) . ' ORDER BY m.created_at, m.id', [$familyId]);
 }
 
-function send_message(int $familyId, array $sender, string $body, string $channel = 'family', ?string $kind = null): bool
+function send_message(int $familyId, array $sender, string $body, string $channel = 'family', ?string $kind = null, bool $allowEmpty = false): bool
 {
     $body = trim(mb_substr($body, 0, 4000));
-    if ($body === '') return false;
+    if ($body === '' && !$allowEmpty) return false;
     if ($kind !== null) {
         // notification automatique : enregistrée comme message système (repli sur un message classique si la colonne manque)
         try { q('INSERT INTO messages (family_id, channel, sender_id, body, kind) VALUES (?,?,?,?,?)', [$familyId, $channel === 'student' ? 'student' : 'family', $sender['id'], $body, $kind]); if (function_exists('push_new_message')) push_new_message($familyId, $sender, $body, $channel, $kind); return true; }
@@ -114,6 +114,59 @@ function send_message(int $familyId, array $sender, string $body, string $channe
     else return false;
     if (function_exists('push_new_message')) push_new_message($familyId, $sender, $body, $channel, $kind);
     return true;
+}
+
+/** Liste des fichiers d'un champ <input type=file multiple>. */
+function uploaded_list(string $field): array
+{
+    $f = $_FILES[$field] ?? null; $out = [];
+    if (!$f || !is_array($f['name'] ?? null)) return $f && ($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE ? [$f] : [];
+    foreach ($f['name'] as $i => $n) if (($f['error'][$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE)
+        $out[] = ['name' => $n, 'type' => $f['type'][$i], 'tmp_name' => $f['tmp_name'][$i], 'error' => $f['error'][$i], 'size' => $f['size'][$i]];
+    return $out;
+}
+/** Envoi d'un message saisi (texte et/ou pièces jointes). Renvoie null si envoyé, sinon l'erreur. */
+function post_message(int $familyId, array $sender, string $channel = 'family'): ?string
+{
+    $body = (string)($_POST['body'] ?? ''); $files = uploaded_list('files');
+    if (count($files) > MSG_FILES_MAX) return 'Pas plus de ' . MSG_FILES_MAX . ' pièces jointes par message.';
+    foreach ($files as $f) if ($err = upload_check($f, MSG_FILE_TYPES, 'photo, PDF, document Word, Excel, PowerPoint, texte, audio ou vidéo')) return mb_strimwidth((string)$f['name'], 0, 40, '…') . ' : ' . $err;
+    if (trim($body) === '' && !$files) return 'Écrivez un message ou joignez un fichier.';
+    if (!send_message($familyId, $sender, $body, $channel, null, (bool)$files)) return 'Message non envoyé.';
+    $mid = (int)(one('SELECT MAX(id) id FROM messages WHERE family_id=? AND sender_id=?', [$familyId, $sender['id']])['id'] ?? 0);
+    foreach ($files as $f) {
+        $r = store_upload($f, MSG_FILE_TYPES);
+        if (is_array($r)) { try { q('INSERT INTO message_files (message_id, stored, original, mime, size) VALUES (?,?,?,?,?)', [$mid, ...$r]); } catch (PDOException $e) { error_log('message_files: ' . $e->getMessage()); } }
+    }
+    return null;
+}
+/** Pièces jointes d'une liste de messages, groupées par message. */
+function message_files_for(array $ids): array
+{
+    $ids = array_filter(array_map('intval', $ids)); if (!$ids) return [];
+    try { $rows = all('SELECT * FROM message_files WHERE message_id IN (' . implode(',', $ids) . ') ORDER BY id'); } catch (PDOException) { return []; }
+    $out = []; foreach ($rows as $r) $out[(int)$r['message_id']][] = $r;
+    return $out;
+}
+/** Sert une pièce jointe si le demandeur a accès au fil (l'élève : son propre fil uniquement). */
+function serve_message_file(array $viewer, int $id): never
+{
+    $f = null;
+    try { $f = one('SELECT mf.*, m.family_id, m.channel FROM message_files mf JOIN messages m ON m.id=mf.message_id WHERE mf.id=?', [$id]); } catch (PDOException) {}
+    $ok = $f && one('SELECT 1 FROM family_members WHERE family_id=? AND user_id=?', [$f['family_id'], $viewer['id']]);
+    if ($ok && $viewer['role'] === 'student') $ok = ($f['channel'] ?? 'family') === 'student';
+    $path = $ok && preg_match('/^[a-f0-9]{24}\.[a-z0-9]{2,4}$/', $f['stored']) ? files_dir() . '/' . $f['stored'] : null;
+    if (!$path || !is_file($path)) { http_response_code(404); exit('Fichier introuvable.'); }
+    $inline = in_array($f['mime'], ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'], true) && empty($_GET['dl']);
+    header_remove('Cache-Control');
+    header('Content-Type: ' . $f['mime']);
+    header('X-Content-Type-Options: nosniff');
+    header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox");
+    header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . "; filename*=UTF-8''" . rawurlencode($f['original']));
+    header('Cache-Control: private, max-age=3600');
+    header('Content-Length: ' . filesize($path));
+    readfile($path);
+    exit;
 }
 
 /** Marque comme lus les messages reçus (envoyés par « l'autre côté » du canal). Le parent ne marque jamais le fil de l'élève. */

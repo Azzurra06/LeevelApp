@@ -107,7 +107,7 @@ function push_new_message(int $familyId, array $sender, string $body, string $ch
 {
     if (!push_available()) return;
     $st = one('SELECT id, first_name, user_id FROM students WHERE family_id=? ORDER BY id LIMIT 1', [$familyId]);
-    $excerpt = mb_strimwidth(preg_replace('/\s+/', ' ', $body), 0, 140, '…');
+    $excerpt = mb_strimwidth(preg_replace('/\s+/', ' ', $body), 0, 140, '…') ?: '📎 Pièce jointe';
     $type = $kind === 'system' ? (str_starts_with($body, 'Nouvelle échéance') ? 'finance' : 'messages') : (str_starts_with($body, 'Bilan de la séance') ? 'reports' : 'messages');
     if (($sender['role'] ?? '') === 'tutor') {
         $to = $channel === 'student' ? ($st && $st['user_id'] ? [(int)$st['user_id']] : [])

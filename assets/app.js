@@ -216,6 +216,25 @@
   // Messagerie : afficher le dernier message
   $$('[data-thread]').forEach(t => { t.scrollTop = t.scrollHeight; });
   if (document.body.classList.contains('page-chat') && matchMedia('(max-width:720px)').matches) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  // Messagerie : aperçu des pièces jointes choisies (avec retrait possible)
+  $$('[data-msg-form]').forEach(form => {
+    const input = $('[data-attach]', form), list = $('[data-attach-list]', form); if (!input || !list) return;
+    let picked = [];
+    const sync = () => { const dt = new DataTransfer(); picked.forEach(f => dt.items.add(f)); input.files = dt.files; };
+    const draw = () => {
+      list.textContent = ''; list.hidden = !picked.length;
+      picked.forEach((f, i) => {
+        const c = document.createElement('span'); c.className = 'att-chip';
+        const n = document.createElement('span'); n.textContent = (f.type.startsWith('image/') ? '🖼️ ' : '📎 ') + f.name;
+        const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Retirer ' + f.name); b.textContent = '×';
+        b.addEventListener('click', () => { picked = picked.filter((_, j) => j !== i); sync(); draw(); });
+        c.append(n, b); list.append(c);
+      });
+    };
+    input.addEventListener('change', () => { const prev = picked; picked = prev.concat([...input.files]).slice(0, 5); try { sync(); } catch (e) { picked = [...input.files]; } draw(); });
+    form.addEventListener('submit', e => { const t = $('textarea', form); if (!picked.length && !t.value.trim()) { e.preventDefault(); t.focus(); } });
+  });
+
   $$('textarea[data-autogrow]').forEach(t => { const fit = () => { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px'; }; t.addEventListener('input', fit); });
   // Recadrage de la photo (canvas, sans bibliothèque) : glisser pour placer, curseur pour zoomer
   const cropInput = $('[data-crop-input]');

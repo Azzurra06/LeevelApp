@@ -210,7 +210,8 @@ function tutor_route(string $r, bool $isPost): never
         case 't_messages':
             $ch = (($_POST['ch'] ?? $_GET['ch'] ?? '') === 'student' && messages_have_channels()) ? 'student' : 'family';
             if ($isPost) {
-                if (send_message((int)$s['family_id'], $u, (string)($_POST['body'] ?? ''), $ch)) { audit('message_sent', $ch, (int)$s['family_id']); flash('Message envoyé.'); }
+                $err = post_message((int)$s['family_id'], $u, $ch);
+                if ($err) flash($err, 'err'); else { audit('message_sent', $ch, (int)$s['family_id']); flash('Message envoyé.'); }
                 redirect('t_messages', ['sid' => $sid] + ($ch === 'student' ? ['ch' => 'student'] : []));
             }
             mark_messages_read((int)$s['family_id'], $u, $ch);

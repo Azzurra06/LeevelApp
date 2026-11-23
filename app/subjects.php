@@ -6,6 +6,14 @@ const CHAPTER_STATUS = ['todo' => 'À travailler', 'in_progress' => 'En cours', 
 const CHAPTER_TONE = ['todo' => 'err', 'in_progress' => 'sage', 'reinforce' => 'warn', 'acquired' => 'ok'];
 const FILE_MAX_BYTES = 10 * 1024 * 1024;
 const FILE_TYPES = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif', 'image/heic' => 'heic', 'image/heif' => 'heic', 'application/pdf' => 'pdf'];
+/** Messagerie : photos, PDF et documents courants. */
+const MSG_FILE_TYPES = FILE_TYPES + [
+    'application/msword' => 'doc', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+    'application/vnd.ms-excel' => 'xls', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+    'application/vnd.ms-powerpoint' => 'ppt', 'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
+    'application/vnd.oasis.opendocument.text' => 'odt', 'application/vnd.oasis.opendocument.spreadsheet' => 'ods', 'text/plain' => 'txt',
+    'audio/mpeg' => 'mp3', 'audio/mp4' => 'm4a', 'audio/x-m4a' => 'm4a', 'video/mp4' => 'mp4', 'video/quicktime' => 'mov'];
+const MSG_FILES_MAX = 5;
 
 function subjects_available(): bool
 {
@@ -143,13 +151,19 @@ function files_dir(): string
     return $dir;
 }
 
-/** Enregistre un fichier déposé ; les photos sont réduites (1800 px) et réencodées en JPEG (métadonnées supprimées). */
-function save_student_file(int $studentId, ?int $subjectId, array $user, array $file, string $note): ?string
+/** Vérifie un fichier déposé : null si valide, sinon le message d'erreur. */
+function upload_check(array $file, array $types, string $formats): ?string
 {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) return ($file['error'] ?? 0) === UPLOAD_ERR_INI_SIZE ? 'Fichier trop lourd.' : 'Aucun fichier reçu.';
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) return in_array($file['error'] ?? 0, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true) ? 'Fichier trop lourd (10 Mo maximum).' : 'Aucun fichier reçu.';
     if ($file['size'] > FILE_MAX_BYTES) return 'Fichier trop lourd (10 Mo maximum).';
     $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']) ?: '';
-    if (!isset(FILE_TYPES[$mime])) return 'Format accepté : photo (JPEG, PNG, WebP, HEIC) ou PDF.';
+    return isset($types[$mime]) ? null : 'Format non accepté (' . $formats . ').';
+}
+/** Enregistre un fichier vérifié ; les photos sont réduites (1800 px) et réencodées en JPEG (métadonnées supprimées).
+ *  Renvoie [stored, original, mime, size] ou un message d'erreur. */
+function store_upload(array $file, array $types): array|string
+{
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']) ?: '';
     $base = bin2hex(random_bytes(12));
     $original = mb_substr(preg_replace('/[^\p{L}\p{N} ._()-]/u', '_', basename((string)$file['name'])) ?: 'fichier', 0, 160);
     $stored = null;
@@ -166,11 +180,19 @@ function save_student_file(int $studentId, ?int $subjectId, array $user, array $
         }
     }
     if (!$stored) {
-        $stored = $base . '.' . FILE_TYPES[$mime];
+        $stored = $base . '.' . $types[$mime];
         if (!move_uploaded_file($file['tmp_name'], files_dir() . '/' . $stored)) return 'Enregistrement impossible.';
     }
+    return [$stored, $original, $mime, (int)filesize(files_dir() . '/' . $stored)];
+}
+function save_student_file(int $studentId, ?int $subjectId, array $user, array $file, string $note): ?string
+{
+    if ($err = upload_check($file, FILE_TYPES, 'photo JPEG, PNG, WebP, HEIC ou PDF')) return $err;
+    $r = store_upload($file, FILE_TYPES);
+    if (is_string($r)) return $r;
+    [$stored, $original, $mime, $size] = $r;
     q('INSERT INTO student_files (student_id, subject_id, user_id, stored, original, mime, size, note) VALUES (?,?,?,?,?,?,?,?)',
-        [$studentId, $subjectId, $user['id'], $stored, $original, $mime, (int)filesize(files_dir() . '/' . $stored), $note ?: null]);
+        [$studentId, $subjectId, $user['id'], $stored, $original, $mime, $size, $note ?: null]);
     return null;
 }
 
