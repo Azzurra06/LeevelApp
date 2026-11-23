@@ -1405,7 +1405,6 @@ a.subj-tab{text-decoration:none}
 /* Séances terminées : visuel apaisé + archive */
 .badge.done{background:#EAF5EE;color:#26734A}
 .badge.done .ic{width:.9em;height:.9em}
-.plan-item.past{background:var(--bg);border-color:var(--line)}
 .plan-item.past .plan-date{background:var(--beige);color:var(--taupe-d)}
 .plan-item.past .plan-title{color:var(--taupe-d)}
 .plan-archive{border-top:1px solid var(--line);padding-top:14px}
@@ -1420,7 +1419,6 @@ a.subj-tab{text-decoration:none}
 .sess-archive>summary .plan-chev{margin-left:auto;color:var(--muted);transition:transform .2s}
 .sess-archive[open]>summary .plan-chev{transform:rotate(90deg)}
 .sess-archive-list{margin-top:12px}
-.card.sess-past{background:var(--bg);box-shadow:none;border:1px solid var(--line)}
 .card.sess-past .sess-title{color:var(--taupe-d)}
 .sess-group-h{margin:18px 0 10px;font-size:1rem}
 .plan-tabs .subj-tabs,.sess-tabs .subj-tabs{margin-bottom:14px}
