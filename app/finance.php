@@ -159,6 +159,17 @@ function payments_of(int $sid): array
 {
     try { return all('SELECT * FROM payments WHERE student_id=? ORDER BY status="paid", COALESCE(due_date, created_at) DESC, id DESC', [$sid]); } catch (PDOException) { return []; }
 }
+/** Tarifs d'un élève : base et net (remise incluse) par mode. */
+function rate_lines(array $s): array
+{
+    $pct = max(0.0, (float)($s['discount_pct'] ?? 0)); $out = [];
+    foreach (['presentiel' => 'Présentiel', 'visio' => 'Visio'] as $m => $l) {
+        if ($m === 'visio' && ($s['hourly_rate_visio'] ?? null) === null) continue;
+        $r = rate_for($s, $m); if ($r === null) continue;
+        $out[] = ['label' => $l, 'base' => $r, 'net' => round($r * (1 - $pct / 100), 2)];
+    }
+    return ['pct' => $pct, 'pct_txt' => rtrim(rtrim(number_format($pct, 1, ',', ''), '0'), ','), 'lines' => $out];
+}
 /** « Remise fratrie (-10 %) » */
 function discount_text(?string $label, float $pct = 0): string
 {

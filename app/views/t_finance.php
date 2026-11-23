@@ -152,10 +152,12 @@ $payItem = function (array $p, bool $withName) use ($hid, $methodSel, $late) { ?
  <div class="col-stack">
   <div class="card editable"><div class="ed-head"><h2><?= icon('settings') ?> Tarif et modalités</h2><button type="button" class="btn ghost sm" data-edit><?= icon('pencil') ?> Modifier</button></div>
     <dl class="fields view">
-      <div class="wide"><dt>Tarif</dt><dd><?= e($rateTxt($st)) ?></dd></div>
-      <div><dt>Remise</dt><dd><?= (float)($st['discount_pct'] ?? 0) > 0 ? e(discount_text($st['discount_label'] ?? null, (float)$st['discount_pct'])) : '<span class="muted">Aucune</span>' ?></dd></div>
+      <div class="wide"><dt>Tarif horaire</dt><dd><?php $rl = rate_lines($st); if (!$rl['lines']): ?><span class="muted">Tarif non défini</span><?php else: ?>
+        <div class="rate-box"><?php foreach ($rl['lines'] as $l): ?><div class="rate-row"><span class="muted"><?= $l['label'] ?></span><span class="rate-val"><?php if ($rl['pct'] > 0): ?><s><?= money($l['base']) ?></s><?php endif ?><strong><?= money($l['net']) ?>/h</strong></span></div><?php endforeach ?>
+        <?php if ($rl['pct'] > 0): ?><div class="rate-disc"><span class="badge">−<?= $rl['pct_txt'] ?> %</span><?= e($st['discount_label'] ?: 'Remise') ?></div><?php endif ?>
+        <?php if (rate_is_default($st)): ?><small class="muted">Tarif par défaut (paramètres)</small><?php endif ?></div><?php endif ?></dd></div>
       <div><dt>1re séance</dt><dd><?= !empty($st['first_free']) ? '<span class="badge sage">Offerte</span>' : 'Payante' ?></dd></div>
-      <div class="wide"><dt>Paiement</dt><dd><?= $terms !== '' ? e($terms) : '<span class="muted">Non précisé</span>' ?></dd></div>
+      <div><dt>Paiement</dt><dd><?= $terms !== '' ? e($terms) : '<span class="muted">Non précisé</span>' ?></dd></div>
     </dl>
     <form method="post" class="stack edit-form"><?= $hid('rate') ?><input type="hidden" name="sid" value="<?= (int)$st['id'] ?>">
       <div class="form-grid">
