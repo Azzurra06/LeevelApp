@@ -1423,3 +1423,7 @@ a.subj-tab{text-decoration:none}
 .card.sess-past{background:var(--bg);box-shadow:none;border:1px solid var(--line)}
 .card.sess-past .sess-title{color:var(--taupe-d)}
 .sess-group-h{margin:18px 0 10px;font-size:1rem}
+.plan-tabs .subj-tabs,.sess-tabs .subj-tabs{margin-bottom:14px}
+.plan-pane{display:flex;flex-direction:column;gap:18px}.plan-pane[hidden]{display:none}
+#pl-past .plan-item{margin-bottom:0}
+.sess-tabs .subj-tab .badge{margin-left:4px}

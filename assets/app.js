@@ -21,7 +21,8 @@
     const scope = nav.parentElement, panes = $$('[data-subj-pane]', scope);
     const show = id => { panes.forEach(p => p.hidden = p.id !== id); $$('[data-subj-tab]', nav).forEach(b => b.classList.toggle('on', b.dataset.subjTab === id)); };
     $$('[data-subj-tab]', nav).forEach(b => b.addEventListener('click', () => { show(b.dataset.subjTab); history.replaceState(null, '', '#' + b.dataset.subjTab); }));
-    if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const pane = t?.closest('[data-subj-pane]'); if (pane && panes.includes(pane)) show(pane.id); }
+    const fromHash = () => { if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const pane = t?.closest('[data-subj-pane]'); if (pane && panes.includes(pane) && pane.hidden) { show(pane.id); t.scrollIntoView({ block: 'start' }); } } };
+    fromHash(); window.addEventListener('hashchange', fromHash);
   });
   if (kindNav && location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const kp = t?.closest('[data-kind-pane]'); if (kp) showKind(kp.dataset.kindPane); }
   // Case « Autre » : affiche le champ associé

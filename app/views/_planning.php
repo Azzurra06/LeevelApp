@@ -46,6 +46,12 @@ $statusTone = ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancel
       </div>
     </details>
 <?php }; ?>
+<div class="plan-tabs">
+<nav class="subj-tabs" aria-label="Séances" data-subj-tabs>
+  <button type="button" class="subj-tab on" data-subj-tab="pl-up">À venir <small><?= count($upcoming) ?></small></button>
+  <button type="button" class="subj-tab" data-subj-tab="pl-past">Séances passées <small><?= count($past) ?></small></button>
+</nav>
+<div id="pl-up" data-subj-pane class="plan-pane">
 <?php if (!$upcoming): ?><p class="muted">Aucune séance à venir pour le moment.</p><?php endif ?>
 <?php foreach ($byWeek as $wk => $list): $tot = array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' && $x['status'] !== 'postponed' ? (int)$x['duration_min'] : 0, $list)); ?>
   <section class="plan-week">
@@ -53,11 +59,11 @@ $statusTone = ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancel
     <?php foreach ($list as $se) $item($se) ?>
   </section>
 <?php endforeach ?>
-<?php if ($past): ?>
-  <details class="plan-archive">
-    <summary><?= icon('archive') ?> Séances passées <span class="muted">· <?= count($past) ?></span><?= icon('chevron-right', 'plan-chev') ?></summary>
-    <div class="plan-archive-list"><?php foreach ($past as $se) $item($se) ?></div>
-  </details>
-<?php endif ?>
+</div>
+<div id="pl-past" data-subj-pane class="plan-pane" hidden>
+<?php if (!$past): ?><p class="muted">Aucune séance passée pour le moment.</p><?php endif ?>
+<?php foreach ($past as $se) $item($se) ?>
+</div>
+</div>
 </div>
 </div>

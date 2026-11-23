@@ -264,9 +264,17 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
   $pastS = array_reverse(array_values(array_filter($sessions, $isPastS)));
   $needRep = fn(array $x) => in_array($x['status'], ['done', 'planned'], true) && !(($r = session_report((int)$x['id'])) && $r['sent_at']);
   $todoS = array_values(array_filter($pastS, $needRep)); $archS = array_values(array_filter($pastS, fn($x) => !$needRep($x)));
-  $groups = [['Bilan à faire', $todoS, false], ['À venir', $upS, false], ['Séances passées', $archS, true]];
-  foreach ($groups as [$gTitle, $gList, $gArch]): if (!$gList) continue; ?>
-  <?php if ($gArch): ?><details class="sess-archive"><summary><?= icon('archive') ?> <?= e($gTitle) ?> <span class="muted">· <?= count($gList) ?></span><?= icon('chevron-right', 'plan-chev') ?></summary><div class="sess-archive-list"><?php else: ?><h3 class="sess-group-h"><?= e($gTitle) ?> <span class="muted">· <?= count($gList) ?></span></h3><?php endif ?>
+  $groups = [['up', null, $upS], ['past', $todoS && $archS ? 'Bilan à faire' : null, $todoS], ['past', $todoS && $archS ? 'Bilan envoyé' : null, $archS]]; ?>
+<div class="sess-tabs">
+<nav class="subj-tabs" aria-label="Séances" data-subj-tabs>
+  <button type="button" class="subj-tab on" data-subj-tab="ss-up">À venir <small><?= count($upS) ?></small></button>
+  <button type="button" class="subj-tab" data-subj-tab="ss-past">Séances passées <small><?= count($pastS) ?></small><?php if ($todoS): ?> <span class="badge warn"><?= count($todoS) ?> bilan<?= count($todoS) > 1 ? 's' : '' ?> à faire</span><?php endif ?></button>
+</nav>
+<?php $curPane = null; foreach ($groups as $gi => [$gPane, $gTitle, $gList]):
+  if ($gPane !== $curPane) { if ($curPane) echo '</div>'; $curPane = $gPane; echo '<div id="ss-' . $gPane . '" data-subj-pane' . ($gPane === 'up' ? '' : ' hidden') . '>';
+    if ($gPane === 'up' && !$upS) echo '<p class="muted">Aucune séance à venir.</p>'; if ($gPane === 'past' && !$pastS) echo '<p class="muted">Aucune séance passée.</p>'; }
+  if (!$gList) continue; ?>
+  <?php if ($gTitle): ?><h3 class="sess-group-h"><?= e($gTitle) ?> <span class="muted">· <?= count($gList) ?></span></h3><?php endif ?>
 <?php foreach ($gList as $se): $notes = all('SELECT * FROM session_notes WHERE session_id=? ORDER BY id DESC', [$se['id']]); $sPast = $isPastS($se) && in_array($se['status'], ['done', 'planned'], true); ?>
   <div class="card<?= $sPast ? ' sess-past' : '' ?>" id="sess-<?= (int)$se['id'] ?>"><div class="row between"><p class="sess-meta"><?= e(fdatetime($se['starts_at'])) ?> · <?= fdur((int)$se['duration_min']) ?> · <?= e(MODES[$se['mode']]) ?></p>
     <?php if ($sPast): ?><span class="badge done"><?= icon('check') ?> Terminée</span><?php else: ?><span class="badge <?= ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancelled' => 'err'][$se['status']] ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span><?php endif ?></div>
@@ -313,8 +321,8 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
     <?php endif ?>
     <details><summary>Modifier la séance</summary><br><?php $sessForm($se) ?></details></div><br>
 <?php endforeach ?>
-  <?php if ($gArch): ?></div></details><?php endif ?>
-<?php endforeach ?>
+<?php endforeach; if ($curPane) echo '</div>'; ?>
+</div>
 <?php endif ?>
 
 <?php elseif ($tab === 'bilans'):
