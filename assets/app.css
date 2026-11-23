@@ -1390,3 +1390,14 @@ a.subj-tab{text-decoration:none}
 .rate-val strong{font-size:1.05rem}
 .rate-disc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.92rem;color:var(--ink)}
 .rate-disc .badge{background:var(--accent-l);color:var(--accent-d)}
+
+/* Mon compte : deux colonnes fixes, photo compacte */
+.acc-cols{margin-bottom:16px}
+.acc-cols .col-stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.acc-cols .push-grid{grid-template-columns:1fr;gap:14px}
+.page-account .avatar-edit{gap:16px;flex-wrap:nowrap;align-items:center}
+.page-account .avatar-edit .avatar.lg{width:64px;height:64px;font-size:1.5rem;flex:none}
+.page-account .avatar-edit .stack{gap:6px}
+.page-account .avatar-edit .stack p{margin:0}
+.two-cols.acc-cols{align-items:start!important}
+.acc-cols>.col-stack>*:last-child{flex:none}

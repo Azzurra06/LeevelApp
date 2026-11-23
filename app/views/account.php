@@ -20,7 +20,8 @@ $pv = fn(string $k) => isset($pa[$k]) && $pa[$k] !== SKIP && $pa[$k] !== '' ? $p
 $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode('', array_map(fn($k, $l) => '<label class="pill"><input type="checkbox" name="' . $name . '[]" value="' . e($k) . '"' . (in_array($k, (array)$cur, true) ? ' checked' : '') . '><span>' . e($l) . '</span></label>', array_keys($opts), $opts)) . '</div>'; ?>
 <div class="page-head"><div><h1><?= icon('settings') ?> Mon compte</h1><p><?= e(ROLE_LABELS[$u['role']]) ?> · identifiant <code><?= e($u['username']) ?></code></p></div></div>
 
-<div class="grid-2 align-start">
+<div class="grid-2 two-cols align-start acc-cols">
+  <div class="col-stack">
     <div class="card editable acc-l">
       <div class="ed-head"><h2><?= icon('message-circle') ?> Mes coordonnées</h2><?= $canContacts ? $editBtn() : '' ?></div>
       <dl class="fields view">
@@ -46,7 +47,31 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       </form>
       <?php endif ?>
     </div>
-
+<?php if ($isTutor): ?>
+    <div class="card editable acc-l">
+      <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
+      <dl class="fields view">
+        <div><dt>Identifiant</dt><dd><code><?= e($u['username']) ?></code></dd></div>
+        <div><dt>Mot de passe</dt><dd>•••••••••• <span class="muted"><small>(jamais affiché)</small></span></dd></div>
+      </dl>
+      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="password">
+        <p class="muted"><small>Identifiant : <code><?= e($u['username']) ?></code></small></p>
+        <div class="form-grid">
+          <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
+          <span></span>
+          <label>Nouveau mot de passe<input type="password" name="new_password" required minlength="10" autocomplete="new-password"></label>
+          <label>Confirmer<input type="password" name="new_password2" required minlength="10" autocomplete="new-password"></label>
+        </div>
+        <p class="muted"><small>10 caractères minimum, avec des lettres et des chiffres.</small></p>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+      </form>
+    </div>
+<?php endif ?>
+    <?php foreach ($children as $ch): ?>
+    <a class="card link-card tone-violet" href="<?= e(url('p_child', ['sid' => $ch['id']])) ?>"><span class="lc-emoji">🧒</span><div><h2>Informations de <?= e(kid($ch['first_name'])) ?></h2><small>Identité, coordonnées, besoins particuliers et autorisations : tout est dans « Mon enfant ».</small></div><?= icon('chevron-right', 'go') ?></a>
+    <?php endforeach ?>
+  </div>
+  <div class="col-stack">
     <div class="card acc-r">
       <h2><?= icon('user') ?> Photo de profil</h2>
       <div class="avatar-edit">
@@ -70,7 +95,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       </div>
       <?php endif ?>
     </div>
-
+<?php if (!$isTutor): ?>
     <div class="card editable acc-l">
       <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
       <dl class="fields view">
@@ -89,11 +114,66 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
         <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
       </form>
     </div>
+<?php endif ?>
+    <?php if ($isTutor): $aiKey = ai_api_key(); $aiFromConfig = (string)(config('anthropic_api_key') ?? '') !== ''; ?>
+    <div class="card editable acc-r">
+      <div class="ed-head"><h2><?= icon('sparkles') ?> Intelligence artificielle</h2><?= $aiFromConfig ? '' : $editBtn($aiKey ? 'Changer la clé' : 'Ajouter une clé') ?></div>
+      <div class="view">
+        <p><?= $aiKey ? '<span class="badge ok">Activée</span> Clé enregistrée (se termine par <code>…' . e(substr($aiKey, -4)) . '</code>)' . ($aiFromConfig ? ', définie dans le fichier de configuration du serveur.' : '.') : '<span class="badge">Non configurée</span>' ?></p>
+        <?php $aiWs = ai_workspace_id(); ?>
+        <p class="muted"><small>Espace de travail : <?= $aiWs ? '<code>' . e($aiWs) . '</code>' : 'non indiqué (nécessaire seulement si la clé n\'est rattachée à aucun espace de travail)' ?></small></p>
+        <p class="muted"><small>Sert à générer les quiz de révision (Fiche élève › Matières). Seuls la matière, le titre du chapitre et la classe sont envoyés au service d'IA (Anthropic), jamais le nom de l'élève ni ses réponses.</small></p>
+      </div>
+      <?php if (!$aiFromConfig): ?>
+      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="ai_key">
+        <label>Clé API Anthropic<input type="password" name="ai_key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></label>
+        <p class="muted"><small>À créer sur console.anthropic.com (rubrique API Keys). Elle est conservée sur le serveur, jamais affichée en entier.</small></p>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><?php if ($aiKey): ?><button class="btn ghost sm" name="remove" value="1" formnovalidate data-confirm="Supprimer la clé API ?"><?= icon('trash-2') ?> Supprimer la clé</button><?php endif ?><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+      </form>
+      <form method="post" class="stack edit-form ws-form"><?= csrf_field() ?><input type="hidden" name="action" value="ai_key"><input type="hidden" name="only" value="workspace">
+        <label>Identifiant de l'espace de travail (facultatif)<input name="workspace_id" value="<?= e(ai_workspace_id() ?? '') ?>" autocomplete="off" spellcheck="false" placeholder="wrkspc_…"></label>
+        <p class="muted"><small>Seulement si l'application vous le demande. Sur console.anthropic.com : Settings › Workspaces, puis ouvrez l'espace de travail pour copier son identifiant.</small></p>
+        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer l'espace de travail</button></div>
+      </form>
+      <?php endif ?>
+    </div>
+    <?php endif ?>
+<?php if (!$isTutor): ?>
+    <?php if (function_exists('push_available') && push_available()): $pp = push_prefs($u); $nDev = (int)(one('SELECT COUNT(*) n FROM push_subscriptions WHERE user_id=?', [$u['id']])['n'] ?? 0); ?>
+    <div class="card" id="notifications" data-push data-key="<?= e(vapid_keys()['public']) ?>" data-csrf="<?= e(csrf_token()) ?>"
+      data-sub="<?= e(url('push_subscribe')) ?>" data-unsub="<?= e(url('push_unsubscribe')) ?>" data-test="<?= e(url('push_test')) ?>">
+      <h2><?= icon('message-circle') ?> Notifications sur cet appareil</h2>
+      <div class="push-grid">
+        <div>
+          <p class="push-status" data-push-status><?= $isStudent ? 'Reçois une notification quand ta tutrice t\'écrit ou la veille d\'une séance.' : 'Recevez une notification sur votre téléphone ou votre ordinateur, même quand l\'app est fermée.' ?></p>
+          <div class="row push-btns">
+            <button type="button" class="btn sm" data-push-on hidden><?= icon('check') ?> Activer les notifications</button>
+            <button type="button" class="btn ghost sm" data-push-test hidden><?= icon('send') ?> Envoyer un test</button>
+            <button type="button" class="btn ghost sm" data-push-off hidden>Désactiver sur cet appareil</button>
+          </div>
+          <div class="push-ios" data-push-ios hidden>
+            <strong><?= icon('lightbulb') ?> Sur iPhone ou iPad</strong>
+            <ol><li>Dans Safari, touchez <strong>Partager</strong> (le carré avec une flèche vers le haut).</li><li>Choisissez <strong>« Sur l'écran d'accueil »</strong>, puis <strong>Ajouter</strong>.</li><li>Ouvrez leevel depuis la nouvelle icône, revenez ici et activez les notifications.</li></ol>
+            <p class="muted"><small>Apple ne permet les notifications que pour les apps ajoutées à l'écran d'accueil (iOS 16.4 ou plus récent).</small></p>
+          </div>
+          <p class="muted push-unsupported" data-push-unsupported hidden><small>Ce navigateur ne permet pas les notifications. Essayez Chrome, Firefox, Edge ou Safari à jour.</small></p>
+          <?php if ($nDev): ?><p class="muted"><small><?= $nDev ?> appareil<?= $nDev > 1 ? 's' : '' ?> activé<?= $nDev > 1 ? 's' : '' ?> pour ce compte.</small></p><?php endif ?>
+        </div>
+        <form method="post" action="<?= e(url('push_prefs')) ?>" class="push-prefs"><?= csrf_field() ?>
+          <span class="ql">Me prévenir pour</span>
+          <?php foreach (PUSH_TYPES as $k => $l): if ($k === 'finance' && !$isParent) continue; ?>
+            <label class="check"><input type="checkbox" name="push_<?= $k ?>" value="1" <?= $pp[$k] ? 'checked' : '' ?>> <?= e($l) ?></label>
+          <?php endforeach ?>
+          <div><button class="btn ghost sm"><?= icon('save') ?> Enregistrer</button></div>
+        </form>
+      </div>
+    </div>
+    <?php endif ?>
+<?php endif ?>
+  </div>
+</div>
 
-    <?php foreach ($children as $ch): ?>
-    <a class="card link-card tone-violet" href="<?= e(url('p_child', ['sid' => $ch['id']])) ?>"><span class="lc-emoji">🧒</span><div><h2>Informations de <?= e(kid($ch['first_name'])) ?></h2><small>Identité, coordonnées, besoins particuliers et autorisations : tout est dans « Mon enfant ».</small></div><?= icon('chevron-right', 'go') ?></a>
-    <?php endforeach ?>
-
+<div class="grid-2 align-start">
     <?php if ($me): ?>
     <div class="card editable span-2">
       <div class="ed-head"><h2><?= icon('sparkles') ?> Mon profil</h2><?= $editBtn() ?></div>
@@ -121,30 +201,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       </form>
     </div>
     <?php endif ?>
-
-    <?php if ($isTutor): $aiKey = ai_api_key(); $aiFromConfig = (string)(config('anthropic_api_key') ?? '') !== ''; ?>
-    <div class="card editable acc-r">
-      <div class="ed-head"><h2><?= icon('sparkles') ?> Intelligence artificielle</h2><?= $aiFromConfig ? '' : $editBtn($aiKey ? 'Changer la clé' : 'Ajouter une clé') ?></div>
-      <div class="view">
-        <p><?= $aiKey ? '<span class="badge ok">Activée</span> Clé enregistrée (se termine par <code>…' . e(substr($aiKey, -4)) . '</code>)' . ($aiFromConfig ? ', définie dans le fichier de configuration du serveur.' : '.') : '<span class="badge">Non configurée</span>' ?></p>
-        <?php $aiWs = ai_workspace_id(); ?>
-        <p class="muted"><small>Espace de travail : <?= $aiWs ? '<code>' . e($aiWs) . '</code>' : 'non indiqué (nécessaire seulement si la clé n\'est rattachée à aucun espace de travail)' ?></small></p>
-        <p class="muted"><small>Sert à générer les quiz de révision (Fiche élève › Matières). Seuls la matière, le titre du chapitre et la classe sont envoyés au service d'IA (Anthropic), jamais le nom de l'élève ni ses réponses.</small></p>
-      </div>
-      <?php if (!$aiFromConfig): ?>
-      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="ai_key">
-        <label>Clé API Anthropic<input type="password" name="ai_key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></label>
-        <p class="muted"><small>À créer sur console.anthropic.com (rubrique API Keys). Elle est conservée sur le serveur, jamais affichée en entier.</small></p>
-        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer</button><?php if ($aiKey): ?><button class="btn ghost sm" name="remove" value="1" formnovalidate data-confirm="Supprimer la clé API ?"><?= icon('trash-2') ?> Supprimer la clé</button><?php endif ?><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
-      </form>
-      <form method="post" class="stack edit-form ws-form"><?= csrf_field() ?><input type="hidden" name="action" value="ai_key"><input type="hidden" name="only" value="workspace">
-        <label>Identifiant de l'espace de travail (facultatif)<input name="workspace_id" value="<?= e(ai_workspace_id() ?? '') ?>" autocomplete="off" spellcheck="false" placeholder="wrkspc_…"></label>
-        <p class="muted"><small>Seulement si l'application vous le demande. Sur console.anthropic.com : Settings › Workspaces, puis ouvrez l'espace de travail pour copier son identifiant.</small></p>
-        <div class="row"><button class="btn sm"><?= icon('save') ?> Enregistrer l'espace de travail</button></div>
-      </form>
-      <?php endif ?>
-    </div>
-
+    <?php if ($isTutor): ?>
     <div class="card editable span-2">
       <div class="ed-head"><h2><?= icon('target') ?> Tarifs</h2><?= $editBtn() ?></div>
       <div class="view">
@@ -178,8 +235,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       </form>
     </div>
     <?php endif ?>
-
-
+<?php if ($isTutor): ?>
     <?php if (function_exists('push_available') && push_available()): $pp = push_prefs($u); $nDev = (int)(one('SELECT COUNT(*) n FROM push_subscriptions WHERE user_id=?', [$u['id']])['n'] ?? 0); ?>
     <div class="card span-2" id="notifications" data-push data-key="<?= e(vapid_keys()['public']) ?>" data-csrf="<?= e(csrf_token()) ?>"
       data-sub="<?= e(url('push_subscribe')) ?>" data-unsub="<?= e(url('push_unsubscribe')) ?>" data-test="<?= e(url('push_test')) ?>">
@@ -210,6 +266,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
       </div>
     </div>
     <?php endif ?>
+<?php endif ?>
 
     <?php $scope = deletion_scope($u); ?>
     <div class="card span-2 danger-card editable" id="suppression">
