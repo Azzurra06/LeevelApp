@@ -1382,7 +1382,7 @@ a.subj-tab{text-decoration:none}
 .card-due .pay-instr{margin-top:12px;background:var(--surface)}
 
 /* Tarifs : base barrée, tarif remisé en gras */
-.rate-box{display:flex;flex-direction:column;gap:6px;max-width:340px;margin-top:2px}
+.rate-box{display:flex;flex-direction:column;gap:6px;width:100%;margin-top:2px}
 .rate-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:4px 0}
 .rate-row+.rate-row{border-top:1px solid var(--line);padding-top:8px}
 .rate-val{display:inline-flex;align-items:baseline;gap:8px}
