@@ -53,7 +53,7 @@ function tutor_route(string $r, bool $isPost): never
                 if ($amount <= 0) flash('Montant nul : renseignez le tarif ou le montant.', 'err');
                 else {
                     $label = post_str('label', 160) ?: unbilled_label(['sessions' => $ub['billable'] ?: $ub['sessions']] + $ub);
-                    $due = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_str('due_date', 10)) ? post_str('due_date', 10) : date('Y-m-d', strtotime('+7 days'));
+                    $due = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_str('due_date', 10)) ? post_str('due_date', 10) : max(date('Y-m-d'), (string)(expected_payment_date($st, $manual ? null : (string)$ub['end']) ?? date('Y-m-d', strtotime('+7 days'))));
                     try { q('INSERT INTO payments (student_id, period, period_start, period_end, label, minutes, gross, discount, discount_label, amount, due_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [$st['id'], $manual ? $month : substr((string)$ub['end'], 0, 7), $manual ? null : $ub['start'], $manual ? null : $ub['end'], $label, $manual ? 0 : $ub['minutes'], $gross, $disc ?: null, $disc ? ($dLabel ?: 'Remise') : null, $amount, $due]); }
                     catch (PDOException) { q('INSERT INTO payments (student_id, period, label, minutes, amount, due_date) VALUES (?,?,?,?,?,?)', [$st['id'], $month, $label, $manual ? 0 : $b['minutes'], $amount, $due]); }
                     if (!empty($_POST['notify'])) send_message((int)$st['family_id'], $u, "Nouvelle échéance pour " . $st['first_name'] . " : " . $label . " · " . money($amount) . ($disc > 0 ? " (après " . mb_strtolower($dLabel ?: 'remise') . " de " . money($disc) . ")" : '') . " à régler avant le " . fdate($due) . ".\nLe détail est dans « Finances ».", 'family', 'system');

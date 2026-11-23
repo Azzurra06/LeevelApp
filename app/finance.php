@@ -75,6 +75,31 @@ function unbilled_label(array $u): string
     if (substr($u['start'], 0, 7) === substr($u['end'], 0, 7) && substr($u['start'], 8) <= '07') return 'Séances de ' . mb_strtolower(month_label(substr($u['start'], 0, 7)));
     return $n . ' séances du ' . date('d/m', strtotime($u['start'])) . ' au ' . date('d/m', strtotime($u['end']));
 }
+function family_frequency(array $s): string
+{
+    if (array_key_exists('pay_frequency', $s)) return (string)$s['pay_frequency'];
+    try { return (string)(one('SELECT pay_frequency FROM families WHERE id=?', [$s['family_id'] ?? 0])['pay_frequency'] ?? ''); } catch (PDOException) { return ''; }
+}
+/** Date de paiement attendue selon le rythme convenu, à partir d'un jour de référence :
+ *  séance → jour de la séance ; semaine → dernière séance de la semaine ; mois → dernière séance du mois. */
+function expected_payment_date(array $s, ?string $ref = null): ?string
+{
+    $f = family_frequency($s); $ref = $ref ? substr($ref, 0, 10) : date('Y-m-d');
+    if ($f === 'session') {
+        $r = one('SELECT DATE(starts_at) d FROM sessions WHERE student_id=? AND status IN ("done","planned") AND starts_at >= ? ORDER BY starts_at LIMIT 1', [$s['id'], $ref]);
+        return $r['d'] ?? null;
+    }
+    if ($f === 'weekly') { $a = date('Y-m-d', strtotime('monday this week', strtotime($ref))); $b = date('Y-m-d', strtotime($a . ' +7 days')); }
+    elseif ($f === 'monthly') { $a = substr($ref, 0, 7) . '-01'; $b = date('Y-m-d', strtotime($a . ' +1 month')); }
+    else return null;
+    $r = one('SELECT DATE(MAX(starts_at)) d FROM sessions WHERE student_id=? AND status IN ("done","planned") AND starts_at >= ? AND starts_at < ?', [$s['id'], $a, $b]);
+    return $r['d'] ?? ($f === 'monthly' ? date('Y-m-d', strtotime($b . ' -1 day')) : null);
+}
+/** Ce que la tutrice envoie, selon le rythme : « après chaque séance », « chaque semaine »… */
+function frequency_phrase(array $s): string
+{
+    return ['session' => 'après chaque séance', 'weekly' => 'chaque semaine', 'monthly' => 'chaque mois', 'package' => 'pour chaque forfait'][family_frequency($s)] ?? 'au fil des séances';
+}
 function family_terms(array $s): string
 {
     $f = trim((string)($s['pay_frequency'] ?? '')); $m = trim((string)($s['pay_method'] ?? ''));

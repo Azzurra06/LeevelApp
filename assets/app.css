@@ -1363,3 +1363,16 @@ a.subj-tab{text-decoration:none}
   .mission-act[open]{grid-column:2 / 4;grid-row:auto;justify-self:stretch}
 }
 @media (min-width:721px){.mission-act{grid-row:1 / span 2;align-self:start}}
+
+/* Parent, finances : échéance mise en avant */
+.stat.stat-due.is-due{background:var(--accent-l);border:1.5px solid var(--accent);border-radius:12px}
+.stat.stat-due.is-due strong{color:var(--accent-d)}
+.stat.stat-due.is-late{background:#FDECEC;border-color:#C2410C}
+.stat.stat-due.is-late strong{color:#B42318}
+.stat-due .due-date{display:inline-flex;align-items:center;gap:5px;font-weight:600;color:var(--accent-d)}
+.stat-due.is-late .due-date{color:#B42318}
+.stat-due .due-date svg{width:14px;height:14px}
+.card.card-due{border:1.5px solid var(--accent)}
+.pay-due{display:inline-flex;align-items:center;gap:5px;margin-top:4px;font-size:.88rem;font-weight:600;color:var(--accent-d)}
+.pay-due.late{color:#B42318}
+.pay-due svg{width:14px;height:14px}
