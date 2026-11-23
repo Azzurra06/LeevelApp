@@ -22,16 +22,16 @@ $badges = [
     ['icon' => 'sparkles', 'title' => 'Objectif atteint', 'desc' => '1 objectif acquis', 'on' => $acquired >= 1],
 ];
 $unlocked = count(array_filter($badges, fn($b) => $b['on'])); ?>
+<?php $nextTxt = $daysNext === null ? '—' : ($daysNext === 0 ? "Aujourd'hui" : ($daysNext === 1 ? 'Demain' : 'J-' . $daysNext)); ?>
 <div class="card s-hero">
-  <div class="s-ring" style="--p:<?= $avgProg ?>" role="img" aria-label="Progression moyenne : <?= $avgProg ?> %"><div><strong><?= $avgProg ?>%</strong><small>ma progression</small></div></div>
-  <div class="s-hero-body">
-    <p class="s-cheer"><?= e($cheer) ?></p>
-    <div class="s-stats">
-      <div class="s-stat"><span class="ico"><?= icon('calendar') ?></span><strong><?= $sessDone ?></strong><small>séance<?= $sessDone > 1 ? 's' : '' ?> faite<?= $sessDone > 1 ? 's' : '' ?></small></div>
-      <div class="s-stat"><span class="ico"><?= icon('rocket') ?></span><strong><?= $missionsDone ?></strong><small>mission<?= $missionsDone > 1 ? 's' : '' ?> réussie<?= $missionsDone > 1 ? 's' : '' ?></small></div>
-      <div class="s-stat"><span class="ico"><?= icon('target') ?></span><strong><?= $acquired ?></strong><small>objectif<?= $acquired > 1 ? 's' : '' ?> atteint<?= $acquired > 1 ? 's' : '' ?></small></div>
-      <div class="s-stat"><span class="ico"><?= icon('clock') ?></span><strong><?= $daysNext === null ? '-' : ($daysNext === 0 ? "Auj." : 'J-' . $daysNext) ?></strong><small>prochaine séance</small></div>
-    </div>
+  <span class="s-eyebrow">Mon parcours</span>
+  <h2 class="s-hero-title">Chaque progrès compte, <?= e($s['first_name']) ?>.</h2>
+  <p class="s-hero-sub">Continue à avancer à ton rythme.</p>
+  <div class="s-stats">
+    <div class="s-stat"><span class="ico"><?= icon('calendar') ?></span><strong><?= $sessDone ?></strong><small><?= $sessDone > 1 ? 'Séances réalisées' : 'Séance réalisée' ?></small></div>
+    <div class="s-stat"><span class="ico"><?= icon('rocket') ?></span><strong><?= $missionsDone ?></strong><small><?= $missionsDone > 1 || $missionsDone === 0 ? 'Missions réussies' : 'Mission réussie' ?></small></div>
+    <div class="s-stat"><span class="ico"><?= icon('target') ?></span><strong><?= $acquired ?></strong><small><?= $acquired > 1 || $acquired === 0 ? 'Objectifs atteints' : 'Objectif atteint' ?></small></div>
+    <div class="s-stat"><span class="ico"><?= icon('clock') ?></span><strong><?= e($nextTxt) ?></strong><small>Prochaine séance</small></div>
   </div>
 </div>
 <div class="card tone-violet s-badges">

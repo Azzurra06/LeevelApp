@@ -22,13 +22,13 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
         <div><strong><?= e($main['title']) ?></strong><small><?= e(GOAL_STATUS[$main['status']]) ?></small></div></div>
     <?php else: ?><div class="tile-row"><span class="tile-emoji">🎯</span><div><strong>À choisir ensemble</strong><small>On le fixe à la prochaine séance.</small></div></div><?php endif ?>
   </div>
-  <div class="card tile tone-blue">
-    <h2><?= icon('calendar') ?> Prochaine séance</h2>
+  <a class="card tile tone-blue tile-link" href="<?= e(url('s_planning')) ?>" aria-label="Voir le détail de mes séances">
+    <h2><?= icon('calendar') ?> Prochaine séance <?= icon('chevron-right', 'tile-chev') ?></h2>
     <?php if ($next): $ts = strtotime($next['starts_at']); ?>
       <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>
         <div><strong><?= date('H\hi', $ts) ?> · <?= fdur((int)$next['duration_min']) ?></strong><small><?= icon($next['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$next['mode']]) ?></small></div></div>
     <?php else: ?><div class="tile-row"><span class="tile-emoji">📅</span><div><strong>Pas encore prévue</strong><small>Ta tutrice la planifie bientôt.</small></div></div><?php endif ?>
-  </div>
+  </a>
   <div class="card tile tone-pink">
     <h2><?= icon('smile') ?> Mon humeur de la semaine</h2>
     <form method="post" action="<?= e(url('s_feeling')) ?>" class="mood-row"><?= csrf_field() ?>
@@ -50,7 +50,7 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
         <?php if ($m['description']): ?><p class="mission-desc"><?= e($m['description']) ?></p><?php endif ?>
         <?php if ($done): ?><span class="badge sage">Terminée · ta tutrice validera</span><?php endif ?>
         <details class="mission-act">
-          <summary class="btn sm<?= $done ? ' ghost' : '' ?>"><?= $done ? 'Modifier mon ressenti' : icon('check') . ' J\'ai fait cette mission' ?></summary>
+          <summary class="btn sm <?= $done ? 'ghost' : 'btn-outline' ?>"><?= $done ? 'Modifier mon ressenti' : 'J\'ai fini cette mission' ?></summary>
           <form method="post" action="<?= e(url('s_goal')) ?>" class="mission-form"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$m['id'] ?>">
             <span class="mission-q">Comment ça s'est passé ?</span>
             <div class="feel pills"><?php foreach (FEELINGS as $k => $l): ?><label class="pill"><input type="radio" name="feeling" value="<?= $k ?>" <?= $m['student_feeling'] === $k ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div>
@@ -70,11 +70,6 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
     <h2><?= icon('chart-column') ?> Compétences en progression</h2>
     <?php foreach (array_slice($progressing, 0, 5) as $g): ?><div class="axis"><span class="lbl"><?= e($g['title']) ?></span><span class="n"><?= (int)$g['progress'] ?>%</span><div class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></div></div><?php endforeach ?>
     <?php if (!$progressing): ?><div class="empty-ill sm"><span>📈</span><p class="muted">Tes compétences apparaîtront ici dès les premières séances.</p></div><?php endif ?>
-  </div>
-  <div class="card tone-gold">
-    <h2><?= icon('sparkles') ?> Mes réussites</h2>
-    <?php if (!$wins): ?><div class="empty-ill sm"><span>🏆</span><p class="muted">Tes premières réussites s'afficheront ici.</p></div><?php endif ?>
-    <ul class="trophies"><?php foreach ($wins as $w): ?><li><span>🏅</span><div><strong><?= e($w['title']) ?></strong><small class="muted"><?= e(fdate($w['updated_at'])) ?></small></div></li><?php endforeach ?></ul>
   </div>
 </div><br>
 
