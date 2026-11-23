@@ -21,7 +21,7 @@ $rateNet = function (array $st) use ($rateTxt): string {
     $pr = rate_for($st, 'presentiel'); if ($pr === null) return $rateTxt($st);
     $net = fn(float $r) => money(round($r * (1 - $pct / 100), 2)) . '/h';
     $v = $st['hourly_rate_visio'] !== null ? ' · visio ' . $net((float)$st['hourly_rate_visio']) : '';
-    return $net($pr) . $v . ' (remise −' . rtrim(rtrim(number_format($pct, 1, ',', ''), '0'), ',') . ' %)';
+    return $net($pr) . $v . ' · −' . rtrim(rtrim(number_format($pct, 1, ',', ''), '0'), ',') . ' %';
 };
 $payItem = function (array $p, bool $withName) use ($hid, $methodSel, $late) { ?>
   <li class="<?= $p['status'] === 'pending' ? 'editable' : '' ?>"><div class="pay-main"><strong><?= $withName ? e($p['first_name']) . ' · ' : '' ?><?= money((float)$p['amount']) ?></strong>
@@ -119,7 +119,7 @@ $payItem = function (array $p, bool $withName) use ($hid, $methodSel, $late) { ?
     <div class="stat"><span class="muted">Encaissé</span><strong><?= money($mo['paid']) ?></strong><small class="muted">sur <?= money($mo['billed']) ?> facturés</small></div>
     <div class="stat"><span class="muted">À recevoir</span><strong><?= money($mo['pending']) ?></strong><?php if ($mo['late'] > 0): ?><small class="err-txt">dont <?= money($mo['late']) ?> en retard</small><?php endif ?></div>
     <div class="stat"><span class="muted">Non facturé</span><strong><?= money($ub['amount']) ?></strong><small class="muted"><?= count($ub['billable']) ?> séance<?= count($ub['billable']) > 1 ? 's' : '' ?></small></div>
-    <div class="stat"><span class="muted">Tarif</span><strong class="fin-rate-v"><?= e($rateNet($st)) ?></strong><?php if ($terms): ?><small class="muted"><?= e($terms) ?></small><?php endif ?></div>
+    <?php $rl = rate_lines($st); $l0 = $rl['lines'][0] ?? null; ?><div class="stat"><span class="muted">Tarif horaire</span><strong><?= $l0 ? money($l0['net']) . ' / h' : '—' ?></strong><?php if ($l0 && $rl['pct'] > 0): ?><small class="muted">au lieu de <s><?= money($l0['base']) ?></s></small><?php endif ?><?php foreach (array_slice($rl['lines'], 1) as $l): ?><small class="muted">Visio : <?= money($l['net']) ?> / h</small><?php endforeach ?><?php if ($rl['pct'] > 0): ?><small class="ok-txt">−<?= $rl['pct_txt'] ?> % · <?= e($st['discount_label'] ?: 'Remise') ?></small><?php endif ?><?php if ($terms): ?><small class="muted"><?= e($terms) ?></small><?php endif ?></div>
   </div>
 </div>
 
