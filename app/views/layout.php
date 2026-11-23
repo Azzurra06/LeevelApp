@@ -26,6 +26,7 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
     <noscript><button class="btn ghost sm">OK</button></noscript>
   </form>
   <?php endif ?>
+<?php ob_start() ?>
   <nav class="nav nav-main" aria-label="Navigation principale">
     <?php $curTab = (string)($_GET['tab'] ?? '');
     foreach ($nav as $item): [$route, $ic, $label, $short] = $item; $params = $item[4] ?? [];
@@ -35,6 +36,7 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
       <a data-tour="<?= e($route . (isset($params['tab']) ? '-' . $params['tab'] : '')) ?>" href="<?= e(url($route, ($role === 'tutor' ? $sidQ : []) + $params)) ?>" class="<?= $on ? 'on' : '' ?>"<?= $on ? ' aria-current="page"' : '' ?>><span class="nav-ic"><?= icon($ic) ?><?php if ($unread && in_array($route, ['t_messages', 'p_messages', 's_messages'], true)): ?><span class="nav-badge"><?= $unread ?></span><?php endif ?></span><span class="lbl"><?= e($label) ?></span><span class="lbl-s"><?= e($short) ?></span></a>
     <?php endforeach ?>
   </nav>
+<?php $navHtml = ob_get_clean(); echo $navHtml; ?>
   <div class="nav nav-side">
     <details class="acct" data-acct>
       <summary data-tour="account" class="acct-btn<?= in_array($r, ['account', 'help', 't_users', 'q', 'q_recap', 't_finance'], true) ? ' on' : '' ?>" aria-label="Menu de mon compte">
@@ -58,6 +60,8 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
     </details>
   </div>
 </div></header>
+<?php // Sur mobile, la barre d'onglets est hors de l'en-tête « collant » : sur iPhone, un élément fixe dans un parent sticky se décroche au défilement
+echo str_replace(['class="nav nav-main"', 'aria-label="Navigation principale"'], ['class="nav nav-main nav-bottom"', 'aria-label="Navigation"'], $navHtml); ?>
 <?php // Visite guidée : proposée après le parcours d'accueil, ou relancée depuis le Centre d'aide (?tour=1)
 $tourOn = in_array($role, ['parent', 'student', 'tutor'], true) && (!empty($_SESSION['tour_offer']) || !empty($_GET['tour']));
 if ($tourOn): $autoStart = !empty($_GET['tour']); unset($_SESSION['tour_offer']);
