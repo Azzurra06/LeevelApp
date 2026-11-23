@@ -218,13 +218,37 @@
   if (document.body.classList.contains('page-chat') && matchMedia('(max-width:720px)').matches) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
   // Pièce jointe (photo, PDF) en plein écran, avec Télécharger et Fermer
   const iconSvg = n => '<svg class="ic" aria-hidden="true"><use href="' + ($('link[rel=icon-sprite]')?.href || document.querySelector('use')?.getAttribute('href')?.split('#')[0] || '') + '#i-' + n + '"></use></svg>';
+  // PDF affiché à la largeur de l'écran, toutes les pages (pdf.js servi par le site, chargé à la demande)
+  const vendorBase = (document.querySelector('script[src*="app.js"]')?.src || location.origin + '/assets/app.js').replace(/app\.js.*$/, 'vendor/pdfjs/');
+  const renderPdf = async (box, url, name) => {
+    try {
+      const pdfjs = await import(vendorBase + 'pdf.min.js');
+      pdfjs.GlobalWorkerOptions.workerSrc = vendorBase + 'pdf.worker.min.js';
+      const doc = await pdfjs.getDocument({ url, withCredentials: true }).promise;
+      box.textContent = '';
+      const width = Math.min(box.clientWidth - 16, 1000), dpr = Math.min(window.devicePixelRatio || 1, 3);
+      for (let i = 1; i <= doc.numPages; i++) {
+        if (!box.isConnected) return;
+        const page = await doc.getPage(i), base = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: width / base.width * dpr });
+        const c = document.createElement('canvas'); c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+        c.style.width = width + 'px'; c.style.height = Math.floor(vp.height / dpr) + 'px'; c.setAttribute('aria-label', (name || 'Document') + ', page ' + i);
+        box.append(c);
+        await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      }
+    } catch (err) {
+      // repli : affichage natif du navigateur
+      box.textContent = ''; box.append(Object.assign(document.createElement('iframe'), { src: url, title: name || 'Document' }));
+    }
+  };
   let lb = null;
   const closeLb = () => { if (!lb) return; lb.remove(); lb = null; document.body.classList.remove('lb-open'); };
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-lightbox]'); if (!a) return;
     e.preventDefault(); closeLb();
     lb = document.createElement('div'); lb.className = 'lightbox'; lb.setAttribute('role', 'dialog'); lb.setAttribute('aria-label', a.dataset.name || 'Pièce jointe');
-    const view = a.dataset.lightbox === 'img' ? Object.assign(document.createElement('img'), { src: a.getAttribute('href'), alt: a.dataset.name || '' }) : Object.assign(document.createElement('iframe'), { src: a.getAttribute('href'), title: a.dataset.name || 'Document' });
+    const isImg = a.dataset.lightbox === 'img';
+    const view = isImg ? Object.assign(document.createElement('img'), { src: a.getAttribute('href'), alt: a.dataset.name || '' }) : document.createElement('div');
+    if (!isImg) { view.className = 'lb-pdf'; view.innerHTML = '<p class="lb-loading">Chargement du document…</p>'; renderPdf(view, a.getAttribute('href'), a.dataset.name); }
     const acts = document.createElement('div'); acts.className = 'lb-acts';
     const dl = document.createElement('a'); dl.className = 'lb-btn'; dl.href = a.dataset.dl; dl.setAttribute('download', a.dataset.name || ''); dl.setAttribute('aria-label', 'Télécharger'); dl.title = 'Télécharger'; dl.innerHTML = iconSvg('download');
     const x = document.createElement('button'); x.type = 'button'; x.className = 'lb-btn'; x.setAttribute('aria-label', 'Fermer'); x.title = 'Fermer'; x.innerHTML = iconSvg('x');
