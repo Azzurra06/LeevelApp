@@ -268,6 +268,16 @@
   window.addEventListener('popstate', closeLb);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && lb) history.state?.lb ? history.back() : closeLb(); });
 
+  // Clavier ouvert sur mobile : on masque la barre de navigation du bas (la saisie reste collée au clavier)
+  if (window.visualViewport) {
+    const vv = window.visualViewport;
+    const kb = () => {
+      const t = document.activeElement, typing = t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['checkbox', 'radio', 'file', 'button', 'submit'].includes(t.type)));
+      document.body.classList.toggle('kb-open', !!typing && (matchMedia('(pointer: coarse)').matches || vv.height < window.innerHeight * 0.8));
+    };
+    vv.addEventListener('resize', kb); document.addEventListener('focusin', () => setTimeout(kb, 250)); document.addEventListener('focusout', () => setTimeout(kb, 100));
+  }
+
   // Messagerie : aperçu des pièces jointes choisies (avec retrait possible)
   $$('[data-msg-form]').forEach(form => {
     const input = $('[data-attach]', form), list = $('[data-attach-list]', form); if (!input || !list) return;
