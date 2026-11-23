@@ -148,20 +148,27 @@ function message_files_for(array $ids): array
     $out = []; foreach ($rows as $r) $out[(int)$r['message_id']][] = $r;
     return $out;
 }
-/** Sert une pièce jointe si le demandeur a accès au fil (l'élève : son propre fil uniquement). */
-function serve_message_file(array $viewer, int $id): never
+/** Pièce jointe accessible au demandeur (membre de la famille ; l'élève : son propre fil uniquement), sinon null. */
+function message_file_for(array $viewer, int $id): ?array
 {
     $f = null;
-    try { $f = one('SELECT mf.*, m.family_id, m.channel FROM message_files mf JOIN messages m ON m.id=mf.message_id WHERE mf.id=?', [$id]); } catch (PDOException) {}
+    try { $f = one('SELECT mf.*, m.family_id, m.channel, m.sender_id, m.created_at AS sent_at FROM message_files mf JOIN messages m ON m.id=mf.message_id WHERE mf.id=?', [$id]); } catch (PDOException) {}
     $ok = $f && one('SELECT 1 FROM family_members WHERE family_id=? AND user_id=?', [$f['family_id'], $viewer['id']]);
     if ($ok && $viewer['role'] === 'student') $ok = ($f['channel'] ?? 'family') === 'student';
-    $path = $ok && preg_match('/^[a-f0-9]{24}\.[a-z0-9]{2,4}$/', $f['stored']) ? files_dir() . '/' . $f['stored'] : null;
-    if (!$path || !is_file($path)) { http_response_code(404); exit('Fichier introuvable.'); }
+    return $ok && preg_match('/^[a-f0-9]{24}\.[a-z0-9]{2,4}$/', $f['stored']) && is_file(files_dir() . '/' . $f['stored']) ? $f : null;
+}
+/** Sert une pièce jointe (brute). ?dl=1 : téléchargement ; ?embed=1 : affichable dans la visionneuse de l'app. */
+function serve_message_file(array $viewer, int $id): never
+{
+    $f = message_file_for($viewer, $id);
+    if (!$f) { http_response_code(404); exit('Fichier introuvable.'); }
+    $path = files_dir() . '/' . $f['stored'];
     $inline = in_array($f['mime'], ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'], true) && empty($_GET['dl']);
     header_remove('Cache-Control');
     header('Content-Type: ' . $f['mime']);
     header('X-Content-Type-Options: nosniff');
-    header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox");
+    if (!empty($_GET['embed']) && $f['mime'] === 'application/pdf') { header_remove('X-Frame-Options'); header("Content-Security-Policy: frame-ancestors 'self'"); }
+    else header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox");
     header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . "; filename*=UTF-8''" . rawurlencode($f['original']));
     header('Cache-Control: private, max-age=3600');
     header('Content-Length: ' . filesize($path));

@@ -14,9 +14,9 @@ $fsize = fn(int $b) => $b >= 1048576 ? number_format($b / 1048576, 1, ',', '') .
       <div class="bubble">
         <?php if (!$mine): ?><span class="msg-from"><?= e($m['display_name'] ?? 'Compte supprimé') ?></span><?php endif ?>
         <?php if (trim((string)$m['body']) !== ''): ?><div><?= nl2br(e($m['body'])) ?></div><?php endif ?>
-        <?php if (!empty($att[(int)$m['id']])): ?><div class="msg-files"><?php foreach ($att[(int)$m['id']] as $f): $furl = url('msg_file', ['id' => $f['id']]); ?>
-          <?php if (in_array($f['mime'], ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)): ?><a class="msg-img" href="<?= e($furl) ?>" target="_blank" rel="noopener"><img src="<?= e($furl) ?>" alt="<?= e($f['original']) ?>" loading="lazy"></a>
-          <?php else: ?><a class="msg-file" href="<?= e($furl) ?>" target="_blank" rel="noopener"><?= icon('file-text') ?><span><strong><?= e($f['original']) ?></strong><small><?= e(strtoupper(pathinfo($f['stored'], PATHINFO_EXTENSION))) ?> · <?= $fsize((int)$f['size']) ?></small></span><?= icon('download', 'msg-file-dl') ?></a><?php endif ?>
+        <?php if (!empty($att[(int)$m['id']])): ?><div class="msg-files"><?php foreach ($att[(int)$m['id']] as $f): $furl = url('msg_file', ['id' => $f['id']]); $vurl = url('msg_view', ['id' => $f['id']]); ?>
+          <?php if (in_array($f['mime'], ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)): ?><a class="msg-img" href="<?= e($vurl) ?>"><img src="<?= e($furl) ?>" alt="<?= e($f['original']) ?>" loading="lazy"></a>
+          <?php else: ?><a class="msg-file" href="<?= e($vurl) ?>"><?= icon('file-text') ?><span><strong><?= e($f['original']) ?></strong><small><?= e(strtoupper(pathinfo($f['stored'], PATHINFO_EXTENSION))) ?> · <?= $fsize((int)$f['size']) ?></small></span><?= icon('download', 'msg-file-dl') ?></a><?php endif ?>
         <?php endforeach ?></div><?php endif ?>
         <span class="msg-time"><?= e(date('H\hi', strtotime($m['created_at']))) ?><?= $mine && $m['read_at'] ? ' · lu' : '' ?></span>
       </div>

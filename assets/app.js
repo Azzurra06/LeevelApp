@@ -216,6 +216,24 @@
   // Messagerie : afficher le dernier message
   $$('[data-thread]').forEach(t => { t.scrollTop = t.scrollHeight; });
   if (document.body.classList.contains('page-chat') && matchMedia('(max-width:720px)').matches) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  // Visionneuse : retour arrière, enregistrer / partager (feuille de partage du téléphone)
+  $$('[data-viewer]').forEach(v => {
+    const back = $('[data-back]', v);
+    if (back && document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) back.addEventListener('click', e => { e.preventDefault(); history.back(); });
+    const share = $('[data-share]', v);
+    if (share && navigator.canShare) {
+      share.hidden = false;
+      share.addEventListener('click', async () => {
+        try {
+          const blob = await (await fetch(v.dataset.src, { credentials: 'same-origin' })).blob();
+          const file = new File([blob], v.dataset.name, { type: v.dataset.mime || blob.type });
+          if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: v.dataset.name });
+          else $('[data-download]', v)?.click();
+        } catch (e) { if (e.name !== 'AbortError') $('[data-download]', v)?.click(); }
+      });
+    }
+  });
+
   // Messagerie : aperçu des pièces jointes choisies (avec retrait possible)
   $$('[data-msg-form]').forEach(form => {
     const input = $('[data-attach]', form), list = $('[data-attach-list]', form); if (!input || !list) return;

@@ -110,6 +110,19 @@ function dispatch(string $r, string $method): void
         case 'msg_file':
             serve_message_file(require_login(), (int)($_GET['id'] ?? 0));
 
+        case 'msg_view':
+            $u = require_login();
+            $f = message_file_for($u, (int)($_GET['id'] ?? 0));
+            if (!$f) { http_response_code(404); render('error', ['msg' => 'Fichier introuvable.']); }
+            $sid = (int)(one('SELECT id FROM students WHERE family_id=? ORDER BY id LIMIT 1', [$f['family_id']])['id'] ?? 0);
+            $student = $f['channel'] === 'student';
+            $back = match ($u['role']) {
+                'tutor' => url('t_messages', ['sid' => $sid] + ($student ? ['ch' => 'student'] : [])),
+                'parent' => url('p_messages', ['sid' => $sid] + ($student ? ['ch' => 'student'] : [])),
+                default => url('s_messages'),
+            };
+            render('msg_view', ['u' => $u, 'f' => $f, 'back' => $back]);
+
         case 'help':
             render('help', ['u' => require_login()]);
 
