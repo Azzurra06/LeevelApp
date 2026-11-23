@@ -1331,3 +1331,11 @@ body.student .card.s-hero .s-hero-title{color:#fff;font-size:1.5rem;font-weight:
   body.student .card.s-badges .badge-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;margin:4px -16px 0;padding:0 16px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   body.student .card.s-badges .bdg{flex:0 0 116px;scroll-snap-align:start}
 }
+
+/* Parent, vue d'ensemble sur mobile : ordre bilans → prochaine séance → contrôles → matières → objectifs */
+@media (max-width:720px){
+  body.page-p .two-cols{display:flex;flex-direction:column;gap:10px}
+  body.page-p .two-cols>.col-stack{display:contents}
+  body.page-p .pd-bilans{order:1}body.page-p .pd-next{order:2}body.page-p .pd-tests{order:3}body.page-p .pd-subj{order:4}
+  body.page-p .pd-goals{order:5}body.page-p .pd-month{order:6}body.page-p .pd-mot{order:7}
+}

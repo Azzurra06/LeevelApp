@@ -5,7 +5,7 @@ $next = $upcoming[0] ?? null; ?>
 <?php if (!onboarding_available()) require __DIR__ . '/_onboarding.php' ?>
 <div class="grid-2 two-cols">
   <div class="col-stack">
-    <div class="card">
+    <div class="card pd-bilans">
       <h2><?= icon('file-text') ?> Derniers bilans de séance</h2>
       <?php if (!$reports): ?><p class="muted">Après chaque séance, la tutrice vous enverra un court bilan ici.</p><?php endif ?>
       <?php foreach ($reports as $rp): ?>
@@ -19,13 +19,13 @@ $next = $upcoming[0] ?? null; ?>
       <?php endforeach ?>
     </div>
     <?php if ($monthly): ?>
-    <div class="card accent">
+    <div class="card pd-month accent">
       <h2><?= icon('chart-column') ?> Bilan du mois · <?= e(month_label($monthly['month'])) ?></h2>
       <p data-clamp="160"><?= nl2br(e($monthly['summary'])) ?></p>
     </div>
     <?php endif ?>
     <?php if ($subjects): ?>
-    <div class="card">
+    <div class="card pd-subj">
       <h2><?= icon('book-open') ?> Matières suivies</h2>
       <ul class="list subj-sum"><?php foreach ($subjects as $sub): $acq = count(array_filter($sub['chapters'], fn($c) => $c['status'] === 'acquired')); ?>
         <li><div><strong><?= e($sub['name']) ?></strong><br><small class="muted"><?= count($sub['chapters']) ? $acq . ' / ' . count($sub['chapters']) . ' chapitre(s) acquis' : 'Pas encore de chapitre' ?></small></div>
@@ -35,7 +35,7 @@ $next = $upcoming[0] ?? null; ?>
     <?php endif ?>
   </div>
   <div class="col-stack">
-    <div class="card">
+    <div class="card pd-next">
       <h2><?= icon('calendar') ?> Prochaine séance</h2>
       <?php if ($next): ?>
         <p class="hello"><strong><?= e(fdatetime($next['starts_at'])) ?></strong></p>
@@ -43,10 +43,9 @@ $next = $upcoming[0] ?? null; ?>
       <?php else: ?><p class="muted">Aucune séance à venir.</p><?php endif ?>
       <a class="card-link" href="<?= e(url('p_planning')) ?>">Voir tout le planning →</a>
     </div>
-    <?php require __DIR__ . '/_tests.php' ?>
-    <?php require __DIR__ . '/_year_goals.php' ?>
+    <?php $tone = 'pd-tests'; require __DIR__ . '/_tests.php'; $tone = 'pd-goals'; require __DIR__ . '/_year_goals.php'; $tone = ''; ?>
     <?php if ($s['shared_strengths'] || $s['shared_to_work'] || $s['shared_message'] || $sharedObs): ?>
-    <div class="card">
+    <div class="card pd-mot">
       <h2><?= icon('message-circle') ?> Le mot de la tutrice</h2>
       <?php if ($s['shared_message']): ?><p><?= nl2br(e($s['shared_message'])) ?></p><?php endif ?>
       <?php foreach ($sharedObs as $o): ?><p><small class="muted"><?= e(fdate($o['created_at'])) ?></small> · <?= nl2br(e($o['content'])) ?></p><?php endforeach ?>
