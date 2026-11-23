@@ -226,7 +226,7 @@
       pdfjs.GlobalWorkerOptions.workerSrc = vendorBase + 'pdf.worker.min.js';
       const doc = await pdfjs.getDocument({ url, withCredentials: true }).promise;
       box.textContent = '';
-      const width = Math.min(box.clientWidth - 12, 1000), dpr = Math.min(window.devicePixelRatio || 1, 3);
+      const width = Math.min(box.clientWidth - 16, 1000), dpr = Math.min(window.devicePixelRatio || 1, 3);
       for (let i = 1; i <= doc.numPages; i++) {
         if (!box.isConnected) return;
         const page = await doc.getPage(i), base = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: width / base.width * dpr });
@@ -242,38 +242,27 @@
   };
   let lb = null;
   const closeLb = () => { if (!lb) return; lb.remove(); lb = null; document.body.classList.remove('lb-open'); };
-  const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html) n.innerHTML = html; return n; };
-  // Plein écran façon aperçu natif : barre noire (fermer · nom du fichier · menu « … »), pages à la largeur de l'écran
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-lightbox]'); if (!a) return;
     e.preventDefault(); closeLb();
-    const name = a.dataset.name || 'Pièce jointe', src = a.getAttribute('href'), dlUrl = a.dataset.dl, isImg = a.dataset.lightbox === 'img';
-    lb = el('div', 'lightbox'); lb.setAttribute('role', 'dialog'); lb.setAttribute('aria-label', name);
-    const top = el('div', 'lb-top');
-    const x = el('button', 'lb-round', iconSvg('x')); x.type = 'button'; x.setAttribute('aria-label', 'Fermer');
-    const title = el('div', 'lb-title'); title.textContent = name;
-    const more = el('button', 'lb-round', iconSvg('more')); more.type = 'button'; more.setAttribute('aria-label', 'Options'); more.setAttribute('aria-haspopup', 'menu');
-    const menu = el('div', 'lb-menu'); menu.hidden = true; menu.setAttribute('role', 'menu');
-    const share = async () => {
-      try {
-        const blob = await (await fetch(dlUrl, { credentials: 'same-origin' })).blob();
-        const file = new File([blob], name, { type: blob.type });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] }); else location.href = dlUrl;
-      } catch (err) { if (err.name !== 'AbortError') location.href = dlUrl; }
-    };
-    if (navigator.canShare) { const it = el('button', 'lb-item', iconSvg('send') + '<span>Partager / Enregistrer dans Fichiers</span>'); it.type = 'button'; it.setAttribute('role', 'menuitem'); it.addEventListener('click', () => { menu.hidden = true; share(); }); menu.append(it); }
-    const dl = el('a', 'lb-item', iconSvg('download') + '<span>Télécharger</span>'); dl.href = dlUrl; dl.setAttribute('download', name); dl.setAttribute('role', 'menuitem');
-    if (navigator.canShare && matchMedia('(pointer: coarse)').matches) dl.addEventListener('click', ev => { ev.preventDefault(); menu.hidden = true; share(); });
-    menu.append(dl);
-    more.addEventListener('click', ev => { ev.stopPropagation(); menu.hidden = !menu.hidden; });
-    lb.addEventListener('click', ev => { if (!menu.hidden && !menu.contains(ev.target) && ev.target !== more) menu.hidden = true; });
+    lb = document.createElement('div'); lb.className = 'lightbox'; lb.setAttribute('role', 'dialog'); lb.setAttribute('aria-label', a.dataset.name || 'Pièce jointe');
+    const isImg = a.dataset.lightbox === 'img';
+    const view = isImg ? Object.assign(document.createElement('img'), { src: a.getAttribute('href'), alt: a.dataset.name || '' }) : document.createElement('div');
+    if (!isImg) { view.className = 'lb-pdf'; view.innerHTML = '<p class="lb-loading">Chargement du document…</p>'; renderPdf(view, a.getAttribute('href'), a.dataset.name); }
+    const acts = document.createElement('div'); acts.className = 'lb-acts';
+    const dl = document.createElement('a'); dl.className = 'lb-btn'; dl.href = a.dataset.dl; dl.setAttribute('download', a.dataset.name || ''); dl.setAttribute('aria-label', 'Télécharger'); dl.title = 'Télécharger'; dl.innerHTML = iconSvg('download');
+    const x = document.createElement('button'); x.type = 'button'; x.className = 'lb-btn'; x.setAttribute('aria-label', 'Fermer'); x.title = 'Fermer'; x.innerHTML = iconSvg('x');
     x.addEventListener('click', () => history.state?.lb ? history.back() : closeLb());
-    top.append(x, title, more, menu);
-    const body = el('div', isImg ? 'lb-body lb-imgbox' : 'lb-body lb-pdf');
-    if (isImg) body.append(Object.assign(document.createElement('img'), { src, alt: name }));
-    else body.innerHTML = '<p class="lb-loading">Chargement du document…</p>';
-    lb.append(top, body); document.body.append(lb); document.body.classList.add('lb-open'); x.focus();
-    if (!isImg) renderPdf(body, src, name);
+    // Sur téléphone : « Télécharger » ouvre la feuille de partage (Enregistrer dans Fichiers / Photos), plus fiable en mode app
+    if (navigator.canShare && matchMedia('(pointer: coarse)').matches) dl.addEventListener('click', async ev => {
+      ev.preventDefault();
+      try {
+        const blob = await (await fetch(a.dataset.dl, { credentials: 'same-origin' })).blob();
+        const file = new File([blob], a.dataset.name || 'fichier', { type: blob.type });
+        if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file] }); else location.href = a.dataset.dl;
+      } catch (err) { if (err.name !== 'AbortError') location.href = a.dataset.dl; }
+    });
+    acts.append(dl, x); lb.append(view, acts); document.body.append(lb); document.body.classList.add('lb-open'); x.focus();
     history.pushState({ lb: 1 }, '');
   });
   window.addEventListener('popstate', closeLb);
