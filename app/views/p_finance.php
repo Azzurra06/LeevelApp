@@ -12,8 +12,8 @@ $dayLbl = fn($d) => $d === date('Y-m-d') ? "aujourd'hui" : ($d === date('Y-m-d',
 
 <div class="card"><h2><?= icon('chart-column') ?> En bref</h2>
   <div class="month-stats">
-    <div class="stat stat-due<?= $pending ? ' is-due' : '' ?><?= $isLate ? ' is-late' : '' ?>"><span class="muted">À régler</span><strong><?= money($due) ?></strong>
-      <?php if ($pending && $payDate): ?><small class="due-date"><?= icon('calendar') ?> <?= $isLate ? 'En retard depuis le ' . e(fdate($payDate)) : 'À payer ' . e($dayLbl($payDate)) ?></small>
+    <div class="stat"><span class="muted">À régler</span><strong><?= money($due) ?></strong>
+      <?php if ($pending && $payDate): ?><small class="muted"><?= $isLate ? 'En retard depuis le ' . e(fdate($payDate)) : 'À payer ' . e($dayLbl($payDate)) ?></small>
       <?php elseif ($payDate): ?><small class="muted">Prochain paiement <?= e($dayLbl($payDate)) ?></small><?php endif ?></div>
     <div class="stat"><span class="muted">Tarif horaire</span><strong><?= $s['hourly_rate'] !== null ? money((float)$s['hourly_rate']) . ' / h' : '—' ?></strong><?php if ($s['hourly_rate_visio'] !== null): ?><small class="muted">Visio : <?= money((float)$s['hourly_rate_visio']) ?> / h</small><?php endif ?><?php if ((float)($s['discount_pct'] ?? 0) > 0): ?><small class="ok-txt"><?= e(discount_text($s['discount_label'] ?? null, (float)$s['discount_pct'])) ?></small><?php endif ?></div>
     <div class="stat"><span class="muted"><?= e(month_label(date('Y-m'))) ?> (en cours)</span><strong><?= money($billing['amount']) ?></strong><?php if ($billing['discount'] > 0): ?><small class="muted"><s><?= money($billing['gross']) ?></s> · remise −<?= money($billing['discount']) ?></small><?php endif ?><small class="muted"><?= fdur($billing['minutes']) ?> réalisée<?= $billing['minutes'] > 60 ? 's' : '' ?><?= $billing['planned_min'] ? ' · ' . fdur($billing['planned_min']) . ' prévues' : '' ?></small></div>
@@ -40,13 +40,12 @@ $dayLbl = fn($d) => $d === date('Y-m-d') ? "aujourd'hui" : ($d === date('Y-m-d',
   </div>
  </div>
  <div class="col-stack">
-  <div class="card"><h2><?= icon('calendar') ?> Séances de <?= e(mb_strtolower(month_label(date('Y-m')))) ?></h2>
-    <?php if (!$billing['sessions']): ?><p class="muted">Aucune séance réalisée ce mois-ci.</p><?php endif ?>
-    <ul class="pay-list"><?php foreach ($billing['sessions'] as $x): ?>
-      <li><div class="pay-main"><strong><?= e(fdatetime($x['starts_at'])) ?></strong><small class="muted"><?= fdur((int)$x['duration_min']) ?> · <?= e(MODES[$x['mode']]) ?></small></div><div class="pay-amt"><strong><?= $x['amount'] !== null ? money($x['amount']) : '—' ?></strong></div></li>
+  <div class="card"><h2><?= icon('calendar') ?> Séances de la semaine</h2>
+    <p class="muted"><small>Du <?= e(date('d/m', strtotime($week['start']))) ?> au <?= e(date('d/m', strtotime($week['end']))) ?></small></p>
+    <?php if (!$week['sessions']): ?><p class="muted">Aucune séance cette semaine.</p><?php endif ?>
+    <ul class="pay-list"><?php foreach ($week['sessions'] as $x): ?>
+      <li><div class="pay-main"><strong><?= e(fdatetime($x['starts_at'])) ?></strong><small class="muted"><?= fdur((int)$x['duration_min']) ?> · <?= e(MODES[$x['mode']]) ?><?= $x['status'] === 'planned' ? ' · prévue' : '' ?></small></div><div class="pay-amt"><strong><?= $x['free'] ? 'Offerte' : ($x['amount'] !== null ? money($x['amount']) : '—') ?></strong></div></li>
     <?php endforeach ?></ul>
-    <?php if ($billing['discount'] > 0): ?><p class="muted"><small><?= e(discount_text($billing['discount_label'] ?: null, $billing['discount_pct'])) ?> appliquée sur le total : −<?= money($billing['discount']) ?>.</small></p><?php endif ?>
-    <p class="muted"><small>Montant indicatif<?= family_frequency($s) !== 'monthly' && family_frequency($s) !== '' ? ' du mois' : '' ?> : la tutrice vous envoie la demande de paiement <?= e(frequency_phrase($s)) ?>.</small></p>
   </div>
   <?php if ($tax): ?><div class="card"><h2><?= icon('sparkles') ?> Crédit d'impôt</h2><p>Les cours ouvrent droit à un crédit d'impôt de <strong>50 %</strong> des sommes versées (services à la personne). Une attestation annuelle vous sera remise par la tutrice.</p></div><?php endif ?>
   <?php if ($instr && !$pending): ?><div class="card"><h2><?= icon('lightbulb') ?> Comment régler</h2><p><?= nl2br(e($instr)) ?></p></div><?php endif ?>

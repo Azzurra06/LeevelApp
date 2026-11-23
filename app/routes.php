@@ -358,7 +358,7 @@ function family_route(string $r, bool $isPost): never
         $s = pick_student($u) ?? render('error', ['msg' => 'Aucun dossier associé.']);
         if (!finance_available()) render('error', ['msg' => 'Cette page sera bientôt disponible.']);
         try { $s += one('SELECT pay_frequency, pay_method FROM families WHERE id=?', [$s['family_id']]) ?? []; } catch (PDOException) {}
-        render('p_finance', ['u' => $u, 's' => $s, 'billing' => month_billing($s, date('Y-m')), 'payments' => payments_of((int)$s['id'])]);
+        render('p_finance', ['u' => $u, 's' => $s, 'billing' => month_billing($s, date('Y-m')), 'week' => week_sessions($s), 'payments' => payments_of((int)$s['id'])]);
     }
     if ($r === 'p_child') {
         $u = require_login('parent');

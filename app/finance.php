@@ -95,6 +95,20 @@ function expected_payment_date(array $s, ?string $ref = null): ?string
     $r = one('SELECT DATE(MAX(starts_at)) d FROM sessions WHERE student_id=? AND status IN ("done","planned") AND starts_at >= ? AND starts_at < ?', [$s['id'], $a, $b]);
     return $r['d'] ?? ($f === 'monthly' ? date('Y-m-d', strtotime($b . ' -1 day')) : null);
 }
+/** Séances (réalisées ou prévues) de la semaine en cours, avec leur montant. */
+function week_sessions(array $s): array
+{
+    $a = date('Y-m-d', strtotime('monday this week')); $b = date('Y-m-d', strtotime($a . ' +7 days'));
+    $rows = all('SELECT id, starts_at, duration_min, mode, status FROM sessions WHERE student_id=? AND status IN ("done","planned") AND starts_at >= ? AND starts_at < ? ORDER BY starts_at', [$s['id'], $a, $b]);
+    $free = free_session_id($s); $total = 0.0;
+    foreach ($rows as &$x) {
+        $x['free'] = $free && (int)$x['id'] === $free; $r = rate_for($s, $x['mode']);
+        $x['amount'] = $x['free'] ? 0.0 : ($r === null ? null : round($r * (int)$x['duration_min'] / 60, 2));
+        $total += (float)$x['amount'];
+    }
+    unset($x);
+    return ['start' => $a, 'end' => date('Y-m-d', strtotime($b . ' -1 day')), 'sessions' => $rows, 'total' => $total];
+}
 /** Ce que la tutrice envoie, selon le rythme : « après chaque séance », « chaque semaine »… */
 function frequency_phrase(array $s): string
 {
