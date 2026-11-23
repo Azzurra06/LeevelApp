@@ -1,6 +1,6 @@
 {
  "name": "leevel.app",
- "short_name": "Leevel",
+ "short_name": "leevel.app",
  "lang": "fr",
  "start_url": "../index.php",
  "scope": "../",

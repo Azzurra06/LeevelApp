@@ -7,7 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Leevel">
+<meta name="apple-mobile-web-app-title" content="leevel.app">
+<meta name="application-name" content="leevel.app">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="<?= e(asset('manifest.json')) ?>">
 <link rel="icon" type="image/png" sizes="192x192" href="<?= e(asset('icon-192.png')) ?>">
