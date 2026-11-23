@@ -68,12 +68,28 @@ function unbilled(array $s): array
             'start' => $rows ? substr($rows[0]['starts_at'], 0, 10) : null, 'end' => $rows ? substr(end($rows)['starts_at'], 0, 10) : null];
 }
 /** Libellé d'une échéance selon les séances couvertes. */
+function short_day(string $d): string
+{
+    return ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'][(int)date('w', strtotime($d))] . ' ' . date('d/m', strtotime($d));
+}
+/** Libellé d'une période facturée : « Séance du mar. 17/11 », « Semaine du 23/11 au 29/11 », « Séances du 03/11 au 17/11 ». */
+function period_label(string $a, string $b): string
+{
+    $a = substr($a, 0, 10); $b = substr($b, 0, 10);
+    if ($a === $b) return 'Séance du ' . short_day($a);
+    $mon = date('Y-m-d', strtotime('monday this week', strtotime($a)));
+    if ($mon === date('Y-m-d', strtotime('monday this week', strtotime($b)))) return 'Semaine du ' . date('d/m', strtotime($mon)) . ' au ' . date('d/m', strtotime($mon . ' +6 days'));
+    return 'Séances du ' . date('d/m', strtotime($a)) . ' au ' . date('d/m', strtotime($b));
+}
 function unbilled_label(array $u): string
 {
-    $n = count($u['sessions']);
-    if ($n === 1) return 'Séance du ' . fdate($u['start']);
-    if (substr($u['start'], 0, 7) === substr($u['end'], 0, 7) && substr($u['start'], 8) <= '07') return 'Séances de ' . mb_strtolower(month_label(substr($u['start'], 0, 7)));
-    return $n . ' séances du ' . date('d/m', strtotime($u['start'])) . ' au ' . date('d/m', strtotime($u['end']));
+    return period_label((string)$u['start'], (string)$u['end']);
+}
+/** Titre affiché d'une échéance : libellé automatique recalculé à partir de la période, sinon libellé saisi. */
+function payment_title(array $p): string
+{
+    if (!empty($p['period_start']) && !empty($p['period_end']) && preg_match('/^(\d+ s|S)éances? /u', (string)$p['label'])) return period_label($p['period_start'], $p['period_end']);
+    return (string)$p['label'];
 }
 function family_frequency(array $s): string
 {

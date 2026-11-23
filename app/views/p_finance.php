@@ -23,18 +23,19 @@ $dayLbl = fn($d) => $d === date('Y-m-d') ? "aujourd'hui" : ($d === date('Y-m-d',
 
 <div class="grid-2 two-cols">
  <div class="col-stack">
-  <div class="card<?= $pending ? ' card-due' : '' ?>"><h2><?= icon('clock') ?> À régler</h2>
+  <div class="card<?= $pending ? ' card-due' : '' ?>"><h2><?= icon('clock') ?> À régler<?php if (count($pending) > 1): ?> <span class="due-total"><?= money($due) ?></span><?php endif ?></h2>
     <?php if (!$pending): ?><p class="muted">Rien à régler pour le moment.</p><?php endif ?>
-    <ul class="pay-list"><?php foreach ($pending as $p): ?>
-      <li><div class="pay-main"><strong><?= e($p['label']) ?></strong><small class="muted"><?= $p['minutes'] ? fdur((int)$p['minutes']) . ' de cours' : '' ?></small><?php if ($p['due_date']): ?><span class="pay-due<?= $late($p) ? ' late' : '' ?>"><?= icon('calendar') ?> <?= $late($p) ? 'Prévu le ' . e(fdate($p['due_date'])) : 'À payer ' . e($dayLbl($p['due_date'])) ?></span><?php endif ?><?php if (!empty($p['discount'])): ?><small class="ok-txt"><?= e($p['discount_label'] ?: 'Remise') ?> : −<?= money((float)$p['discount']) ?> (au lieu de <?= money((float)$p['gross']) ?>)</small><?php endif ?></div>
-        <div class="pay-amt"><strong><?= money((float)$p['amount']) ?></strong><span class="badge <?= $late($p) ? 'err' : 'warn' ?>"><?= $late($p) ? 'En retard' : 'À régler' ?></span></div></li>
+    <ul class="due-list"><?php foreach ($pending as $p): ?>
+      <li class="due-item"><div class="due-top"><div class="pay-main"><strong><?= e(payment_title($p)) ?></strong><small class="muted"><?= $p['minutes'] ? fdur((int)$p['minutes']) . ' de cours' : 'Montant convenu avec la tutrice' ?></small><?php if (!empty($p['discount'])): ?><small class="ok-txt"><?= e($p['discount_label'] ?: 'Remise') ?> : −<?= money((float)$p['discount']) ?> (au lieu de <?= money((float)$p['gross']) ?>)</small><?php endif ?></div>
+          <strong class="due-amt"><?= money((float)$p['amount']) ?></strong></div>
+        <div class="due-foot"><span class="pay-due<?= $late($p) ? ' late' : '' ?>"><?= icon('calendar') ?> <?= !$p['due_date'] ? 'Date à convenir' : ($late($p) ? 'Prévu le ' . e(short_day($p['due_date'])) : 'À payer ' . e($p['due_date'] <= date('Y-m-d', strtotime('+1 day')) ? $dayLbl($p['due_date']) : 'le ' . short_day($p['due_date']))) ?></span><span class="badge <?= $late($p) ? 'err' : 'warn' ?>"><?= $late($p) ? 'En retard' : 'À régler' ?></span></div></li>
     <?php endforeach ?></ul>
     <?php if ($pending && $instr): ?><div class="pay-instr"><strong><?= icon('lightbulb') ?> Comment régler</strong><p><?= nl2br(e($instr)) ?></p></div><?php endif ?>
   </div>
   <div class="card"><h2><?= icon('circle-check') ?> Historique des paiements</h2>
     <?php if (!$paid): ?><p class="muted">Aucun paiement enregistré pour l'instant.</p><?php endif ?>
     <ul class="pay-list"><?php foreach ($paid as $p): ?>
-      <li><div class="pay-main"><strong><?= e($p['label']) ?></strong><?php if (!empty($p['discount'])): ?><small class="ok-txt"><?= e($p['discount_label'] ?: 'Remise') ?> : −<?= money((float)$p['discount']) ?></small><?php endif ?><small class="muted">Payé le <?= e(fdate($p['paid_at'])) ?><?= $p['method'] ? ' · ' . e(PAY_METHODS[$p['method']] ?? $p['method']) : '' ?></small></div>
+      <li><div class="pay-main"><strong><?= e(payment_title($p)) ?></strong><?php if (!empty($p['discount'])): ?><small class="ok-txt"><?= e($p['discount_label'] ?: 'Remise') ?> : −<?= money((float)$p['discount']) ?></small><?php endif ?><small class="muted">Payé le <?= e(fdate($p['paid_at'])) ?><?= $p['method'] ? ' · ' . e(PAY_METHODS[$p['method']] ?? $p['method']) : '' ?></small></div>
         <div class="pay-amt"><strong><?= money((float)$p['amount']) ?></strong><span class="badge sage">Payé</span></div></li>
     <?php endforeach ?></ul>
   </div>

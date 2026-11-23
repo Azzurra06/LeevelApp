@@ -16,7 +16,7 @@ $rateTxt = function (array $st): string {
 };
 $payItem = function (array $p, bool $withName) use ($hid, $methodSel, $late) { ?>
   <li class="<?= $p['status'] === 'pending' ? 'editable' : '' ?>"><div class="pay-main"><strong><?= $withName ? e($p['first_name']) . ' · ' : '' ?><?= money((float)$p['amount']) ?></strong>
-    <small class="muted"><?= e($p['label']) ?><?= $p['status'] === 'paid' ? ' · payé le ' . e(fdate($p['paid_at'])) . ($p['method'] ? ' · ' . e(PAY_METHODS[$p['method']] ?? $p['method']) : '') : ($p['due_date'] ? ' · avant le ' . e(fdate($p['due_date'])) : '') ?><?= !empty($p['discount']) ? ' · ' . e($p['discount_label'] ?: 'Remise') . ' −' . money((float)$p['discount']) : '' ?></small>
+    <small class="muted"><?= e(payment_title($p)) ?><?= $p['status'] === 'paid' ? ' · payé le ' . e(fdate($p['paid_at'])) . ($p['method'] ? ' · ' . e(PAY_METHODS[$p['method']] ?? $p['method']) : '') : ($p['due_date'] ? ' · avant le ' . e(fdate($p['due_date'])) : '') ?><?= !empty($p['discount']) ? ' · ' . e($p['discount_label'] ?: 'Remise') . ' −' . money((float)$p['discount']) : '' ?></small>
     <?php if ($late($p)): ?><span class="badge err">En retard</span><?php endif ?></div>
     <?php if ($p['status'] === 'pending'): ?>
       <div class="row view"><button type="button" class="btn sm" data-edit><?= icon('check') ?> Marquer payé</button>
