@@ -278,18 +278,27 @@
     vv.addEventListener('resize', kb); document.addEventListener('focusin', () => setTimeout(kb, 250)); document.addEventListener('focusout', () => setTimeout(kb, 100));
   }
 
-  // Messagerie mobile : l'espace sous le dernier message suit exactement la zone de saisie (fixe en bas)
+  // Messagerie mobile : zone de saisie toujours collée au-dessus du clavier (même en faisant défiler),
+  // et l'espace sous le dernier message suit exactement la zone de saisie
   const chatForm = document.body.classList.contains('page-chat') && $('.msg-form');
   if (chatForm) {
-    const pad = () => {
-      if (getComputedStyle(chatForm).position !== 'fixed') { document.body.style.removeProperty('--chat-pad'); return; }
-      const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 40;
-      document.body.style.setProperty('--chat-pad', Math.ceil(window.innerHeight - chatForm.getBoundingClientRect().top + 10) + 'px');
-      if (nearBottom) window.scrollTo(0, document.documentElement.scrollHeight);
+    const vv = window.visualViewport;
+    const place = () => {
+      if (getComputedStyle(chatForm).position !== 'fixed') { chatForm.style.removeProperty('bottom'); document.body.style.removeProperty('--chat-pad'); return; }
+      const kbOpen = document.body.classList.contains('kb-open');
+      // clavier ouvert : on suit la partie réellement visible de l'écran (visualViewport) au lieu du bas de la page
+      if (kbOpen && vv) chatForm.style.bottom = Math.max(0, Math.round(window.innerHeight - (vv.offsetTop + vv.height))) + 'px';
+      else chatForm.style.removeProperty('bottom');
+      const gap = kbOpen && vv ? chatForm.offsetHeight + 10 : Math.ceil(window.innerHeight - chatForm.getBoundingClientRect().top + 10);
+      document.body.style.setProperty('--chat-pad', gap + 'px');
     };
-    const later = () => requestAnimationFrame(() => requestAnimationFrame(pad));
-    pad(); window.addEventListener('resize', later); window.visualViewport?.addEventListener('resize', later);
-    document.addEventListener('focusin', () => setTimeout(pad, 300)); document.addEventListener('focusout', () => setTimeout(pad, 150));
+    const toBottomIfNear = fn => { const near = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60; fn(); if (near) window.scrollTo(0, document.documentElement.scrollHeight); };
+    const later = () => requestAnimationFrame(() => toBottomIfNear(place));
+    place();
+    window.addEventListener('resize', later);
+    if (vv) { vv.addEventListener('resize', later); vv.addEventListener('scroll', place); }
+    window.addEventListener('scroll', place, { passive: true });
+    document.addEventListener('focusin', () => setTimeout(() => toBottomIfNear(place), 320)); document.addEventListener('focusout', () => setTimeout(place, 150));
     if (window.ResizeObserver) new ResizeObserver(later).observe(chatForm);
   }
 
