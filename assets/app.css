@@ -1,6 +1,8 @@
 :root{
-  --bg:#faf7f2;--surface:#fffdf9;--beige:#efe6d8;--beige-2:#e6dac7;--taupe:#8b7d6b;--taupe-d:#5f5446;--ink:#2f2a24;--muted:#7a6f62;
-  --accent:#7c5cff;--accent-d:#5b3df5;--accent-l:#efeaff;--warn:#e07b39;--warn-l:#fdebdd;--err:#b5574b;--err-l:#f6e1dd;
+  /* Palette : fond, surfaces, textes, violet (réservé aux actions et états actifs) */
+  --bg:#F7F5F1;--surface:#FFFFFF;--ink:#302D2B;--muted:#716A63;
+  --accent:#7A5EF7;--accent-d:#6242F5;--accent-l:#F0EBFF;
+  --line:#ECE8E1;--beige:#ECE8E1;--beige-2:#DCD5CA;--taupe:#8A8178;--taupe-d:#4F4842;--warn:#e07b39;--warn-l:#fdebdd;--err:#b5574b;--err-l:#f6e1dd;
   --r:16px;--r-s:10px;--sh:0 1px 2px rgba(60,45,30,.05),0 4px 16px rgba(60,45,30,.06);
   --font:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
 }
@@ -1214,3 +1216,77 @@ body.page-t .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--
   .nav-bottom{display:grid}
   .nav-main.nav-bottom{background:#fffdf9;backdrop-filter:none;-webkit-backdrop-filter:none;transform:translateZ(0);-webkit-transform:translateZ(0)}
 }
+
+/* =========================================================
+   Système de design : hiérarchie visuelle et contraste
+   ========================================================= */
+:root{--sh:0 1px 2px rgba(48,45,43,.04),0 2px 8px rgba(48,45,43,.04);--r:14px}
+body{background:var(--bg);color:var(--ink)}
+/* Typographie : page > section > carte > texte > métadonnées */
+h1,.page-head h1{font-size:1.55rem;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.page-head{margin-bottom:12px}
+.page-head p{font-size:.95rem;color:var(--muted)}
+.card h2{font-size:1.05rem;font-weight:650;color:var(--ink);margin-bottom:12px}
+.card h3{font-size:.95rem;font-weight:650}
+.dash-sec,.an-sec{font-size:.78rem!important;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)!important;margin:14px 0 -6px!important}
+.dash-sec .ic,.an-sec .ic{display:none}
+small,.muted{color:var(--muted)}
+.fields dt,.mini-h,.ql{color:var(--muted)}
+.ql{color:var(--ink)}
+/* Cartes : surface blanche, contour très léger, une seule profondeur */
+.card{background:var(--surface);border:1px solid rgba(48,45,43,.07);box-shadow:var(--sh);border-radius:var(--r)}
+.card[class*="tone-"],body.tutor .card[class*="tone-"],body.parent .card[class*="tone-"],body.student .card[class*="tone-"],body.student .tile{background:var(--surface);border:1px solid rgba(48,45,43,.07)!important;box-shadow:var(--sh)}
+.card h2 .ic,.card h3 .ic{color:var(--accent-d)}
+/* Cartes imbriquées : plus de carte dans la carte, simple zone de fond */
+.card .card,.card .card.flat{background:var(--bg);border:0!important;box-shadow:none;animation:none}
+/* Séparateurs discrets */
+.list li+li,.pay-list>li,.fin-row,.cmp-r,.pc-chap li,.grade-row{border-color:var(--line)!important}
+/* Badges compacts */
+.badge{padding:1px 8px;font-size:.72rem;font-weight:600;background:#F1EEE9;color:var(--taupe-d)}
+.badge.sage{background:var(--accent-l);color:#4B2FD6}
+/* Boutons : violet = action principale ; secondaires sobres et contrastés */
+.btn.ghost{background:var(--surface);color:var(--ink);border-color:var(--beige-2)}
+.btn.ghost:hover{background:#F4F1EC}
+.nav a{color:var(--taupe-d)}
+.nav a.on{background:var(--accent-l);color:var(--accent-d)}
+.top{background:rgba(255,255,255,.92);border-bottom-color:var(--line)}
+input,select,textarea{border-color:var(--beige-2)}
+/* Espacements plus serrés, surtout sur mobile */
+main.wrap{gap:14px}
+@media (max-width:720px){
+  main.wrap{gap:10px;padding-top:12px}
+  .card{padding:16px}
+  .card h2{margin-bottom:10px}
+  h1,.page-head h1{font-size:1.35rem}
+  .dash-sec,.an-sec{margin-top:8px!important}
+}
+
+/* Élève : un seul grand bloc violet (bandeau du haut) */
+.link-card.fb-cta{background:var(--surface)!important;border:1px solid rgba(48,45,43,.07)!important;border-left:4px solid var(--accent-d)!important;box-shadow:var(--sh)}
+.link-card.fb-cta h2{color:var(--ink)}.link-card.fb-cta .lc-emoji{background:var(--accent-l)}.link-card.fb-cta .go{color:var(--accent-d)}
+/* Badges compacts : pastilles en ligne */
+.s-badges .badge-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.s-badges .bdg{flex-direction:row;gap:8px;padding:5px 12px 5px 5px;border-radius:999px;border:1px solid var(--line);background:var(--surface);opacity:.55;text-align:left}
+.s-badges .bdg small{display:none}.s-badges .bdg strong{font-size:.82rem;font-weight:600}
+.s-badges .bdg-ico{width:26px;height:26px}.s-badges .bdg-ico .ic{width:14px;height:14px}
+.s-badges .bdg.on{opacity:1;background:var(--accent-l);border-color:transparent}
+.s-badges .bdg.on .bdg-ico{box-shadow:none}
+.s-badges{padding-top:14px;padding-bottom:14px}.s-badges h2{font-size:.95rem}
+/* Missions : titre, description, une action principale ; ressenti affiché après clic */
+.mission-list{display:flex;flex-direction:column}
+.mission-item{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.mission-item:first-child{border-top:0;padding-top:2px}
+.mission-item .mission-num{position:static;flex:none;width:26px;height:26px;font-size:.8rem;margin-top:1px}
+.mission-item.done .mission-num{background:#2f8a57}
+.mission-body{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.mission-title{font-size:.98rem}
+.mission-desc{margin:0;color:var(--muted);font-size:.9rem}
+.mission-act>summary{list-style:none;cursor:pointer}.mission-act>summary::-webkit-details-marker{display:none}
+.mission-act[open]>summary{display:none}
+.mission-form{display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--bg);border-radius:12px;margin-top:2px}
+/* Élève : le bandeau du haut reste le seul grand aplat violet */
+.card.s-hero{background:linear-gradient(135deg,#6242F5,#8A6CFA)!important;color:#fff;border:0!important;box-shadow:0 6px 20px rgba(98,66,245,.22)}
+body.student .card[class*="tone-"],body.student .tile{--tc:var(--accent-d);--tb:var(--accent-l)}
+body.student .mood{background:var(--bg)}body.student .mood.on{background:var(--accent-l);border-color:var(--accent-d)}
+body.student .trophies li{background:var(--bg)}
+body.student .tests-card .date-chip,body.student .date-chip{background:var(--accent-l);color:var(--accent-d)}

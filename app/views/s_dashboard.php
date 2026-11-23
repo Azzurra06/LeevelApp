@@ -42,14 +42,24 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
   <?php if (!$missions): ?>
     <div class="empty-ill"><span>🚀</span><p>Pas de mission pour l'instant.<br><small class="muted">Ta tutrice t'en proposera bientôt : de petits défis à relever entre deux séances.</small></p></div>
   <?php endif ?>
-  <div class="mission-grid"><?php foreach ($missions as $i => $m): ?>
-    <div class="mission <?= $m['student_done_at'] ? 'done' : '' ?>"><h3><span class="mission-num"><?= $m['student_done_at'] ? icon('check') : $i + 1 ?></span><?= e($m['title']) ?></h3>
-      <?php if ($m['description']): ?><p class="muted"><small><?= e($m['description']) ?></small></p><?php endif ?>
-      <form method="post" action="<?= e(url('s_goal')) ?>"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$m['id'] ?>">
-        <span class="mission-q">Comment ça s'est passé ?</span>
-        <div class="feel pills"><?php foreach (FEELINGS as $k => $l): ?><label class="pill"><input type="radio" name="feeling" value="<?= $k ?>" <?= $m['student_feeling'] === $k ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div>
-        <div class="mission-foot"><?php if (!$m['student_done_at']): ?><label class="check"><input type="checkbox" name="done" value="1"> C'est fait</label><?php else: ?><span class="badge sage">Terminé - ta tutrice validera</span><?php endif ?>
-        <button class="btn sm"><?= icon('check') ?> Envoyer</button></div></form></div>
+  <div class="mission-list"><?php foreach ($missions as $i => $m): $done = (bool)$m['student_done_at']; ?>
+    <div class="mission-item <?= $done ? 'done' : '' ?>">
+      <span class="mission-num"><?= $done ? icon('check') : $i + 1 ?></span>
+      <div class="mission-body">
+        <strong class="mission-title"><?= e($m['title']) ?></strong>
+        <?php if ($m['description']): ?><p class="mission-desc"><?= e($m['description']) ?></p><?php endif ?>
+        <?php if ($done): ?><span class="badge sage">Terminée · ta tutrice validera</span><?php endif ?>
+        <details class="mission-act">
+          <summary class="btn sm<?= $done ? ' ghost' : '' ?>"><?= $done ? 'Modifier mon ressenti' : icon('check') . ' J\'ai fait cette mission' ?></summary>
+          <form method="post" action="<?= e(url('s_goal')) ?>" class="mission-form"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$m['id'] ?>">
+            <span class="mission-q">Comment ça s'est passé ?</span>
+            <div class="feel pills"><?php foreach (FEELINGS as $k => $l): ?><label class="pill"><input type="radio" name="feeling" value="<?= $k ?>" <?= $m['student_feeling'] === $k ? 'checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach ?></div>
+            <div class="mission-foot"><?php if (!$done): ?><label class="check"><input type="checkbox" name="done" value="1" checked> C'est terminé</label><?php endif ?>
+              <button class="btn sm"><?= icon('send') ?> Envoyer</button></div>
+          </form>
+        </details>
+      </div>
+    </div>
   <?php endforeach ?></div>
 </div>
 
