@@ -216,23 +216,33 @@
   // Messagerie : afficher le dernier message
   $$('[data-thread]').forEach(t => { t.scrollTop = t.scrollHeight; });
   if (document.body.classList.contains('page-chat') && matchMedia('(max-width:720px)').matches) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
-  // Visionneuse : retour arrière, enregistrer / partager (feuille de partage du téléphone)
-  $$('[data-viewer]').forEach(v => {
-    const back = $('[data-back]', v);
-    if (back && document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) back.addEventListener('click', e => { e.preventDefault(); history.back(); });
-    const share = $('[data-share]', v);
-    if (share && navigator.canShare) {
-      share.hidden = false;
-      share.addEventListener('click', async () => {
-        try {
-          const blob = await (await fetch(v.dataset.src, { credentials: 'same-origin' })).blob();
-          const file = new File([blob], v.dataset.name, { type: v.dataset.mime || blob.type });
-          if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: v.dataset.name });
-          else $('[data-download]', v)?.click();
-        } catch (e) { if (e.name !== 'AbortError') $('[data-download]', v)?.click(); }
-      });
-    }
+  // Pièce jointe (photo, PDF) en plein écran, avec Télécharger et Fermer
+  const iconSvg = n => '<svg class="ic" aria-hidden="true"><use href="' + ($('link[rel=icon-sprite]')?.href || document.querySelector('use')?.getAttribute('href')?.split('#')[0] || '') + '#i-' + n + '"></use></svg>';
+  let lb = null;
+  const closeLb = () => { if (!lb) return; lb.remove(); lb = null; document.body.classList.remove('lb-open'); };
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-lightbox]'); if (!a) return;
+    e.preventDefault(); closeLb();
+    lb = document.createElement('div'); lb.className = 'lightbox'; lb.setAttribute('role', 'dialog'); lb.setAttribute('aria-label', a.dataset.name || 'Pièce jointe');
+    const view = a.dataset.lightbox === 'img' ? Object.assign(document.createElement('img'), { src: a.getAttribute('href'), alt: a.dataset.name || '' }) : Object.assign(document.createElement('iframe'), { src: a.getAttribute('href'), title: a.dataset.name || 'Document' });
+    const acts = document.createElement('div'); acts.className = 'lb-acts';
+    const dl = document.createElement('a'); dl.className = 'lb-btn'; dl.href = a.dataset.dl; dl.setAttribute('download', a.dataset.name || ''); dl.setAttribute('aria-label', 'Télécharger'); dl.title = 'Télécharger'; dl.innerHTML = iconSvg('download');
+    const x = document.createElement('button'); x.type = 'button'; x.className = 'lb-btn'; x.setAttribute('aria-label', 'Fermer'); x.title = 'Fermer'; x.innerHTML = iconSvg('x');
+    x.addEventListener('click', () => history.state?.lb ? history.back() : closeLb());
+    // Sur téléphone : « Télécharger » ouvre la feuille de partage (Enregistrer dans Fichiers / Photos), plus fiable en mode app
+    if (navigator.canShare && matchMedia('(pointer: coarse)').matches) dl.addEventListener('click', async ev => {
+      ev.preventDefault();
+      try {
+        const blob = await (await fetch(a.dataset.dl, { credentials: 'same-origin' })).blob();
+        const file = new File([blob], a.dataset.name || 'fichier', { type: blob.type });
+        if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file] }); else location.href = a.dataset.dl;
+      } catch (err) { if (err.name !== 'AbortError') location.href = a.dataset.dl; }
+    });
+    acts.append(dl, x); lb.append(view, acts); document.body.append(lb); document.body.classList.add('lb-open'); x.focus();
+    history.pushState({ lb: 1 }, '');
   });
+  window.addEventListener('popstate', closeLb);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && lb) history.state?.lb ? history.back() : closeLb(); });
 
   // Messagerie : aperçu des pièces jointes choisies (avec retrait possible)
   $$('[data-msg-form]').forEach(form => {
