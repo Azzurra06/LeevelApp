@@ -259,9 +259,17 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
   </div>
 </div><br>
 <?php if ($calView): $calBase = url('t_student', $sidp + ['tab' => 'seances']); ?><div class="card"><?php require __DIR__ . '/_calendar.php' ?></div><?php else: ?>
-<?php foreach ($sessions as $se): $notes = all('SELECT * FROM session_notes WHERE session_id=? ORDER BY id DESC', [$se['id']]); ?>
-  <div class="card" id="sess-<?= (int)$se['id'] ?>"><div class="row between"><p class="sess-meta"><?= e(fdatetime($se['starts_at'])) ?> · <?= fdur((int)$se['duration_min']) ?> · <?= e(MODES[$se['mode']]) ?></p>
-    <span class="badge <?= ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancelled' => 'err'][$se['status']] ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span></div>
+<?php $isPastS = fn(array $x) => strtotime($x['starts_at']) + (int)$x['duration_min'] * 60 < time();
+  $upS = array_values(array_filter($sessions, fn($x) => !$isPastS($x)));
+  $pastS = array_reverse(array_values(array_filter($sessions, $isPastS)));
+  $needRep = fn(array $x) => in_array($x['status'], ['done', 'planned'], true) && !(($r = session_report((int)$x['id'])) && $r['sent_at']);
+  $todoS = array_values(array_filter($pastS, $needRep)); $archS = array_values(array_filter($pastS, fn($x) => !$needRep($x)));
+  $groups = [['Bilan à faire', $todoS, false], ['À venir', $upS, false], ['Séances passées', $archS, true]];
+  foreach ($groups as [$gTitle, $gList, $gArch]): if (!$gList) continue; ?>
+  <?php if ($gArch): ?><details class="sess-archive"><summary><?= icon('archive') ?> <?= e($gTitle) ?> <span class="muted">· <?= count($gList) ?></span><?= icon('chevron-right', 'plan-chev') ?></summary><div class="sess-archive-list"><?php else: ?><h3 class="sess-group-h"><?= e($gTitle) ?> <span class="muted">· <?= count($gList) ?></span></h3><?php endif ?>
+<?php foreach ($gList as $se): $notes = all('SELECT * FROM session_notes WHERE session_id=? ORDER BY id DESC', [$se['id']]); $sPast = $isPastS($se) && in_array($se['status'], ['done', 'planned'], true); ?>
+  <div class="card<?= $sPast ? ' sess-past' : '' ?>" id="sess-<?= (int)$se['id'] ?>"><div class="row between"><p class="sess-meta"><?= e(fdatetime($se['starts_at'])) ?> · <?= fdur((int)$se['duration_min']) ?> · <?= e(MODES[$se['mode']]) ?></p>
+    <?php if ($sPast): ?><span class="badge done"><?= icon('check') ?> Terminée</span><?php else: ?><span class="badge <?= ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancelled' => 'err'][$se['status']] ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span><?php endif ?></div>
     <h3 class="sess-title"><?= e(session_label($se)) ?></h3>
     <?php $from = !empty($se['rescheduled_from']) ? one('SELECT starts_at FROM sessions WHERE id=?', [$se['rescheduled_from']]) : null;
       $kids = in_array($se['status'], ['postponed', 'cancelled'], true) && array_key_exists('rescheduled_from', $se) ? all('SELECT id, starts_at, duration_min, mode FROM sessions WHERE rescheduled_from=? ORDER BY starts_at', [$se['id']]) : [];
@@ -304,6 +312,8 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
     </div>
     <?php endif ?>
     <details><summary>Modifier la séance</summary><br><?php $sessForm($se) ?></details></div><br>
+<?php endforeach ?>
+  <?php if ($gArch): ?></div></details><?php endif ?>
 <?php endforeach ?>
 <?php endif ?>
 

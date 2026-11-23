@@ -1,6 +1,9 @@
 <?php // $sessions ; lecture seule (parent, élève). Chaque séance se déplie pour voir le détail.
+$isPast = fn(array $se) => strtotime($se['starts_at']) + (int)$se['duration_min'] * 60 < time();
+$upcoming = array_values(array_filter($sessions, fn($se) => !$isPast($se)));
+$past = array_reverse(array_values(array_filter($sessions, $isPast)));
 $byWeek = [];
-foreach ($sessions as $se) $byWeek[$se['week_no'] ? 'Semaine ' . $se['week_no'] : 'Autres séances'][] = $se;
+foreach ($upcoming as $se) $byWeek[$se['week_no'] ? 'Semaine ' . $se['week_no'] : 'Autres séances'][] = $se;
 $viewerRole = current_user()['role'] ?? '';
 $hm = fn(string $dt) => date('H\hi', strtotime($dt));
 $endOf = fn(array $se) => date('H\hi', strtotime($se['starts_at']) + (int)$se['duration_min'] * 60);
@@ -10,22 +13,20 @@ $statusTone = ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancel
 <div class="seg"><button type="button" class="on" data-view="list"><?= icon('list-checks') ?> Liste</button><button type="button" data-view="cal"><?= icon('calendar') ?> Calendrier</button></div>
 <div data-pane="cal" hidden><?php require __DIR__ . '/_calendar.php' ?></div>
 <div data-pane="list" class="plan-list">
-<?php foreach ($byWeek as $wk => $list): $tot = array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' && $x['status'] !== 'postponed' ? (int)$x['duration_min'] : 0, $list)); ?>
-  <section class="plan-week">
-    <h3 class="plan-week-h"><?= e($wk) ?> <span class="muted">· <?= fdur($tot) ?></span></h3>
-    <?php foreach ($list as $se):
+<?php $item = function (array $se) use ($isPast, $statusTone, $endOf, $hm, $viewerRole) {
+      $done = $isPast($se) && in_array($se['status'], ['done', 'planned'], true);
       $rep = in_array($se['status'], ['done', 'planned'], true) && strtotime($se['starts_at']) < time() ? session_report((int)$se['id']) : null;
       $from = !empty($se['rescheduled_from']) ? one('SELECT starts_at FROM sessions WHERE id=?', [$se['rescheduled_from']]) : null;
       $mergedFrom = !empty($se['merged_report_from']) ? one('SELECT starts_at FROM sessions WHERE id=?', [$se['merged_report_from']]) : null;
       $kids = $se['status'] === 'postponed' && array_key_exists('rescheduled_from', $se) ? all('SELECT starts_at, duration_min FROM sessions WHERE rescheduled_from=? OR merged_report_from=? ORDER BY starts_at', [$se['id'], $se['id']]) : []; ?>
-    <details class="plan-item<?= in_array($se['status'], ['postponed', 'cancelled'], true) ? ' off' : '' ?>">
+    <details class="plan-item<?= in_array($se['status'], ['postponed', 'cancelled'], true) ? ' off' : '' ?><?= $done ? ' past' : '' ?>">
       <summary>
         <span class="plan-date"><b><?= date('j', strtotime($se['starts_at'])) ?></b><small><?= e(['', 'janv', 'févr', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sept', 'oct', 'nov', 'déc'][(int)date('n', strtotime($se['starts_at']))]) ?></small></span>
         <span class="plan-main">
           <span class="plan-meta"><?= e(fdatetime($se['starts_at'])) ?> – <?= e($endOf($se)) ?> · <?= e(MODES[$se['mode']]) ?></span>
           <strong class="plan-title"><?= e(session_label($se)) ?></strong>
         </span>
-        <?php if ($se['status'] !== 'planned'): ?><span class="badge <?= $statusTone[$se['status']] ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span><?php endif ?>
+        <?php if ($done): ?><span class="badge done"><?= icon('check') ?> Terminée</span><?php elseif ($se['status'] !== 'planned'): ?><span class="badge <?= $statusTone[$se['status']] ?>"><?= e(SESSION_STATUS[$se['status']]) ?></span><?php endif ?>
         <?= icon('chevron-right', 'plan-chev') ?>
       </summary>
       <div class="plan-detail">
@@ -44,8 +45,19 @@ $statusTone = ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancel
         </dl>
       </div>
     </details>
-    <?php endforeach ?>
+<?php }; ?>
+<?php if (!$upcoming): ?><p class="muted">Aucune séance à venir pour le moment.</p><?php endif ?>
+<?php foreach ($byWeek as $wk => $list): $tot = array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' && $x['status'] !== 'postponed' ? (int)$x['duration_min'] : 0, $list)); ?>
+  <section class="plan-week">
+    <h3 class="plan-week-h"><?= e($wk) ?> <span class="muted">· <?= fdur($tot) ?></span></h3>
+    <?php foreach ($list as $se) $item($se) ?>
   </section>
 <?php endforeach ?>
+<?php if ($past): ?>
+  <details class="plan-archive">
+    <summary><?= icon('archive') ?> Séances passées <span class="muted">· <?= count($past) ?></span><?= icon('chevron-right', 'plan-chev') ?></summary>
+    <div class="plan-archive-list"><?php foreach ($past as $se) $item($se) ?></div>
+  </details>
+<?php endif ?>
 </div>
 </div>
