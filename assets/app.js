@@ -278,6 +278,21 @@
     vv.addEventListener('resize', kb); document.addEventListener('focusin', () => setTimeout(kb, 250)); document.addEventListener('focusout', () => setTimeout(kb, 100));
   }
 
+  // Messagerie mobile : l'espace sous le dernier message suit exactement la zone de saisie (fixe en bas)
+  const chatForm = document.body.classList.contains('page-chat') && $('.msg-form');
+  if (chatForm) {
+    const pad = () => {
+      if (getComputedStyle(chatForm).position !== 'fixed') { document.body.style.removeProperty('--chat-pad'); return; }
+      const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 40;
+      document.body.style.setProperty('--chat-pad', Math.ceil(window.innerHeight - chatForm.getBoundingClientRect().top + 10) + 'px');
+      if (nearBottom) window.scrollTo(0, document.documentElement.scrollHeight);
+    };
+    const later = () => requestAnimationFrame(() => requestAnimationFrame(pad));
+    pad(); window.addEventListener('resize', later); window.visualViewport?.addEventListener('resize', later);
+    document.addEventListener('focusin', () => setTimeout(pad, 300)); document.addEventListener('focusout', () => setTimeout(pad, 150));
+    if (window.ResizeObserver) new ResizeObserver(later).observe(chatForm);
+  }
+
   // Messagerie : aperçu des pièces jointes choisies (avec retrait possible)
   $$('[data-msg-form]').forEach(form => {
     const input = $('[data-attach]', form), list = $('[data-attach-list]', form); if (!input || !list) return;

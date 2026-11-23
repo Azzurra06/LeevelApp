@@ -1477,3 +1477,8 @@ body.lb-open{overflow:hidden}
   body.kb-open.page-chat .msg-form{bottom:0;padding-bottom:8px}
   body.kb-open.page-chat main.wrap{padding-bottom:84px}
 }
+
+@media (max-width:720px){
+  body.page-chat main.wrap,body.kb-open.page-chat main.wrap{padding-bottom:var(--chat-pad,calc(84px + env(safe-area-inset-bottom)))}
+}
+@media (max-width:720px){body.page-chat:not(.min){padding-bottom:0}}
