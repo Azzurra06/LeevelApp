@@ -14,6 +14,15 @@ $rateTxt = function (array $st): string {
     if ($st['hourly_rate'] !== null) return money((float)$st['hourly_rate']) . '/h' . ($st['hourly_rate_visio'] !== null ? ' · visio ' . money((float)$st['hourly_rate_visio']) . '/h' : '');
     return rate_is_default($st) ? money(default_rate('presentiel')) . '/h (par défaut)' : 'Tarif non défini';
 };
+/** Tarif réellement appliqué (remise incluse). */
+$rateNet = function (array $st) use ($rateTxt): string {
+    $pct = (float)($st['discount_pct'] ?? 0);
+    if ($pct <= 0) return $rateTxt($st);
+    $pr = rate_for($st, 'presentiel'); if ($pr === null) return $rateTxt($st);
+    $net = fn(float $r) => money(round($r * (1 - $pct / 100), 2)) . '/h';
+    $v = $st['hourly_rate_visio'] !== null ? ' · visio ' . $net((float)$st['hourly_rate_visio']) : '';
+    return $net($pr) . $v . ' (remise −' . rtrim(rtrim(number_format($pct, 1, ',', ''), '0'), ',') . ' %)';
+};
 $payItem = function (array $p, bool $withName) use ($hid, $methodSel, $late) { ?>
   <li class="<?= $p['status'] === 'pending' ? 'editable' : '' ?>"><div class="pay-main"><strong><?= $withName ? e($p['first_name']) . ' · ' : '' ?><?= money((float)$p['amount']) ?></strong>
     <small class="muted"><?= e(payment_title($p)) ?><?= $p['status'] === 'paid' ? ' · payé le ' . e(fdate($p['paid_at'])) . ($p['method'] ? ' · ' . e(PAY_METHODS[$p['method']] ?? $p['method']) : '') : ($p['due_date'] ? ' · avant le ' . e(fdate($p['due_date'])) : '') ?><?= !empty($p['discount']) ? ' · ' . e($p['discount_label'] ?: 'Remise') . ' −' . money((float)$p['discount']) : '' ?></small>
@@ -55,7 +64,7 @@ $payItem = function (array $p, bool $withName) use ($hid, $methodSel, $late) { ?
   <div class="table-wrap"><table class="fin-table">
     <tr><th>Élève</th><th>Séances du mois</th><th>Encaissé</th><th>À recevoir</th><th>Non facturé</th><th></th></tr>
     <?php foreach ($rows as ['s' => $st, 'b' => $b, 'u' => $ub, 'm' => $mo]): ?>
-    <tr><td><a href="<?= e(url('t_finance', ['m' => $month, 'view' => 'eleve', 'sid' => $st['id']])) ?>"><strong><?= e($st['first_name']) ?></strong></a><small class="muted"><?= e($rateTxt($st)) ?><?= !empty($st['first_free']) ? ' · 1re séance offerte' : '' ?></small></td>
+    <tr><td><a href="<?= e(url('t_finance', ['m' => $month, 'view' => 'eleve', 'sid' => $st['id']])) ?>"><strong><?= e($st['first_name']) ?></strong></a><small class="muted"><?= e($rateNet($st)) ?><?= !empty($st['first_free']) ? ' · 1re séance offerte' : '' ?></small></td>
       <td><?= money($b['amount']) ?><small class="muted"><?= fdur($b['minutes']) ?></small></td>
       <td><?= money($mo['paid']) ?></td>
       <td><?= $mo['pending'] > 0 ? money($mo['pending']) : '—' ?><?php if ($mo['late'] > 0): ?><small class="err-txt">dont <?= money($mo['late']) ?> en retard</small><?php endif ?></td>
@@ -110,7 +119,7 @@ $payItem = function (array $p, bool $withName) use ($hid, $methodSel, $late) { ?
     <div class="stat"><span class="muted">Encaissé</span><strong><?= money($mo['paid']) ?></strong><small class="muted">sur <?= money($mo['billed']) ?> facturés</small></div>
     <div class="stat"><span class="muted">À recevoir</span><strong><?= money($mo['pending']) ?></strong><?php if ($mo['late'] > 0): ?><small class="err-txt">dont <?= money($mo['late']) ?> en retard</small><?php endif ?></div>
     <div class="stat"><span class="muted">Non facturé</span><strong><?= money($ub['amount']) ?></strong><small class="muted"><?= count($ub['billable']) ?> séance<?= count($ub['billable']) > 1 ? 's' : '' ?></small></div>
-    <div class="stat"><span class="muted">Tarif</span><strong class="fin-rate-v"><?= e($rateTxt($st)) ?></strong><?php if ($terms): ?><small class="muted"><?= e($terms) ?></small><?php endif ?></div>
+    <div class="stat"><span class="muted">Tarif</span><strong class="fin-rate-v"><?= e($rateNet($st)) ?></strong><?php if ($terms): ?><small class="muted"><?= e($terms) ?></small><?php endif ?></div>
   </div>
 </div>
 
