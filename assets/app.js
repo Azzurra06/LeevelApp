@@ -5,6 +5,14 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const csrf = $('meta[name=csrf]')?.content || '';
 
+  // Mode app (ajoutée à l'écran d'accueil) : le serveur garde l'appareil connecté
+  try {
+    const inApp = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const secure = location.protocol === 'https:' ? '; secure' : '';
+    if (inApp && !/(?:^|; )leevel_app=1/.test(document.cookie)) { document.cookie = 'leevel_app=1; max-age=31536000; path=/; samesite=lax' + secure; if ($('form [name=username]') === null && !sessionStorage.getItem('lv_app_r')) { sessionStorage.setItem('lv_app_r', '1'); location.reload(); } }
+    else if (!inApp && /(?:^|; )leevel_app=1/.test(document.cookie)) document.cookie = 'leevel_app=; max-age=0; path=/; samesite=lax' + secure;
+  } catch (e) {}
+
   // Largeurs des barres (CSP : pas de style inline)
   requestAnimationFrame(() => $$('[data-w]').forEach(el => { el.style.width = Math.max(0, Math.min(100, +el.dataset.w)) + '%'; }));
 

@@ -235,6 +235,7 @@ function dispatch(string $r, string $method): void
                 elseif ($m = validate_password($new)) flash($m, 'err');
                 else {
                     q('UPDATE users SET password_hash=? WHERE id=?', [password_hash($new, PASSWORD_DEFAULT), $u['id']]);
+                    remember_forget_user((int)$u['id']); // les autres appareils devront se reconnecter
                     session_regenerate_id(true);
                     audit('password_changed');
                     flash('Mot de passe modifié.');

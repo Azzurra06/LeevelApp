@@ -128,12 +128,66 @@ function boot(): void
     session_start();
     // Expiration d'inactivité : 2 h (30 min en passation)
     $idle = isset($_SESSION['passation']) ? 1800 : 7200;
-    if (isset($_SESSION['last']) && time() - $_SESSION['last'] > $idle) {
-        session_unset();
-        session_regenerate_id(true);
-        flash('Session expirée, merci de vous reconnecter.');
+    $expired = isset($_SESSION['last']) && time() - $_SESSION['last'] > $idle;
+    if ($expired) { session_unset(); session_regenerate_id(true); }
+    // Mode app (écran d'accueil) : l'appareil reste connecté
+    if (PHP_SAPI !== 'cli') {
+        if (!isset($_SESSION['uid']) && !isset($_SESSION['passation']) && !empty($_COOKIE[REMEMBER_COOKIE])) { if (remember_restore()) $expired = false; }
+        elseif (isset($_SESSION['uid']) && is_app_mode() && empty($_COOKIE[REMEMBER_COOKIE])) remember_issue((int)$_SESSION['uid']);
     }
+    if ($expired) flash('Session expirée, merci de vous reconnecter.');
     $_SESSION['last'] = time();
+}
+
+// ---------- Connexion persistante (mode app) ----------
+const REMEMBER_COOKIE = 'leevel_rm';
+const REMEMBER_DAYS = 180;
+/** L'app est ouverte depuis l'écran d'accueil (cookie posé par app.js). */
+function is_app_mode(): bool { return ($_COOKIE['leevel_app'] ?? '') === '1'; }
+function remember_cookie(string $v, int $expires): void
+{
+    setcookie(REMEMBER_COOKIE, $v, ['expires' => $expires, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => config('env') === 'prod']);
+    if ($v === '') unset($_COOKIE[REMEMBER_COOKIE]); else $_COOKIE[REMEMBER_COOKIE] = $v;
+}
+function remember_issue(int $uid): void
+{
+    try {
+        $sel = bin2hex(random_bytes(12)); $val = bin2hex(random_bytes(32));
+        q('INSERT INTO remember_tokens (user_id, selector, validator_hash, ua, expires_at) VALUES (?,?,?,?, NOW() + INTERVAL ' . REMEMBER_DAYS . ' DAY)',
+          [$uid, $sel, hash('sha256', $val), mb_substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 160)]);
+        remember_cookie($sel . ':' . $val, time() + REMEMBER_DAYS * 86400);
+    } catch (PDOException) {}
+}
+function remember_parse(): ?array
+{
+    $c = (string)($_COOKIE[REMEMBER_COOKIE] ?? '');
+    return preg_match('/^([0-9a-f]{24}):([0-9a-f]{64})$/', $c, $m) ? [$m[1], $m[2]] : null;
+}
+/** Reconnecte l'appareil à partir de son jeton ; jeton glissant (prolongé à chaque usage). */
+function remember_restore(): bool
+{
+    $p = remember_parse();
+    try { $t = $p ? one('SELECT t.* FROM remember_tokens t JOIN users u ON u.id=t.user_id WHERE t.selector=? AND t.expires_at > NOW() AND u.is_active=1', [$p[0]]) : null; }
+    catch (PDOException) { return false; }
+    if (!$t || !hash_equals($t['validator_hash'], hash('sha256', $p[1]))) { remember_cookie('', time() - 3600); return false; }
+    session_regenerate_id(true);
+    $_SESSION = ['uid' => (int)$t['user_id'], 'last' => time(), 'accounts' => [(int)$t['user_id']]];
+    q('UPDATE remember_tokens SET last_used_at=NOW(), expires_at=NOW() + INTERVAL ' . REMEMBER_DAYS . ' DAY WHERE id=?', [$t['id']]);
+    remember_cookie((string)$_COOKIE[REMEMBER_COOKIE], time() + REMEMBER_DAYS * 86400);
+    return true;
+}
+/** Oublie l'appareil courant (déconnexion, changement de compte). */
+function remember_forget(): void
+{
+    if (empty($_COOKIE[REMEMBER_COOKIE])) return;
+    if ($p = remember_parse()) { try { q('DELETE FROM remember_tokens WHERE selector=?', [$p[0]]); } catch (PDOException) {} }
+    remember_cookie('', time() - 3600);
+}
+/** Déconnecte tous les appareils d'un utilisateur (changement de mot de passe, suppression). */
+function remember_forget_user(int $uid): void
+{
+    try { q('DELETE FROM remember_tokens WHERE user_id=?', [$uid]); } catch (PDOException) {}
+    remember_cookie('', time() - 3600);
 }
 
 // ---------- Helpers vue ----------
@@ -249,6 +303,7 @@ function attempt_login(string $username, string $password): bool|string
         q('UPDATE users SET password_hash=? WHERE id=?', [password_hash($password, PASSWORD_DEFAULT), $u['id']]);
     }
     q('DELETE FROM login_attempts WHERE username=?', [$username]);
+    remember_forget();
     session_regenerate_id(true);
     // comptes déjà connectés dans ce navigateur : conservés pour passer de l'un à l'autre sans se reconnecter
     $accounts = array_values(array_unique(array_map('intval', array_merge($_SESSION['accounts'] ?? [], isset($_SESSION['uid']) && !in_passation() ? [(int)$_SESSION['uid']] : []))));
@@ -273,6 +328,7 @@ function switch_account(int $uid): bool
 {
     if (in_passation() || !in_array($uid, array_map('intval', $_SESSION['accounts'] ?? []), true)) return false;
     if (!one('SELECT 1 FROM users WHERE id=? AND is_active=1', [$uid])) return false;
+    remember_forget();
     session_regenerate_id(true);
     $keep = ['accounts' => $_SESSION['accounts']];
     $_SESSION = ['uid' => $uid, 'last' => time()] + $keep;
@@ -280,6 +336,7 @@ function switch_account(int $uid): bool
 }
 function logout(): void
 {
+    remember_forget();
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $p = session_get_cookie_params();
