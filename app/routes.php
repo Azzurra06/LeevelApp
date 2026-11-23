@@ -23,6 +23,25 @@ function dispatch(string $r, string $method): void
         case 'welcome':
             welcome_route($isPost);
 
+        case 'push_subscribe': case 'push_unsubscribe': case 'push_test': case 'push_prefs':
+            $u = require_login();
+            if (!$isPost || !push_available()) { http_response_code(400); exit; }
+            if ($r === 'push_subscribe') {
+                $ep = (string)($_POST['endpoint'] ?? ''); $p = (string)($_POST['p256dh'] ?? ''); $a = (string)($_POST['auth'] ?? '');
+                if (!preg_match('#^https://[^\s]{10,690}$#', $ep) || !preg_match('/^[A-Za-z0-9_-]{40,200}$/', $p) || !preg_match('/^[A-Za-z0-9_-]{10,100}$/', $a)) { http_response_code(422); exit('invalide'); }
+                q('INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, ua) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id), p256dh=VALUES(p256dh), auth=VALUES(auth), ua=VALUES(ua), fail_count=0',
+                    [$u['id'], $ep, $p, $a, mb_substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 160)]);
+                audit('push_subscribed'); header('Content-Type: application/json'); exit('{"ok":true}');
+            }
+            if ($r === 'push_unsubscribe') { q('DELETE FROM push_subscriptions WHERE user_id=? AND endpoint=?', [$u['id'], (string)($_POST['endpoint'] ?? '')]); header('Content-Type: application/json'); exit('{"ok":true}'); }
+            if ($r === 'push_test') {
+                $n = push_user((int)$u['id'], '_test', ['title' => 'leevel.app', 'body' => 'Les notifications fonctionnent sur cet appareil 🎉', 'url' => url('account'), 'tag' => 'test']);
+                header('Content-Type: application/json'); exit(json_encode(['sent' => $n]));
+            }
+            $prefs = []; foreach (array_keys(PUSH_TYPES) as $k) $prefs[$k] = !empty($_POST['push_' . $k]);
+            q('UPDATE users SET push_prefs=? WHERE id=?', [json_encode($prefs), $u['id']]);
+            flash('Préférences de notification enregistrées.'); redirect('account');
+
         case 'switch_account':
             if (!$isPost || !current_user()) redirect('home');
             if (switch_account(post_int('uid'))) { audit('account_switched'); flash('Vous êtes maintenant connecté·e en tant que ' . (current_user()['display_name'] ?? '') . '.'); }

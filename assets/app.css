@@ -1196,3 +1196,13 @@ body.page-t .card[class*="tone-"]{border-top:1px solid var(--beige)!important;--
 .ra-chip.sk-on{background:#e8f3ec;color:#2f6b4b}.ra-chip.sk-on .ic{width:12px;height:12px}
 .ra-chip.sk-off{background:var(--surface);color:var(--muted);border:1px dashed var(--beige-2)}
 .sk-obs-last{margin:8px 0 0}
+
+/* Notifications push */
+.push-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:24px}
+.push-status{margin:0 0 12px}
+.push-btns{gap:8px;flex-wrap:wrap}
+.push-ios{margin-top:12px;padding:12px 14px;background:var(--accent-l);border-radius:12px;font-size:.92rem}
+.push-ios ol{margin:8px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:4px}.push-ios p{margin:0}
+.push-prefs{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border:1px solid var(--beige);border-radius:12px}
+.push-prefs .ql{display:block}
+@media (max-width:760px){.push-grid{grid-template-columns:1fr}}

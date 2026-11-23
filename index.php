@@ -14,7 +14,9 @@ require APP_ROOT . '/app/schedule.php';
 require APP_ROOT . '/app/account_delete.php';
 require APP_ROOT . '/app/finance.php';
 require APP_ROOT . '/app/welcome.php';
+require APP_ROOT . '/app/push.php';
 require APP_ROOT . '/app/routes.php';
 
 boot();
+push_tick();
 dispatch((string)($_GET['r'] ?? 'home'), $_SERVER['REQUEST_METHOD'] ?? 'GET');

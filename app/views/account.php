@@ -180,6 +180,37 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
     <?php endif ?>
 
 
+    <?php if (function_exists('push_available') && push_available()): $pp = push_prefs($u); $nDev = (int)(one('SELECT COUNT(*) n FROM push_subscriptions WHERE user_id=?', [$u['id']])['n'] ?? 0); ?>
+    <div class="card span-2" id="notifications" data-push data-key="<?= e(vapid_keys()['public']) ?>" data-csrf="<?= e(csrf_token()) ?>"
+      data-sub="<?= e(url('push_subscribe')) ?>" data-unsub="<?= e(url('push_unsubscribe')) ?>" data-test="<?= e(url('push_test')) ?>">
+      <h2><?= icon('message-circle') ?> Notifications sur cet appareil</h2>
+      <div class="push-grid">
+        <div>
+          <p class="push-status" data-push-status><?= $isStudent ? 'Reçois une notification quand ta tutrice t\'écrit ou la veille d\'une séance.' : 'Recevez une notification sur votre téléphone ou votre ordinateur, même quand l\'app est fermée.' ?></p>
+          <div class="row push-btns">
+            <button type="button" class="btn sm" data-push-on hidden><?= icon('check') ?> Activer les notifications</button>
+            <button type="button" class="btn ghost sm" data-push-test hidden><?= icon('send') ?> Envoyer un test</button>
+            <button type="button" class="btn ghost sm" data-push-off hidden>Désactiver sur cet appareil</button>
+          </div>
+          <div class="push-ios" data-push-ios hidden>
+            <strong><?= icon('lightbulb') ?> Sur iPhone ou iPad</strong>
+            <ol><li>Dans Safari, touchez <strong>Partager</strong> (le carré avec une flèche vers le haut).</li><li>Choisissez <strong>« Sur l'écran d'accueil »</strong>, puis <strong>Ajouter</strong>.</li><li>Ouvrez leevel depuis la nouvelle icône, revenez ici et activez les notifications.</li></ol>
+            <p class="muted"><small>Apple ne permet les notifications que pour les apps ajoutées à l'écran d'accueil (iOS 16.4 ou plus récent).</small></p>
+          </div>
+          <p class="muted push-unsupported" data-push-unsupported hidden><small>Ce navigateur ne permet pas les notifications. Essayez Chrome, Firefox, Edge ou Safari à jour.</small></p>
+          <?php if ($nDev): ?><p class="muted"><small><?= $nDev ?> appareil<?= $nDev > 1 ? 's' : '' ?> activé<?= $nDev > 1 ? 's' : '' ?> pour ce compte.</small></p><?php endif ?>
+        </div>
+        <form method="post" action="<?= e(url('push_prefs')) ?>" class="push-prefs"><?= csrf_field() ?>
+          <span class="ql">Me prévenir pour</span>
+          <?php foreach (PUSH_TYPES as $k => $l): if ($k === 'finance' && !$isParent) continue; ?>
+            <label class="check"><input type="checkbox" name="push_<?= $k ?>" value="1" <?= $pp[$k] ? 'checked' : '' ?>> <?= e($l) ?></label>
+          <?php endforeach ?>
+          <div><button class="btn ghost sm"><?= icon('save') ?> Enregistrer</button></div>
+        </form>
+      </div>
+    </div>
+    <?php endif ?>
+
     <?php $scope = deletion_scope($u); ?>
     <div class="card span-2 danger-card editable" id="suppression">
       <div class="ed-head"><h2><?= icon('trash-2') ?> Supprimer mon compte</h2><button type="button" class="btn ghost sm danger" data-edit>Supprimer mon compte…</button></div>

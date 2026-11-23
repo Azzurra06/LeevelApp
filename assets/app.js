@@ -82,6 +82,38 @@
       }
     }
   }
+  // Notifications push : service worker (toutes les pages) + activation depuis « Mon compte »
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  const pushBox = $('[data-push]');
+  if (pushBox) {
+    const st = $('[data-push-status]', pushBox), bOn = $('[data-push-on]', pushBox), bOff = $('[data-push-off]', pushBox), bTest = $('[data-push-test]', pushBox);
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    const post = (url, data) => { const f = new FormData(); f.append('_csrf', pushBox.dataset.csrf); Object.entries(data).forEach(([k, v]) => f.append(k, v)); return fetch(url, { method: 'POST', body: f, credentials: 'same-origin' }); };
+    const keyBytes = b64 => { const s = atob((b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(s, c => c.charCodeAt(0)); };
+    const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const set = (state, msg) => { st.textContent = msg; bOn.hidden = state !== 'off'; bOff.hidden = bTest.hidden = state !== 'on'; };
+    const refresh = async () => {
+      if (!supported) { if (isIOS && !standalone) $('[data-push-ios]', pushBox).hidden = false; else $('[data-push-unsupported]', pushBox).hidden = false; set('na', isIOS && !standalone ? 'Pour recevoir les notifications sur iPhone, ajoutez d\'abord leevel à votre écran d\'accueil :' : 'Notifications indisponibles sur ce navigateur.'); return; }
+      if (Notification.permission === 'denied') { set('na', 'Les notifications sont bloquées pour ce site : autorisez-les dans les réglages du navigateur, puis rechargez la page.'); return; }
+      const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription();
+      if (sub) { set('on', '✅ Notifications activées sur cet appareil.'); post(pushBox.dataset.sub, { endpoint: sub.endpoint, p256dh: b64u(sub.getKey('p256dh')), auth: b64u(sub.getKey('auth')) }); }
+      else set('off', 'Notifications désactivées sur cet appareil.');
+    };
+    bOn.addEventListener('click', async () => {
+      try {
+        const perm = await Notification.requestPermission(); if (perm !== 'granted') return refresh();
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(pushBox.dataset.key) });
+        const r = await post(pushBox.dataset.sub, { endpoint: sub.endpoint, p256dh: b64u(sub.getKey('p256dh')), auth: b64u(sub.getKey('auth')) });
+        set(r.ok ? 'on' : 'off', r.ok ? '✅ Notifications activées sur cet appareil.' : 'L\'activation a échoué, réessayez.');
+      } catch (e) { set('off', 'L\'activation a échoué : ' + (e.message || e)); }
+    });
+    bOff.addEventListener('click', async () => { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) { await post(pushBox.dataset.unsub, { endpoint: sub.endpoint }); await sub.unsubscribe(); } refresh(); });
+    bTest.addEventListener('click', async () => { const r = await post(pushBox.dataset.test, {}); const j = await r.json().catch(() => ({})); st.textContent = j.sent ? '📨 Test envoyé : la notification devrait arriver dans quelques secondes.' : 'Le test n\'a pas pu être envoyé.'; });
+    refresh();
+  }
   // Afficher / masquer les mots de passe
   const sprite = (document.querySelector('svg use')?.getAttribute('href') || '/assets/icons.svg').split('#')[0];
   $$('input[type=password]').forEach(inp => {
