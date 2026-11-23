@@ -215,7 +215,6 @@
   }));
   // Messagerie : afficher le dernier message
   $$('[data-thread]').forEach(t => { t.scrollTop = t.scrollHeight; });
-  if (document.body.classList.contains('page-chat') && matchMedia('(max-width:720px)').matches) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
   // Pièce jointe (photo, PDF) en plein écran, avec Télécharger et Fermer
   const iconSvg = n => '<svg class="ic" aria-hidden="true"><use href="' + ($('link[rel=icon-sprite]')?.href || document.querySelector('use')?.getAttribute('href')?.split('#')[0] || '') + '#i-' + n + '"></use></svg>';
   // PDF affiché à la largeur de l'écran, toutes les pages (pdf.js servi par le site, chargé à la demande)
@@ -278,28 +277,31 @@
     vv.addEventListener('resize', kb); document.addEventListener('focusin', () => setTimeout(kb, 250)); document.addEventListener('focusout', () => setTimeout(kb, 100));
   }
 
-  // Messagerie mobile : zone de saisie toujours collée au-dessus du clavier (même en faisant défiler),
-  // et l'espace sous le dernier message suit exactement la zone de saisie
-  const chatForm = document.body.classList.contains('page-chat') && $('.msg-form');
-  if (chatForm) {
-    const vv = window.visualViewport;
-    const place = () => {
-      if (getComputedStyle(chatForm).position !== 'fixed') { chatForm.style.removeProperty('bottom'); document.body.style.removeProperty('--chat-pad'); return; }
-      const kbOpen = document.body.classList.contains('kb-open');
-      // clavier ouvert : on suit la partie réellement visible de l'écran (visualViewport) au lieu du bas de la page
-      if (kbOpen && vv) chatForm.style.bottom = Math.max(0, Math.round(window.innerHeight - (vv.offsetTop + vv.height))) + 'px';
-      else chatForm.style.removeProperty('bottom');
-      const gap = kbOpen && vv ? chatForm.offsetHeight + 10 : Math.ceil(window.innerHeight - chatForm.getBoundingClientRect().top + 10);
-      document.body.style.setProperty('--chat-pad', gap + 'px');
+  // Messagerie mobile, façon appli de messages : la page ne défile plus, seule la liste des messages défile ;
+  // la zone de saisie est un bloc fixe en bas de la partie visible de l'écran (au-dessus du clavier quand il est ouvert)
+  const chatForm = $('.page-chat .msg-form');
+  if (chatForm && matchMedia('(max-width:720px)').matches) {
+    const root = document.documentElement, vv = window.visualViewport, thread = $('[data-thread]');
+    const head = $('header.top'), nav = $('.nav-bottom');
+    root.classList.add('chat-fixed'); document.body.classList.add('chat-fixed');
+    const atBottom = () => !thread || thread.scrollHeight - thread.scrollTop - thread.clientHeight < 60;
+    const layout = () => {
+      const stick = atBottom();
+      if (window.scrollY) window.scrollTo(0, 0);
+      const offTop = vv ? vv.offsetTop : 0, visH = vv ? vv.height : window.innerHeight;
+      const kb = document.body.classList.contains('kb-open');
+      const navH = !kb && nav && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().height : 0;
+      root.style.setProperty('--chat-top', Math.round(offTop + (head ? head.getBoundingClientRect().height : 0)) + 'px');
+      root.style.setProperty('--chat-bottom', Math.max(0, Math.round(window.innerHeight - offTop - visH + navH)) + 'px');
+      if (stick && thread) thread.scrollTop = thread.scrollHeight;
     };
-    const toBottomIfNear = fn => { const near = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60; fn(); if (near) window.scrollTo(0, document.documentElement.scrollHeight); };
-    const later = () => requestAnimationFrame(() => toBottomIfNear(place));
-    place();
-    window.addEventListener('resize', later);
-    if (vv) { vv.addEventListener('resize', later); vv.addEventListener('scroll', place); }
-    window.addEventListener('scroll', place, { passive: true });
-    document.addEventListener('focusin', () => setTimeout(() => toBottomIfNear(place), 320)); document.addEventListener('focusout', () => setTimeout(place, 150));
-    if (window.ResizeObserver) new ResizeObserver(later).observe(chatForm);
+    const soon = () => requestAnimationFrame(layout);
+    layout(); if (thread) thread.scrollTop = thread.scrollHeight;
+    window.addEventListener('resize', soon);
+    if (vv) { vv.addEventListener('resize', soon); vv.addEventListener('scroll', soon); }
+    document.addEventListener('focusin', () => { soon(); setTimeout(layout, 300); });
+    document.addEventListener('focusout', () => setTimeout(layout, 150));
+    if (window.ResizeObserver) new ResizeObserver(soon).observe(chatForm);
   }
 
   // Messagerie : aperçu des pièces jointes choisies (avec retrait possible)

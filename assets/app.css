@@ -1482,3 +1482,17 @@ body.lb-open{overflow:hidden}
   body.page-chat main.wrap,body.kb-open.page-chat main.wrap{padding-bottom:var(--chat-pad,calc(84px + env(safe-area-inset-bottom)))}
 }
 @media (max-width:720px){body.page-chat:not(.min){padding-bottom:0}}
+
+/* Messagerie mobile : mise en page fixe (seule la liste des messages défile) */
+@media (max-width:720px){
+  html.chat-fixed,html.chat-fixed body{height:100%;overflow:hidden;overscroll-behavior:none}
+  body.chat-fixed:not(.min){padding-bottom:0}
+  body.chat-fixed main.wrap{position:fixed;left:0;right:0;top:var(--chat-top,64px);bottom:var(--chat-bottom,72px);padding:0 14px !important;margin:0;display:flex;flex-direction:column;overflow:hidden;max-width:none}
+  body.chat-fixed main.wrap>*{flex:none}
+  body.chat-fixed main.wrap>.msg-layout{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  body.chat-fixed .chat-card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  body.chat-fixed .chat-top{position:static;flex:none}
+  body.chat-fixed .chat-card .ro-note{flex:none}
+  body.chat-fixed .thread{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 0 10px}
+  body.chat-fixed .msg-form{position:static;flex:none;margin:0 -14px;bottom:auto}
+}
