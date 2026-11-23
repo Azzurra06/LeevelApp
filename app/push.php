@@ -3,7 +3,7 @@ declare(strict_types=1);
 // Notifications push (Web Push, RFC 8030 / 8291 / 8292) sans dépendance : chiffrement aes128gcm + VAPID (ES256).
 // Fonctionne sur Android, ordinateurs (Chrome, Firefox, Edge, Safari macOS) et iPhone/iPad (iOS 16.4+) quand l'app est ajoutée à l'écran d'accueil.
 
-const PUSH_TYPES = ['messages' => 'Nouveaux messages', 'sessions' => 'Rappel la veille d\'une séance', 'finance' => 'Échéances de paiement', 'reports' => 'Bilans de séance'];
+const PUSH_TYPES = ['messages' => 'Nouveaux messages', 'sessions' => 'Rappel la veille d\'une séance', 'finance' => 'Échéances de paiement', 'reports' => 'Bilans de séance', 'session_end' => 'Fin de séance (bilan, retour)'];
 
 function push_available(): bool
 {
@@ -137,12 +137,47 @@ function push_session_reminders(): void
         if ($se['user_id']) push_user((int)$se['user_id'], 'sessions', ['title' => 'Ta séance demain 📅', 'body' => $when, 'url' => url('s_planning'), 'tag' => 'sess-' . $se['id']]);
     }
 }
+/** Fin de séance : la tutrice est invitée à rédiger le bilan, l'élève à donner son retour (notification + e-mail), une seule fois. */
+function push_session_ended(string $host = ''): void
+{
+    $host = preg_replace('/[^a-z0-9.:-]/i', '', $host ?: (string)($_SERVER['HTTP_HOST'] ?? ''));
+    try {
+        $rows = all('SELECT se.*, s.first_name, s.family_id, s.user_id AS s_uid, s.student_email FROM sessions se JOIN students s ON s.id=se.student_id
+                     WHERE se.status IN ("planned","done") AND se.ended_notified_at IS NULL
+                       AND se.starts_at + INTERVAL se.duration_min MINUTE <= NOW() AND se.starts_at + INTERVAL se.duration_min MINUTE > NOW() - INTERVAL 1 DAY');
+    } catch (PDOException) { return; }
+    if (!$rows) return;
+    require_once APP_ROOT . '/app/notify.php';
+    $abs = fn(string $u) => $host !== '' ? 'https://' . $host . $u : $u;
+    foreach ($rows as $se) {
+        q('UPDATE sessions SET ended_notified_at=NOW() WHERE id=? AND ended_notified_at IS NULL', [$se['id']]);
+        $label = session_label($se); $when = fdatetime($se['starts_at']);
+        // Tutrice(s) de la famille
+        foreach (all('SELECT u.id, u.email, u.display_name FROM users u JOIN family_members fm ON fm.user_id=u.id AND fm.family_id=? WHERE fm.member_role="tutor" AND u.is_active=1', [$se['family_id']]) as $t) {
+            $link = url('t_student', ['sid' => $se['student_id'], 'tab' => 'seances']) . '#sess-' . (int)$se['id'];
+            push_user((int)$t['id'], 'session_end', ['title' => 'Séance avec ' . $se['first_name'] . ' terminée', 'body' => 'Pensez à rédiger le bilan : ' . $label, 'url' => $link, 'tag' => 'end-' . $se['id']]);
+            if ($t['email'] && $host !== '') send_app_mail($t['email'], 'Séance avec ' . $se['first_name'] . ' terminée : le bilan', [
+                'title' => 'Séance terminée', 'greeting' => 'Bonjour ' . $t['display_name'] . ',',
+                'paragraphs' => ['La séance avec ' . $se['first_name'] . ' (' . $when . ' · ' . $label . ') est terminée.', 'Vous pouvez rédiger le bilan maintenant, tant que tout est encore frais. Il sera envoyé au parent dès que vous le validez.'],
+                'cta_label' => 'Rédiger le bilan', 'cta_url' => $abs($link)], $host);
+        }
+        // Élève
+        if ($se['s_uid']) {
+            $link = url('s_subjects') . '#recap';
+            push_user((int)$se['s_uid'], 'session_end', ['title' => 'Séance terminée ✅', 'body' => 'Dis à ta tutrice comment ça s\'est passé !', 'url' => $link, 'tag' => 'end-' . $se['id']]);
+            $mail = (string)(one('SELECT email FROM users WHERE id=?', [$se['s_uid']])['email'] ?? '') ?: (string)$se['student_email'];
+            if ($mail && $host !== '') send_app_mail($mail, 'Ta séance est terminée : ton retour', [
+                'title' => 'Comment ça s\'est passé ?', 'greeting' => 'Bonjour ' . $se['first_name'] . ',',
+                'paragraphs' => ['Ta séance du ' . $when . ' est terminée.', 'Prends une minute pour dire à ta tutrice comment ça s\'est passé : ce que tu as compris, ce qui était difficile. Ça l\'aide à préparer la suite.'],
+                'cta_label' => 'Donner mon retour', 'cta_url' => $abs($link)], $host);
+        }
+    }
+}
 /** Tâches périodiques légères, déclenchées au fil des visites (au plus toutes les 10 min), après l'envoi de la page. */
 function push_tick(): void
 {
-    if (!push_available()) return;
     $f = APP_ROOT . '/storage/push_tick';
     if (is_file($f) && filemtime($f) > time() - 600) return;
     @touch($f);
-    register_shutdown_function(function () { if (function_exists('fastcgi_finish_request')) @fastcgi_finish_request(); push_session_reminders(); });
+    register_shutdown_function(function () { if (function_exists('fastcgi_finish_request')) @fastcgi_finish_request(); push_session_reminders(); push_session_ended(); });
 }

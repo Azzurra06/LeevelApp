@@ -20,4 +20,5 @@ $cooldown = isset($opt['cooldown']) ? max(0, (int)$opt['cooldown']) : NOTIFY_COO
 $_SERVER['HTTP_HOST'] = $host;
 $stats = run_message_notifications($host, $delay, $cooldown);
 push_session_reminders();
+push_session_ended($host);
 echo date('c') . ' ' . json_encode($stats) . "\n";

@@ -161,7 +161,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
         </div>
         <form method="post" action="<?= e(url('push_prefs')) ?>" class="push-prefs"><?= csrf_field() ?>
           <span class="ql">Me prévenir pour</span>
-          <?php foreach (PUSH_TYPES as $k => $l): if ($k === 'finance' && !$isParent) continue; ?>
+          <?php foreach (PUSH_TYPES as $k => $l): if (($k === 'finance' && !$isParent) || ($k === 'session_end' && $isParent)) continue; ?>
             <label class="check"><input type="checkbox" name="push_<?= $k ?>" value="1" <?= $pp[$k] ? 'checked' : '' ?>> <?= e($l) ?></label>
           <?php endforeach ?>
           <div><button class="btn ghost sm"><?= icon('save') ?> Enregistrer</button></div>
@@ -258,7 +258,7 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
         </div>
         <form method="post" action="<?= e(url('push_prefs')) ?>" class="push-prefs"><?= csrf_field() ?>
           <span class="ql">Me prévenir pour</span>
-          <?php foreach (PUSH_TYPES as $k => $l): if ($k === 'finance' && !$isParent) continue; ?>
+          <?php foreach (PUSH_TYPES as $k => $l): if (($k === 'finance' && !$isParent) || ($k === 'session_end' && $isParent)) continue; ?>
             <label class="check"><input type="checkbox" name="push_<?= $k ?>" value="1" <?= $pp[$k] ? 'checked' : '' ?>> <?= e($l) ?></label>
           <?php endforeach ?>
           <div><button class="btn ghost sm"><?= icon('save') ?> Enregistrer</button></div>

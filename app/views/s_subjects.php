@@ -11,6 +11,7 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
     <div class="empty-ill sm"><span>📅</span><p class="muted">Après ta première séance, tu trouveras ici le bilan de ta tutrice et tu pourras lui dire comment ça s'est passé.</p></div>
   <?php else: ?>
     <p class="recap-date"><span class="badge"><?= e(fdatetime($recap['starts_at'])) ?></span> <span class="muted"><?= e(session_label($recap)) ?></span></p>
+    <?php ob_start() ?>
     <div class="recap-note">
       <h3 class="mini-h"><?= icon('message-circle') ?> Le mot de ta tutrice</h3>
       <?= report_subject_chips($rep) ?>
@@ -18,6 +19,7 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
       <?php else: ?><p class="muted">Ta tutrice n'a pas encore écrit le bilan de cette séance.</p><?php endif ?>
       <?php if ($rep && $rep['next_focus']): ?><p class="recap-next"><strong>Pour la prochaine fois :</strong> <?= e($rep['next_focus']) ?></p><?php endif ?>
     </div>
+    <?php $noteHtml = ob_get_clean(); if ($rep) echo $noteHtml; ?>
     <div class="recap-me view">
       <h3 class="mini-h"><?= icon('smile') ?> Mon retour</h3>
       <?php if ($fb): ?>
@@ -31,6 +33,7 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
       <label>Un petit mot pour ta tutrice ? <span class="q-hint">facultatif</span><textarea name="note" maxlength="1000" rows="2" placeholder="ex. J'ai bien compris les fractions, mais pas encore les équations"><?= e($fb['note'] ?? '') ?></textarea></label>
       <div class="row"><button class="btn sm"><?= icon('send') ?> Envoyer</button><?php if ($fb): ?><button type="button" class="btn ghost sm" data-edit>Annuler</button><?php endif ?></div>
     </form>
+    <?php if (!$rep): ?><p class="muted recap-wait"><small>Ta tutrice n'a pas encore écrit son bilan : tu peux déjà donner ton retour, tu verras son mot ici ensuite.</small></p><?php endif ?>
   <?php endif ?>
 </div>
 
