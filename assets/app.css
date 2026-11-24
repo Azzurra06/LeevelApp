@@ -1496,7 +1496,7 @@ body.lb-open{overflow:hidden}
   body.chat-fixed .chat-card .ro-note{flex:none}
   body.chat-fixed .thread{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 0 10px}
   body.chat-fixed .msg-form{position:static;flex:none;margin:0 -14px;bottom:auto}
-  body.chat-fixed.kb-open header.top,body.chat-fixed.kb-open .chat-top,body.chat-fixed.kb-open main.wrap>:not(.msg-layout),body.chat-fixed.kb-open .msg-layout>:not(.chat-card),body.chat-fixed.kb-open .chat-card>:not(.thread):not(.msg-form){display:none}
+  body.chat-fixed.kb-open .chat-top,body.chat-fixed.kb-open main.wrap>:not(.msg-layout),body.chat-fixed.kb-open .msg-layout>:not(.chat-card),body.chat-fixed.kb-open .chat-card>:not(.thread):not(.msg-form){display:none}
 }
 
 /* Messagerie mobile : haut de conversation compact */

@@ -291,6 +291,7 @@
       const offTop = vv ? vv.offsetTop : 0, visH = vv ? vv.height : window.innerHeight;
       const kb = document.body.classList.contains('kb-open');
       const navH = !kb && nav && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().height : 0;
+      if (head) head.style.transform = offTop > 0 ? 'translateY(' + Math.round(offTop) + 'px)' : ''; // le bandeau suit la partie visible (iPhone, clavier ouvert)
       root.style.setProperty('--chat-top', Math.round(offTop + (head ? head.getBoundingClientRect().height : 0)) + 'px');
       root.style.setProperty('--chat-bottom', Math.max(0, Math.round(window.innerHeight - offTop - visH + navH)) + 'px');
       if (stick && thread) thread.scrollTop = thread.scrollHeight;
