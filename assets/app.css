@@ -1498,3 +1498,23 @@ body.lb-open{overflow:hidden}
   body.chat-fixed .msg-form{position:static;flex:none;margin:0 -14px;bottom:auto}
   body.chat-fixed.kb-open header.top,body.chat-fixed.kb-open .chat-top,body.chat-fixed.kb-open main.wrap>:not(.msg-layout),body.chat-fixed.kb-open .msg-layout>:not(.chat-card),body.chat-fixed.kb-open .chat-card>:not(.thread):not(.msg-form){display:none}
 }
+
+/* Messagerie mobile : haut de conversation compact */
+@media (max-width:720px){
+  .page-chat .thread-list{margin:6px 0 0}
+  .page-chat .thread-list .li-link a{padding:5px 12px;font-size:.86rem;line-height:1.2}
+  .page-chat .chat-top{padding:6px 14px 0}
+  .page-chat .chat-top .thread-head{margin:0;gap:8px;align-items:center}
+  .page-chat .chat-top .thread-head h2{font-size:.95rem}
+  .page-chat .chat-top .thread-head .row{gap:6px}
+  .page-chat .chat-top .thread-head .btn{width:34px;height:34px;min-height:34px;padding:0;border-radius:50%;justify-content:center}
+  .page-chat .chat-top .thread-head .btn .lbl{display:none}
+  .page-chat .chat-top .thread-head .btn .ic{width:16px;height:16px;margin:0}
+  .page-chat .chat-top .chat-head{margin-bottom:0;gap:8px}
+  .page-chat .chat-top .chat-head .avatar{width:30px;height:30px}
+  .page-chat .chat-top .seg{margin:6px 0 6px;padding:3px}
+  .page-chat .chat-top .seg a{padding:5px 10px;font-size:.85rem;min-height:0}
+  .page-chat .chat-top .seg a .ic{width:15px;height:15px}
+  .page-chat .chat-top .alert{margin:6px 0;padding:8px 10px;font-size:.82rem}
+}
+@media (max-width:720px){.page-chat .msg-layout{gap:0}.page-chat .chat-top .thread-head h2{margin:0}.page-chat .thread-list .list{padding-bottom:0}}
