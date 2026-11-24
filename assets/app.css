@@ -1518,3 +1518,15 @@ body.lb-open{overflow:hidden}
   .page-chat .chat-top .alert{margin:6px 0;padding:8px 10px;font-size:.82rem}
 }
 @media (max-width:720px){.page-chat .msg-layout{gap:0}.page-chat .chat-top .thread-head h2{margin:0}.page-chat .thread-list .list{padding-bottom:0}}
+
+/* Messagerie tutrice : plus de liste des familles (l'élève se choisit dans la barre du haut) */
+.msg-layout.msg-single{grid-template-columns:minmax(0,1fr)}
+/* Mobile : nom + bascule Parent / élève sur une seule ligne, sans les icônes de coordonnées */
+@media (max-width:720px){
+  .page-chat .msg-single .chat-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 14px}
+  .page-chat .msg-single .chat-top>.thread-head,.page-chat .msg-single .chat-top>.chat-head{flex:1 1 0;min-width:0;margin:0}
+  .page-chat .msg-single .chat-top .thread-head .row{display:none}
+  .page-chat .msg-single .chat-top>.seg{flex:none;width:auto;margin:0;display:inline-flex}
+  .page-chat .msg-single .chat-top>.seg a{flex:none;padding:5px 10px}
+  .page-chat .msg-single .chat-top>.alert{flex-basis:100%;order:3;margin:0}
+}

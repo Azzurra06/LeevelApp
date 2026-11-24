@@ -1,15 +1,5 @@
 <?php $title = 'Messagerie'; $me = current_user(); $channel = $ch; $postUrl = url('t_messages', ['sid' => $s['id']] + ($ch === 'student' ? ['ch' => 'student'] : [])); ?>
-<div class="msg-layout">
-  <aside class="card thread-list">
-    <h2>Familles</h2>
-    <ul class="list">
-      <?php foreach ($threads as $th): $x = $th['s']; ?>
-        <li class="li-link<?= (int)$x['id'] === (int)$s['id'] ? ' current' : '' ?>"><a href="<?= e(url('t_messages', ['sid' => $x['id']])) ?>">
-          <div><strong><?= e($x['first_name']) ?></strong><?php if ($th['unread']): ?> <span class="nav-badge"><?= $th['unread'] ?></span><?php endif ?><br>
-            <small class="muted"><?= $th['last'] ? e(mb_strimwidth($th['last']['body'], 0, 48, '…') ?: '📎 Pièce jointe') : 'Aucun message' ?></small></div></a></li>
-      <?php endforeach ?>
-    </ul>
-  </aside>
+<div class="msg-layout msg-single">
   <section class="card chat-card">
     <div class="chat-top"><div class="row between thread-head"><h2><?= e($s['family_name']) ?></h2>
       <?php if ($parent): ?><div class="row"><?php if (!empty($parent['phone'])): ?><a class="btn ghost sm" title="Appeler" aria-label="Appeler le parent" href="tel:<?= e(preg_replace('/[^0-9+]/', '', $parent['phone'])) ?>"><?= icon('message-circle') ?> <span class="lbl"><?= e($parent['phone']) ?></span></a><?php endif ?>
