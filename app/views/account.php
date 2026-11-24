@@ -49,22 +49,33 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
     </div>
 <?php if ($isTutor): ?>
     <div class="card editable acc-l">
-      <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
+      <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier') ?></div>
       <dl class="fields view">
         <div><dt>Identifiant</dt><dd><code><?= e($u['username']) ?></code></dd></div>
         <div><dt>Mot de passe</dt><dd>•••••••••• <span class="muted"><small>(jamais affiché)</small></span></dd></div>
       </dl>
-      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="password">
-        <p class="muted"><small>Identifiant : <code><?= e($u['username']) ?></code></small></p>
-        <div class="form-grid">
-          <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
-          <span></span>
-          <label>Nouveau mot de passe<input type="password" name="new_password" required minlength="10" autocomplete="new-password"></label>
-          <label>Confirmer<input type="password" name="new_password2" required minlength="10" autocomplete="new-password"></label>
-        </div>
-        <p class="muted"><small>10 caractères minimum, avec des lettres et des chiffres.</small></p>
-        <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
-      </form>
+      <div class="edit-form stack">
+        <form method="post" class="stack"><?= csrf_field() ?><input type="hidden" name="action" value="username">
+          <h3 class="sub-h">Changer d'identifiant</h3>
+          <div class="form-grid">
+            <label>Nouvel identifiant<input name="new_username" required minlength="3" maxlength="60" pattern="[a-z0-9._\-]{3,60}" value="<?= e($u['username']) ?>" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+            <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
+          </div>
+          <p class="muted"><small>Minuscules, chiffres, point, tiret ou tiret bas (3 caractères minimum). Il remplace l'ancien pour se connecter.</small></p>
+          <div class="row"><button class="btn sm"><?= icon('save') ?> Changer l'identifiant</button></div>
+        </form>
+        <form method="post" class="stack"><?= csrf_field() ?><input type="hidden" name="action" value="password">
+          <h3 class="sub-h">Changer de mot de passe</h3>
+          <div class="form-grid">
+            <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
+            <span></span>
+            <label>Nouveau mot de passe<input type="password" name="new_password" required minlength="10" autocomplete="new-password"></label>
+            <label>Confirmer<input type="password" name="new_password2" required minlength="10" autocomplete="new-password"></label>
+          </div>
+          <p class="muted"><small>10 caractères minimum, avec des lettres et des chiffres.</small></p>
+          <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+        </form>
+      </div>
     </div>
 <?php endif ?>
     <?php foreach ($children as $ch): ?>
@@ -97,22 +108,33 @@ $pills = fn(string $name, array $opts, $cur) => '<div class="pills">' . implode(
     </div>
 <?php if (!$isTutor): ?>
     <div class="card editable acc-l">
-      <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier mon mot de passe') ?></div>
+      <div class="ed-head"><h2><?= icon('lock') ?> Identifiants de connexion</h2><?= $editBtn('Modifier') ?></div>
       <dl class="fields view">
         <div><dt>Identifiant</dt><dd><code><?= e($u['username']) ?></code></dd></div>
         <div><dt>Mot de passe</dt><dd>•••••••••• <span class="muted"><small>(jamais affiché)</small></span></dd></div>
       </dl>
-      <form method="post" class="stack edit-form"><?= csrf_field() ?><input type="hidden" name="action" value="password">
-        <p class="muted"><small>Identifiant : <code><?= e($u['username']) ?></code></small></p>
-        <div class="form-grid">
-          <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
-          <span></span>
-          <label>Nouveau mot de passe<input type="password" name="new_password" required minlength="10" autocomplete="new-password"></label>
-          <label>Confirmer<input type="password" name="new_password2" required minlength="10" autocomplete="new-password"></label>
-        </div>
-        <p class="muted"><small>10 caractères minimum, avec des lettres et des chiffres.</small></p>
-        <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
-      </form>
+      <div class="edit-form stack">
+        <form method="post" class="stack"><?= csrf_field() ?><input type="hidden" name="action" value="username">
+          <h3 class="sub-h">Changer d'identifiant</h3>
+          <div class="form-grid">
+            <label>Nouvel identifiant<input name="new_username" required minlength="3" maxlength="60" pattern="[a-z0-9._\-]{3,60}" value="<?= e($u['username']) ?>" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+            <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
+          </div>
+          <p class="muted"><small>Minuscules, chiffres, point, tiret ou tiret bas (3 caractères minimum). Il remplace l'ancien pour se connecter.</small></p>
+          <div class="row"><button class="btn sm"><?= icon('save') ?> Changer l'identifiant</button></div>
+        </form>
+        <form method="post" class="stack"><?= csrf_field() ?><input type="hidden" name="action" value="password">
+          <h3 class="sub-h">Changer de mot de passe</h3>
+          <div class="form-grid">
+            <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
+            <span></span>
+            <label>Nouveau mot de passe<input type="password" name="new_password" required minlength="10" autocomplete="new-password"></label>
+            <label>Confirmer<input type="password" name="new_password2" required minlength="10" autocomplete="new-password"></label>
+          </div>
+          <p class="muted"><small>10 caractères minimum, avec des lettres et des chiffres.</small></p>
+          <div class="row"><button class="btn sm"><?= icon('save') ?> Changer le mot de passe</button><button type="button" class="btn ghost sm" data-edit>Annuler</button></div>
+        </form>
+      </div>
     </div>
 <?php endif ?>
     <?php if ($isTutor): $aiKey = ai_api_key(); $aiFromConfig = (string)(config('anthropic_api_key') ?? '') !== ''; ?>

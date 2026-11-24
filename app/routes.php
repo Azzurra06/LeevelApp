@@ -221,6 +221,20 @@ function dispatch(string $r, string $method): void
                 flash('Photo supprimée.');
                 redirect('account');
             }
+            if ($isPost && $act === 'username') {
+                $new = mb_strtolower(trim(post_str('new_username', 60)));
+                $full = one('SELECT password_hash FROM users WHERE id=?', [$u['id']]);
+                if (!password_verify((string)($_POST['current_password'] ?? ''), $full['password_hash'])) flash('Mot de passe actuel incorrect.', 'err');
+                elseif ($new === $u['username']) flash('C\'est déjà votre identifiant.', 'err');
+                elseif ($m = validate_username($new)) flash($m, 'err');
+                elseif (one('SELECT 1 FROM users WHERE username=? AND id<>?', [$new, $u['id']])) flash('Cet identifiant est déjà pris, choisissez-en un autre.', 'err');
+                else {
+                    q('UPDATE users SET username=? WHERE id=?', [$new, $u['id']]);
+                    audit('username_changed', $u['username'] . ' → ' . $new);
+                    flash('Identifiant modifié : utilisez désormais « ' . $new . ' » pour vous connecter.');
+                }
+                redirect('account');
+            }
             if ($isPost && $act === 'delete_account') {
                 $full = one('SELECT password_hash FROM users WHERE id=?', [$u['id']]);
                 if (!password_verify((string)($_POST['current_password'] ?? ''), $full['password_hash'])) { flash('Mot de passe incorrect : le compte n\'a pas été supprimé.', 'err'); redirect('account'); }
