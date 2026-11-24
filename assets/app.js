@@ -281,7 +281,7 @@
   // la zone de saisie est un bloc fixe en bas de la partie visible de l'écran (au-dessus du clavier quand il est ouvert)
   const chatForm = $('.page-chat .msg-form');
   if (chatForm && matchMedia('(max-width:720px)').matches) {
-    const root = document.documentElement, vv = window.visualViewport, thread = $('main.wrap');
+    const root = document.documentElement, vv = window.visualViewport, thread = $('[data-thread]');
     const head = $('header.top'), nav = $('.nav-bottom');
     root.classList.add('chat-fixed'); document.body.classList.add('chat-fixed');
     const atBottom = () => !thread || thread.scrollHeight - thread.scrollTop - thread.clientHeight < 60;
