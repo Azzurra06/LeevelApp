@@ -205,3 +205,14 @@ function goals_split(array $goals): array
     return $out;
 }
 const GOAL_DOT = ['in_progress' => 'going', 'rework' => 'rework', 'todo' => 'todo', 'acquired' => 'done'];
+
+const MISSION_STATUS = ['todo' => 'À faire', 'in_progress' => 'En cours', 'acquired' => 'Réalisée'];
+const DIFFICULTY = ['easy' => 'Facile', 'medium' => 'Moyen', 'hard' => 'Difficile'];
+function mission_status_key(array $g): string { return $g['status'] === 'acquired' ? 'acquired' : ($g['status'] === 'todo' ? 'todo' : 'in_progress'); }
+/** Puces « statut » et « difficulté » d'une mission. */
+function mission_chips(array $g): string
+{
+    $k = mission_status_key($g); $d = $g['difficulty'] ?? null;
+    return '<span class="m-chip st-' . $k . '">' . e(MISSION_STATUS[$k]) . '</span>'
+        . ($d && isset(DIFFICULTY[$d]) ? '<span class="m-chip df-' . $d . '">' . e(DIFFICULTY[$d]) . '</span>' : '<span class="m-chip df-none">Difficulté ?</span>');
+}

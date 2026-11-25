@@ -166,8 +166,11 @@ $goalForm = function (?array $g, string $kind = '') use ($hidden, $catOpts) { $g
     <div class="form-grid"><label>Titre<input name="title" required maxlength="200" value="<?= e($g['title']) ?>"></label>
       <label>Catégorie<select name="category"><?= $catOpts($g['category']) ?></select></label>
       <label>Date cible<input type="date" name="target_date" value="<?= e($g['target_date']) ?>"></label>
-      <label>Statut<select name="status"><?php foreach (GOAL_STATUS as $k => $l): ?><option value="<?= $k ?>" <?= $g['status'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label>
-      <label>Progression (%)<input type="number" name="progress" min="0" max="100" step="5" value="<?= (int)$g['progress'] ?>"></label></div>
+      <?php $isMis = $kind === 'mission' || (($g['horizon'] ?? 'month') !== 'year' && $kind !== 'year'); ?>
+      <?php if ($isMis): ?><label>Statut<select name="status"><?php foreach (MISSION_STATUS as $k => $l): ?><option value="<?= $k ?>" <?= mission_status_key($g) === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label>
+        <label>Difficulté rencontrée<select name="difficulty"><option value="">—</option><?php foreach (DIFFICULTY as $k => $l): ?><option value="<?= $k ?>" <?= ($g['difficulty'] ?? '') === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label>
+      <?php else: ?><label>Statut<select name="status"><?php foreach (GOAL_STATUS as $k => $l): ?><option value="<?= $k ?>" <?= $g['status'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach ?></select></label><?php endif ?>
+      <?php if (!$isMis): ?><label>Progression (%)<input type="number" name="progress" min="0" max="100" step="5" value="<?= (int)$g['progress'] ?>"></label><?php endif ?></div>
     <label>Description<textarea name="description" maxlength="3000"><?= e($g['description']) ?></textarea></label>
     <label>Commentaire de la tutrice<textarea name="tutor_comment" maxlength="3000"><?= e($g['tutor_comment']) ?></textarea></label>
     <?php if ($kind === 'year'): ?><input type="hidden" name="is_year" value="1">
@@ -187,8 +190,9 @@ $row = function (array $g) use ($goalForm, $s) { ?>
   <li><details class="gl-item">
     <summary><span class="gl-dot <?= GOAL_DOT[$g['status']] ?>" title="<?= e(GOAL_STATUS[$g['status']]) ?>"></span>
       <span class="gl-main"><strong><?= e($g['title']) ?></strong>
-        <small><?= e(GOAL_STATUS[$g['status']]) ?> · <?= e(AXES[$g['category']] ?? $g['category']) ?><?php if ($g['student_done_at']): ?> · <span class="gl-ok"><?= icon('check') ?> fait selon <?= e($s['first_name']) ?></span><?php endif ?><?php if ($g['created_by'] && (int)$g['created_by'] === (int)$s['user_id']): ?> · choisi par <?= e($s['first_name']) ?><?php endif ?></small></span>
-      <span class="gl-prog"><span class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></span><b><?= (int)$g['progress'] ?>%</b></span>
+        <small><?= ($g['horizon'] ?? '') === 'year' ? e(GOAL_STATUS[$g['status']]) . ' · ' : '' ?><?= e(AXES[$g['category']] ?? $g['category']) ?><?php if ($g['student_done_at']): ?> · <span class="gl-ok"><?= icon('check') ?> fait selon <?= e($s['first_name']) ?></span><?php endif ?><?php if ($g['created_by'] && (int)$g['created_by'] === (int)$s['user_id']): ?> · choisi par <?= e($s['first_name']) ?><?php endif ?></small></span>
+      <?php if (($g['horizon'] ?? '') === 'year'): ?><span class="gl-prog"><span class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></span><b><?= (int)$g['progress'] ?>%</b></span>
+      <?php else: ?><span class="m-chips"><?= mission_chips($g) ?></span><?php endif ?>
       <?= icon('chevron-right', 'gl-chev') ?></summary>
     <div class="gl-body">
       <?php if ($g['description']): ?><p class="gl-desc"><?= e($g['description']) ?></p><?php endif ?>

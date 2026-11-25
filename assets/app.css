@@ -1732,3 +1732,51 @@ a.sc-d{text-decoration:none;color:inherit}a.sc-d:hover{outline:2px solid var(--a
 .obj-week{margin:0;display:inline-flex;align-items:center;gap:6px}.obj-week .ic{width:15px;height:15px}
 .obj-page .obj-card,.obj-page .goal-bank,.obj-page .obj-sugg{margin-bottom:16px}
 .obj-page .new-panel{margin-bottom:16px}
+
+/* Tableau de bord tutrice : objectifs, agenda, analyse */
+.dash-sub{margin:-6px 0 10px;font-size:.85rem}
+.dash-goals{list-style:none;margin:0 0 4px;padding:0;display:flex;flex-direction:column;gap:6px}
+.dash-goals li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--bg)}
+.dash-goals .dg-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:.92rem}
+.dash-goals b{font-size:.8rem;color:var(--taupe-d)}.dash-goals .badge .ic{width:11px;height:11px}
+.dash-goals.year .gl-prog{width:110px}
+.dash-late{margin:0 0 8px;color:#B42318;font-weight:600;font-size:.88rem;display:flex;align-items:center;gap:6px}.dash-late .ic{width:15px;height:15px}
+.dash-ag{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.dash-ag li{display:grid;grid-template-columns:92px auto minmax(0,1fr);align-items:center;gap:10px;font-size:.9rem}
+.dash-ag li.done .da-t{text-decoration:line-through;color:var(--muted)}
+.da-d{color:var(--muted);font-size:.82rem;font-weight:600}
+.da-k{font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.da-k.sess{background:#E8F1FB;color:#1F5E9C}.da-k.test{background:#FFF1E5;color:#B25A0E}.da-k.dev{background:var(--accent-l);color:var(--accent-d)}.da-k.rev{background:#EAF5EE;color:#26734A}
+.da-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reco-prio{margin:0 0 10px;font-weight:600;font-size:.92rem}
+.reco-list{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:7px}
+.reco-list li{display:flex;gap:8px;align-items:flex-start;font-size:.93rem}.reco-list .ic{width:15px;height:15px;color:var(--accent-d);flex:none;margin-top:3px}
+.reco-sup{margin:0;font-size:.88rem}
+.dash-full{margin-top:16px}
+.quest-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.quest-box{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--bg);text-decoration:none;color:var(--ink)}
+.quest-box:hover{background:var(--accent-l)}
+.quest-ic{flex:none;width:40px;height:40px;border-radius:12px;background:var(--surface);display:inline-flex;align-items:center;justify-content:center;color:var(--accent-d)}.quest-ic .ic{width:19px;height:19px}
+.quest-t{flex:1;min-width:0;display:flex;flex-direction:column}.quest-t small{color:var(--muted);font-size:.82rem}
+.quest-box .go{width:16px;height:16px;color:var(--muted)}
+@media (max-width:720px){.quest-cols{grid-template-columns:1fr}.dash-ag li{grid-template-columns:76px 1fr}.dash-ag .da-t{grid-column:1/-1}}
+
+.goal-bank>summary.bank-sum{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}
+.goal-bank>summary.bank-sum::-webkit-details-marker{display:none}
+.goal-bank>summary h2{margin:0}
+.bank-chev{width:18px;height:18px;color:var(--muted);transition:transform .2s}.goal-bank[open] .bank-chev{transform:rotate(90deg)}
+.goal-bank[open]>summary{margin-bottom:10px}
+
+/* Missions : statut + difficulté */
+.m-chips{flex:none;display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.m-chip{font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;background:var(--bg);color:var(--taupe-d)}
+.m-chip.st-todo{background:var(--accent-l);color:var(--accent-d)}.m-chip.st-in_progress{background:#E8F1FB;color:#1F5E9C}.m-chip.st-acquired{background:#EAF5EE;color:#26734A}
+.m-chip.df-easy{background:#EAF5EE;color:#26734A}.m-chip.df-medium{background:#FFF4D6;color:#8A6100}.m-chip.df-hard{background:#FDECEC;color:#B42318}.m-chip.df-none{background:none;color:var(--beige-2);border:1px dashed var(--beige-2)}
+.m-pick{display:grid;grid-template-columns:auto auto;align-items:center;gap:6px 8px}
+.m-lbl{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.m-seg{display:inline-flex;background:var(--bg);border-radius:999px;padding:3px;gap:2px}
+.m-seg button{border:0;background:none;border-radius:999px;padding:4px 10px;font:inherit;font-size:.8rem;font-weight:600;color:var(--taupe-d);cursor:pointer;white-space:nowrap}
+.m-seg button:hover{background:var(--surface)}
+.m-seg button.on{color:#fff}.m-seg button.on.st-todo{background:var(--accent-d)}.m-seg button.on.st-in_progress{background:#2F74BF}.m-seg button.on.st-acquired{background:#2E9E5B}
+.m-seg button.on.df-easy{background:#2E9E5B}.m-seg button.on.df-medium{background:#C28A00}.m-seg button.on.df-hard{background:#C2362A}
+@media (max-width:720px){.m-pick{grid-template-columns:1fr}.m-seg{flex-wrap:wrap}}

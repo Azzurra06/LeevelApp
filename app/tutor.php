@@ -179,6 +179,8 @@ function tutor_route(string $r, bool $isPost): never
                 'goalStats' => one('SELECT COUNT(*) n, SUM(status="acquired") acq, ROUND(AVG(progress)) avgp FROM goals WHERE student_id=?', [$sid]),
                 'help' => all('SELECT p.*, g.title goal FROM progress_entries p LEFT JOIN goals g ON g.id=p.goal_id WHERE p.student_id=? ORDER BY p.id DESC LIMIT 6', [$sid]),
                 'recap' => last_session_recap($sid), 'blockersUnseen' => blockers_unseen($sid),
+                'allGoals' => all('SELECT * FROM goals WHERE student_id=?', [$sid]), 'study' => study_tasks($sid),
+                'weekSessions' => all('SELECT * FROM sessions WHERE student_id=? AND status IN ("planned","done") AND starts_at >= ? AND starts_at < ? + INTERVAL 7 DAY ORDER BY starts_at', [$sid, week_monday(), week_monday()]),
             ]);
 
         case 't_student':
@@ -801,6 +803,7 @@ function save_goal(int $sid, int $uid): void
     if ($id) q('UPDATE goals SET title=?, description=?, category=?, target_date=?, status=?, progress=?, tutor_comment=?, is_mission=? WHERE id=? AND student_id=?', [...$vals, $id, $sid]);
     else { q('INSERT INTO goals (title, description, category, target_date, status, progress, tutor_comment, is_mission, student_id, created_by) VALUES (?,?,?,?,?,?,?,?,?,?)', [...$vals, $sid, $uid]); $id = (int)db()->lastInsertId(); }
     try { q('UPDATE goals SET horizon=? WHERE id=? AND student_id=?', [!empty($_POST['is_year']) ? 'year' : 'month', $id, $sid]); } catch (PDOException) { /* base pas encore migrée */ }
+    if (array_key_exists('difficulty', $_POST)) { try { q('UPDATE goals SET difficulty=? WHERE id=? AND student_id=?', [post_enum('difficulty', DIFFICULTY, '') ?: null, $id, $sid]); } catch (PDOException) {} }
     flash($id ? 'Objectif mis à jour.' : 'Objectif ajouté.');
 }
 

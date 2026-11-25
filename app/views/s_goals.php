@@ -5,10 +5,13 @@ $row = function (array $g, bool $canDone) use ($u, $s) { ?>
       <?php if ($g['description']): ?><small class="muted"><?= e($g['description']) ?></small><?php endif ?>
       <?php if ($g['tutor_comment']): ?><small class="sg-com"><?= icon('message-circle') ?> <?= e($g['tutor_comment']) ?></small><?php endif ?></div>
     <div class="sg-side">
-      <span class="gl-prog"><span class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></span><b><?= (int)$g['progress'] ?>%</b></span>
-      <?php if ($canDone && $g['status'] !== 'acquired'): ?><?php if ($g['student_done_at']): ?><span class="badge sage"><?= icon('check') ?> Fait</span>
-      <?php else: ?><form method="post" action="<?= e(url('s_goal')) ?>"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><input type="hidden" name="done" value="1"><input type="hidden" name="back" value="s_goals"><button class="btn ghost sm"><?= icon('check') ?> J'ai fini</button></form><?php endif ?><?php endif ?>
-      <?php if ((int)$g['created_by'] === (int)$u['id'] && $g['status'] !== 'acquired' && !$g['student_done_at']): ?><form method="post" action="<?= e(url('goal_bank')) ?>" data-confirm="Retirer cette mission ?"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$s['id'] ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><button class="more-btn">Retirer</button></form><?php endif ?>
+      <?php if ($canDone): $mk = mission_status_key($g); ?>
+        <form method="post" action="<?= e(url('s_goal')) ?>" class="m-pick"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><input type="hidden" name="back" value="s_goals">
+          <span class="m-lbl">Statut</span><span class="m-seg"><?php foreach (MISSION_STATUS as $k => $l): ?><button name="mstatus" value="<?= $k ?>" class="<?= $mk === $k ? 'on st-' . $k : '' ?>"><?= e($l) ?></button><?php endforeach ?></span>
+          <span class="m-lbl">Difficulté</span><span class="m-seg"><?php foreach (DIFFICULTY as $k => $l): ?><button name="difficulty" value="<?= $k ?>" class="<?= ($g['difficulty'] ?? '') === $k ? 'on df-' . $k : '' ?>"><?= e($l) ?></button><?php endforeach ?></span>
+        </form>
+      <?php else: ?><span class="gl-prog"><span class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></span><b><?= (int)$g['progress'] ?>%</b></span><?php endif ?>
+      <?php if ((int)$g['created_by'] === (int)$u['id'] && $g['status'] === 'todo'): ?><form method="post" action="<?= e(url('goal_bank')) ?>" data-confirm="Retirer cette mission ?"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$s['id'] ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><button class="more-btn">Retirer</button></form><?php endif ?>
     </div></li>
 <?php }; ?>
 <div class="page-head"><div><h1><?= icon('target') ?> Mes objectifs</h1><p>Tes missions de la semaine et tes grands objectifs de l'année.</p></div></div>

@@ -488,6 +488,13 @@ function family_route(string $r, bool $isPost): never
                 q('UPDATE goals SET student_feeling=? WHERE id=?', [$feeling, $g['id']]);
                 q('INSERT INTO progress_entries (student_id, user_id, goal_id, entry_type, value) VALUES (?,?,?,?,?)', [$s['id'], $u['id'], $g['id'], 'self_eval', $feeling]);
             }
+            $ms = post_enum('mstatus', MISSION_STATUS, '');
+            if ($ms && ($g['horizon'] ?? '') !== 'year') {
+                q('UPDATE goals SET status=?, progress=?, student_done_at=? WHERE id=?', [$ms, $ms === 'acquired' ? 100 : ($ms === 'todo' ? 0 : max(10, (int)$g['progress'])), $ms === 'acquired' ? date('Y-m-d H:i:s') : null, $g['id']]);
+                if ($ms === 'acquired') q('INSERT INTO progress_entries (student_id, user_id, goal_id, entry_type) VALUES (?,?,?,?)', [$s['id'], $u['id'], $g['id'], 'task_done']);
+            }
+            $df = post_enum('difficulty', DIFFICULTY, '');
+            if ($df) { try { q('UPDATE goals SET difficulty=? WHERE id=?', [$df, $g['id']]); } catch (PDOException) {} }
             if (!empty($_POST['done'])) {
                 q('UPDATE goals SET student_done_at=NOW() WHERE id=?', [$g['id']]);
                 q('INSERT INTO progress_entries (student_id, user_id, goal_id, entry_type) VALUES (?,?,?,?)', [$s['id'], $u['id'], $g['id'], 'task_done']);

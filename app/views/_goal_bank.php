@@ -1,8 +1,8 @@
 <?php // Banque d'objectifs SMART. $s, $goals (objectifs existants), $bankKid (tutoiement)
 $have = array_map(fn($g) => mb_strtolower($g['title']), $goals);
 $kid = !empty($bankKid); ?>
-<div class="card goal-bank" id="banque" data-sec-scope>
-  <h2><?= icon('sparkles') ?> Banque d'objectifs SMART</h2>
+<details class="card goal-bank" id="banque" data-sec-scope<?= !empty($bankOpen) ? ' open' : '' ?>>
+  <summary class="bank-sum"><h2><?= icon('sparkles') ?> <?= $kid ? 'Choisir une mission dans la banque' : 'Banque de missions SMART' ?></h2><?= icon('chevron-right', 'bank-chev') ?></summary>
   <p class="muted bank-intro"><small><?= $kid ? 'Des objectifs précis et mesurables, à réussir en une semaine (du lundi au dimanche). Choisis-en un ou deux : ta tutrice les suivra avec toi.' : 'Objectifs hebdomadaires précis et mesurables. Ajoutés « En cours » pour la semaine ' . e(week_label()) . ' ; modifiables ensuite.' ?></small></p>
   <nav class="sec-tabs bank-tabs" aria-label="Catégories" data-sec-tabs>
     <?php $first = true; foreach (GOAL_BANK as $ck => [$ic, $lbl]): ?><button type="button" class="<?= $first ? 'on' : '' ?>" data-sec-tab="<?= $ck ?>"><?= icon($ic) ?> <?= e($lbl) ?></button><?php $first = false; endforeach ?>
@@ -17,4 +17,4 @@ $kid = !empty($bankKid); ?>
     <?php endforeach ?></ul>
   </div>
   <?php $first = false; endforeach ?>
-</div>
+</details>

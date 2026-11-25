@@ -190,7 +190,7 @@
     if (on) box.querySelector('.edit-form input:not([type=hidden])')?.focus();
   });
   // Lien vers un élément d'un panneau replié (ex. #bank-stress) : on ouvre le panneau
-  if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const np = t?.closest('.new-panel[hidden]'); if (np) np.hidden = false; }
+  if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const np = t?.closest('.new-panel[hidden]'); if (np) np.hidden = false; const dt = t?.closest('details'); if (dt) dt.open = true; }
   // Matière (tutrice) : sections Aperçu / Chapitres / Notes / Ressources / Commentaires
   $$('[data-sec-scope]').forEach(sc => {
     const own = el => el.closest('[data-sec-scope]') === sc;
