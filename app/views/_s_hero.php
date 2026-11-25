@@ -41,4 +41,4 @@ $unlocked = count(array_filter($badges, fn($b) => $b['on'])); ?>
       <div class="bdg <?= $b['on'] ? 'on' : '' ?>" title="<?= e($b['desc']) ?>"><span class="bdg-ico"><?= icon($b['on'] ? $b['icon'] : 'lock') ?></span><strong><?= e($b['title']) ?></strong><small><?= e($b['desc']) ?></small></div>
     <?php endforeach ?>
   </div>
-</div><br>
+</div>

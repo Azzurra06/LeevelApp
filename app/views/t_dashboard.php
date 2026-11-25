@@ -57,23 +57,7 @@ $w = [
       <ul class="dash-goals year"><?php foreach (array_slice($list, 0, 5) as $g): ?><li><span class="gl-dot <?= GOAL_DOT[$g['status']] ?>"></span><span class="dg-t"><?= e($g['title']) ?></span><span class="gl-prog"><span class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></span><b><?= (int)$g['progress'] ?>%</b></span></li><?php endforeach ?></ul>
       <a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'objectifs'])) ?>#objp-annee">Gérer les objectifs de l'année →</a></div>
   <?php },
-  'agenda' => function () use ($study, $weekSessions, $tests, $sidp) {
-    $mon = week_monday(); $sun = week_sunday(); $today = date('Y-m-d');
-    $late = array_filter($study, fn($t) => !$t['done_at'] && $t['due_date'] < $today);
-    $week = array_filter($study, fn($t) => $t['due_date'] >= max($mon, $today) && $t['due_date'] <= $sun);
-    $items = [];
-    foreach ($weekSessions as $se) if (substr($se['starts_at'], 0, 10) >= $today) $items[] = [substr($se['starts_at'], 0, 10), 'sess', date('H\hi', strtotime($se['starts_at'])) . ' · Séance', session_label($se), false];
-    foreach ($tests as $te) if ($te['test_date'] <= $sun) $items[] = [$te['test_date'], 'test', 'Contrôle', $te['subject'] ?: ($te['title'] ?? ''), false];
-    foreach ($week as $t) $items[] = [$t['due_date'], $t['kind'] === 'revision' ? 'rev' : 'dev', STUDY_KINDS[$t['kind']], ($t['subject'] ? $t['subject'] . ' · ' : '') . $t['title'], (bool)$t['done_at']];
-    usort($items, fn($a, $b) => strcmp($a[0], $b[0]));
-    $dn = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.']; ?>
-    <div class="card tone-blue"><h2><?= icon('list-checks') ?> Agenda de la semaine</h2>
-      <p class="muted dash-sub"><?= e(week_label()) ?></p>
-      <?php if ($late): ?><p class="dash-late"><?= icon('triangle-alert') ?> <?= count($late) ?> devoir<?= count($late) > 1 ? 's' : '' ?> en retard</p><?php endif ?>
-      <?php if (!$items): ?><p class="muted">Rien d'autre de prévu d'ici dimanche.</p><?php endif ?>
-      <ul class="dash-ag"><?php foreach (array_slice($items, 0, 7) as [$d, $c, $k, $txt, $isDone]): ?><li class="<?= $isDone ? 'done' : '' ?>"><span class="da-d"><?= $d === $today ? "Aujourd'hui" : $dn[(int)date('w', strtotime($d))] . ' ' . date('d/m', strtotime($d)) ?></span><span class="da-k <?= $c ?>"><?= e($k) ?></span><span class="da-t"><?= e($txt) ?></span></li><?php endforeach ?></ul>
-      <a class="card-link" href="<?= e(url('t_student', $sidp + ['tab' => 'agenda'])) ?>">Ouvrir l'agenda →</a></div>
-  <?php },
+  'agenda' => function () use ($study, $weekSessions, $sidp, $s) { $agStudy = $study; $agSessions = $weekSessions; $agTests = tests_upcoming((int)$s['id'], 20); $agUrl = url('t_student', $sidp + ['tab' => 'agenda']); $agKid = false; require __DIR__ . '/_agenda_week.php'; },
   'sessions' => function () use ($sessions, $sidp) { ?>
     <div class="card tone-blue"><h2><?= icon('calendar') ?> Prochaines séances</h2>
       <?php if (!$sessions): ?><p class="muted">Aucune séance prévue.</p><?php endif ?>
