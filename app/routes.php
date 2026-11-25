@@ -509,7 +509,7 @@ function family_route(string $r, bool $isPost): never
             }
             flash('Merci ! Ta tutrice verra ton retour avant la prochaine séance.');
         }
-        ($_POST['back'] ?? '') === 's_subjects' ? redirect('s_subjects', ['subj' => post_int('subj')]) : redirect('s');
+        ($_POST['back'] ?? '') === 's_planning' ? redirect('s_planning') : (($_POST['back'] ?? '') === 's_subjects' ? redirect('s_subjects', ['subj' => post_int('subj')]) : redirect('s'));
     }
     if ($r === 's_subjects') student_subjects_route($u, $s, $isPost);
     if ($r === 's_messages') {

@@ -11,11 +11,11 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
 <?php require __DIR__ . '/_s_hero.php' ?>
 <?php if (!onboarding_available()) require __DIR__ . '/_onboarding.php' ?>
 <?php $awaiting = session_awaiting_feedback((int)$s['id']); if ($awaiting): ?>
-<a class="card tone-pink link-card fb-cta" href="<?= e(url('s_subjects')) ?>#recap"><span class="lc-emoji">💬</span><div><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small></div><?= icon('chevron-right', 'go') ?></a>
+<a class="card tone-pink link-card fb-cta" href="<?= e(url('s_planning')) ?>#recap"><span class="lc-emoji">💬</span><div><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small></div><?= icon('chevron-right', 'go') ?></a>
 <?php endif ?>
 
 <div class="s-tiles">
-  <a class="card tile tone-violet tile-link" href="<?= e(url('s_subjects')) ?>#recap" aria-label="Voir le bilan de ma dernière séance">
+  <a class="card tile tone-violet tile-link" href="<?= e(url('s_planning')) ?>#recap" aria-label="Voir le bilan de ma dernière séance">
     <h2><?= icon('file-text') ?> Ma dernière séance <?= icon('chevron-right', 'tile-chev') ?></h2>
     <?php if (!empty($recap)): $ts = strtotime($recap['starts_at']); $rep = $recap['report']; $fb = $recap['feedback']; ?>
       <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>

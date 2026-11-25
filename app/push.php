@@ -163,7 +163,7 @@ function push_session_ended(string $host = ''): void
         }
         // Élève
         if ($se['s_uid']) {
-            $link = url('s_subjects') . '#recap';
+            $link = url('s_planning') . '#recap';
             push_user((int)$se['s_uid'], 'session_end', ['title' => 'Séance terminée ✅', 'body' => 'Dis à ta tutrice comment ça s\'est passé !', 'url' => $link, 'tag' => 'end-' . $se['id']]);
             $mail = (string)(one('SELECT email FROM users WHERE id=?', [$se['s_uid']])['email'] ?? '') ?: (string)$se['student_email'];
             if ($mail && $host !== '') send_app_mail($mail, 'Ta séance est terminée : ton retour', [
