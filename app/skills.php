@@ -64,3 +64,58 @@ function skill_level_html(array $sk, bool $kid = false): string
         . ($start && $lvl && $lvl !== $start ? ' <small class="' . ($lvl > $start ? 'up' : 'down') . '">' . ($lvl > $start ? '↗' : '↘') . ' depuis « ' . e(mb_strtolower(SKILL_LEVELS[$start])) . ' »</small>' : '') . '</span>';
     return $h;
 }
+
+
+// ---------- Onglet « Outils » de l'élève (personnalisable par la tutrice) ----------
+const TOOLS_DEFAULT_METHODS = [
+    ['icon' => 'list-checks', 'title' => 'Ma checklist devoirs', 'steps' => ['Je lis toute la consigne', 'Je souligne les mots importants', 'Je fais', 'Je vérifie ma réponse', 'Je coche dans mon agenda']],
+    ['icon' => 'flag', 'title' => 'Préparer un contrôle (J-3)', 'steps' => ['J-3 : je relis et je fais ma fiche', 'J-2 : je me teste sans regarder', 'J-1 : je revois seulement ce qui bloque', 'Le jour J : je respire, je lis tout le sujet avant de commencer']],
+    ['icon' => 'brain', 'title' => 'Se tester plutôt que relire', 'steps' => ['Je cache ma leçon', "J'écris tout ce dont je me souviens", 'Je compare avec la leçon', 'Je recommence le lendemain sur ce qui manquait']],
+];
+const TOOLS_DEFAULT_LINKS = [
+    ['name' => 'Lumni', 'url' => 'https://www.lumni.fr/', 'desc' => 'Vidéos et jeux gratuits pour toutes les matières, du service public.'],
+    ['name' => 'Khan Academy', 'url' => 'https://fr.khanacademy.org/', 'desc' => 'Cours et exercices de maths et de sciences, à ton rythme.'],
+];
+/** Contenu de l'onglet Outils : la version de la tutrice si elle existe, sinon les valeurs par défaut. */
+function student_tools(array $s, array $reco): array
+{
+    $saved = json_decode((string)($s['tools_json'] ?? ''), true) ?: [];
+    $out = [
+        'tools' => array_map(fn($t) => ['icon' => $t['icon'] ?? 'lightbulb', 'title' => $t['title'], 'desc' => $t['desc'] ?? ''], array_slice($reco['tools'] ?? [], 0, 4)),
+        'methods' => TOOLS_DEFAULT_METHODS,
+        'links' => TOOLS_DEFAULT_LINKS,
+    ];
+    $custom = [];
+    foreach (array_keys($out) as $k) if (isset($saved[$k]) && is_array($saved[$k])) { $out[$k] = $saved[$k]; $custom[$k] = true; }
+    $out['custom'] = $custom;
+    return $out;
+}
+/** Texte éditable (une entrée par ligne / bloc) <-> listes. */
+function tools_to_text(string $kind, array $items): string
+{
+    return match ($kind) {
+        'tools' => implode("\n", array_map(fn($t) => $t['title'] . ($t['desc'] !== '' ? ' : ' . $t['desc'] : ''), $items)),
+        'methods' => implode("\n\n", array_map(fn($m) => $m['title'] . "\n" . implode("\n", array_map(fn($x) => '- ' . $x, $m['steps'])), $items)),
+        'links' => implode("\n", array_map(fn($l) => $l['name'] . ' | ' . $l['url'] . ($l['desc'] !== '' ? ' | ' . $l['desc'] : ''), $items)),
+        default => '',
+    };
+}
+function tools_from_text(string $kind, string $txt): array
+{
+    $txt = str_replace("\r", '', mb_substr($txt, 0, 8000)); $out = [];
+    if ($kind === 'tools') {
+        foreach (explode("\n", $txt) as $l) { $l = trim($l); if ($l === '') continue;
+            [$t, $d] = array_pad(array_map('trim', preg_split('/\s+:\s+|\s*:\s+(?=\S)/u', $l, 2)), 2, '');
+            $out[] = ['icon' => 'lightbulb', 'title' => mb_substr($t, 0, 80), 'desc' => mb_substr($d, 0, 300)]; }
+    } elseif ($kind === 'methods') {
+        foreach (preg_split('/\n\s*\n/', trim($txt)) as $blk) { $lines = array_values(array_filter(array_map('trim', explode("\n", $blk)), fn($x) => $x !== '')); if (!$lines) continue;
+            $out[] = ['icon' => 'list-checks', 'title' => mb_substr(ltrim($lines[0], '-• '), 0, 80), 'steps' => array_map(fn($x) => mb_substr(ltrim($x, '-• '), 0, 200), array_slice($lines, 1, 12))]; }
+    } elseif ($kind === 'links') {
+        foreach (explode("\n", $txt) as $l) { $l = trim($l); if ($l === '') continue;
+            [$n, $u, $d] = array_pad(array_map('trim', explode('|', $l, 3)), 3, '');
+            if (!preg_match('~^https?://~i', $u) && preg_match('~^[a-z0-9.-]+\.[a-z]{2,}~i', $u)) $u = 'https://' . $u;
+            if (!filter_var($u, FILTER_VALIDATE_URL) || !preg_match('~^https?://~i', $u)) continue;
+            $out[] = ['name' => mb_substr($n ?: parse_url($u, PHP_URL_HOST), 0, 80), 'url' => mb_substr($u, 0, 300), 'desc' => mb_substr($d, 0, 200)]; }
+    }
+    return array_slice($out, 0, 20);
+}

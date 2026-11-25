@@ -15,15 +15,7 @@ $memTips = [
         ['Bouge en révisant', 'Récite en marchant, fais des pauses actives entre deux exercices.']]],
 ];
 $shown = $mem ?: array_keys($memTips);
-$methods = [
-    ['icon' => 'list-checks', 'title' => 'Ma checklist devoirs', 'steps' => ['Je lis toute la consigne', 'Je souligne les mots importants', 'Je fais', 'Je vérifie ma réponse', 'Je coche dans mon agenda']],
-    ['icon' => 'flag', 'title' => 'Préparer un contrôle (J-3)', 'steps' => ['J-3 : je relis et je fais ma fiche', 'J-2 : je me teste sans regarder', 'J-1 : je revois seulement ce qui bloque', 'Le jour J : je respire, je lis tout le sujet avant de commencer']],
-    ['icon' => 'brain', 'title' => 'Se tester plutôt que relire', 'steps' => ['Je cache ma leçon', "J'écris tout ce dont je me souviens", 'Je compare avec la leçon', 'Je recommence le lendemain sur ce qui manquait']],
-];
-$links = [
-    ['Lumni', 'https://www.lumni.fr/', 'Vidéos et jeux gratuits pour toutes les matières, du service public.'],
-    ['Khan Academy', 'https://fr.khanacademy.org/', 'Cours et exercices de maths et de sciences, à ton rythme.'],
-]; ?>
+$kit = student_tools($s, $reco); $methods = $kit['methods']; $links = array_map(fn($l) => [$l['name'], $l['url'], $l['desc']], $kit['links']); ?>
 <div class="page-head"><div><h1><?= icon('lightbulb') ?> Mes outils</h1><p>Des méthodes et des astuces pour travailler plus facilement, à ta façon.</p></div></div>
 
 <div class="grid-2 align-start">
@@ -44,8 +36,8 @@ $links = [
   <div class="card">
     <h2><?= icon('sparkles') ?> Outils adaptés pour toi</h2>
     <p class="muted tools-intro"><small>Choisis selon ce qui te sera le plus utile en ce moment.</small></p>
-    <?php if (!$reco['tools']): ?><p class="muted">Ta tutrice te proposera des outils après votre premier rendez-vous.</p><?php endif ?>
-    <div class="tool-list"><?php foreach (array_slice($reco['tools'], 0, 4) as $t): ?>
+    <?php if (!$kit['tools']): ?><p class="muted">Ta tutrice te proposera des outils après votre premier rendez-vous.</p><?php endif ?>
+    <div class="tool-list"><?php foreach ($kit['tools'] as $t): ?>
       <div class="tool"><span class="ico"><?= icon($t['icon']) ?></span><div><h3><?= e($t['title']) ?></h3><p><?= e($t['desc']) ?></p></div></div>
     <?php endforeach ?></div>
   </div>

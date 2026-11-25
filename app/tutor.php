@@ -226,6 +226,18 @@ function tutor_route(string $r, bool $isPost): never
             render('t_messages', ['s' => $s, 'threads' => $threads, 'messages' => family_messages((int)$s['family_id'], $ch), 'parent' => $parent, 'ch' => $ch, 'studentU' => $studentU,
                 'unreadCh' => ['family' => unread_count($u, (int)$s['family_id'], 'family'), 'student' => messages_have_channels() ? unread_count($u, (int)$s['family_id'], 'student') : 0]]);
 
+        case 't_tools':
+            if (!$isPost) redirect('t_student', ['sid' => $sid, 'tab' => 'matieres']);
+            $kind = in_array($_POST['kind'] ?? '', ['tools', 'methods', 'links'], true) ? $_POST['kind'] : '';
+            if ($kind) {
+                $saved = json_decode((string)($s['tools_json'] ?? ''), true) ?: [];
+                if (!empty($_POST['reset'])) { unset($saved[$kind]); flash('Contenu par défaut rétabli.'); }
+                else { $saved[$kind] = tools_from_text($kind, (string)($_POST['content'] ?? '')); flash('Outils de ' . $s['first_name'] . ' mis à jour.'); }
+                try { q('UPDATE students SET tools_json=? WHERE id=?', [$saved ? json_encode($saved, JSON_UNESCAPED_UNICODE) : null, $sid]); }
+                catch (PDOException) { flash('Mise à jour de la base nécessaire.', 'err'); }
+            }
+            redirect('t_student', ['sid' => $sid, 'tab' => 'matieres', 'kind' => 'tools']);
+
         case 't_skills':
             if (!$isPost || !skills_available()) redirect('t_student', ['sid' => $sid, 'tab' => 'matieres']);
             $act = (string)($_POST['action'] ?? '');

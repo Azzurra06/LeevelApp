@@ -1530,3 +1530,7 @@ body.lb-open{overflow:hidden}
   .page-chat .msg-single .chat-top>.seg a{flex:none;padding:5px 10px}
   .page-chat .msg-single .chat-top>.alert{flex-basis:100%;order:3;margin:0}
 }
+
+/* Tutrice : outils de l'élève */
+.tools-t-intro{margin:0 0 12px}
+.tt-method{margin:0 0 12px}.tt-method ul{margin:6px 0 0;padding-left:18px;color:var(--taupe-d);font-size:.92rem}

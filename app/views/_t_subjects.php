@@ -9,6 +9,7 @@ $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
 <div class="kind-switch" role="tablist" data-kind-tabs>
   <button type="button" class="on" data-kind-tab="subjects"><?= icon('book-open') ?> Matières scolaires <small><?= count($subjects) ?></small></button>
   <button type="button" data-kind-tab="skills"><?= icon('sparkles') ?> Compétences transversales <small><?= count($skills ?? []) ?></small></button>
+  <button type="button" data-kind-tab="tools"><?= icon('lightbulb') ?> Outils de l'élève</button>
 </div>
 <div class="kind-pane" data-kind-pane="subjects">
 
@@ -113,6 +114,9 @@ $unseen = array_filter($blockers, fn($b) => !$b['seen_at']); ?>
 </div>
 <div class="kind-pane" data-kind-pane="skills" hidden>
 <?php require __DIR__ . '/_t_skills.php' ?>
+</div>
+<div class="kind-pane" data-kind-pane="tools" hidden>
+<?php require __DIR__ . '/_t_tools.php' ?>
 </div>
 
 <h2 class="dash-sec">Suivi de l'élève</h2>

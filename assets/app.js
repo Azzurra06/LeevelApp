@@ -32,6 +32,7 @@
     const fromHash = () => { if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const pane = t?.closest('[data-subj-pane]'); if (pane && panes.includes(pane) && pane.hidden) { show(pane.id); t.scrollIntoView({ block: 'start' }); } } };
     fromHash(); window.addEventListener('hashchange', fromHash);
   });
+  if (kindNav) { const qk = new URLSearchParams(location.search).get('kind'); if (qk && $('[data-kind-pane="' + qk + '"]')) showKind(qk); }
   if (kindNav && location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const kp = t?.closest('[data-kind-pane]'); if (kp) showKind(kp.dataset.kindPane); }
   // Case « Autre » : affiche le champ associé
   $$('input[data-reveal]').forEach(cb => cb.addEventListener('change', () => { const t = document.querySelector(cb.dataset.reveal); if (t) { t.hidden = !cb.checked; if (cb.checked) t.focus(); else t.value = ''; } }));
