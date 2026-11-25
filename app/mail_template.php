@@ -43,14 +43,44 @@ function mail_text(array $o): string
     return implode("\n\n", $t) . "\n\n--\nleevel.app";
 }
 
-/** Envoie un e-mail HTML + texte (multipart/alternative). */
+/** Envoie un e-mail HTML + texte (multipart/alternative).
+ *  Si un compte SMTP est configuré (smtp_user / smtp_pass), l'envoi passe par la boîte mail authentifiée
+ *  (signature DKIM du domaine : bien meilleure délivrabilité) ; sinon, ou en cas d'échec, par mail(). */
 function send_branded_mail(string $to, string $subject, array $o, string $from): bool
 {
     $b = 'lv' . bin2hex(random_bytes(12));
-    $headers = implode("\r\n", ['From: leevel.app <' . $from . '>', 'Reply-To: ' . $from, 'MIME-Version: 1.0', 'Content-Type: multipart/alternative; boundary="' . $b . '"']);
+    $headers = ['From: leevel.app <' . $from . '>', 'Reply-To: ' . $from, 'MIME-Version: 1.0', 'Content-Type: multipart/alternative; boundary="' . $b . '"'];
     $body = "--$b\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" . chunk_split(base64_encode(mail_text($o)))
           . "--$b\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" . chunk_split(base64_encode(mail_html($o)))
           . "--$b--";
-    try { return @mail($to, mb_encode_mimeheader($subject, 'UTF-8'), $body, $headers, '-f' . $from); }
+    $subj = mb_encode_mimeheader($subject, 'UTF-8');
+    if ((string)(config('smtp_user') ?? '') !== '' && (string)(config('smtp_pass') ?? '') !== '') {
+        if (smtp_send($to, $subj, $headers, $body, $from)) return true;
+    }
+    try { return @mail($to, $subj, $body, implode("\r\n", $headers), '-f' . $from); }
     catch (Throwable) { return false; }
+}
+
+/** Envoi SMTP minimal (SSL implicite, AUTH LOGIN), sans dépendance. */
+function smtp_send(string $to, string $subject, array $headers, string $body, string $from): bool
+{
+    $host = (string)(config('smtp_host') ?: 'smtp.hostinger.com'); $port = (int)(config('smtp_port') ?: 465);
+    $fp = @stream_socket_client(($port === 465 ? 'ssl://' : 'tcp://') . $host . ':' . $port, $errno, $errstr, 15, STREAM_CLIENT_CONNECT, stream_context_create(['ssl' => ['verify_peer' => true, 'verify_peer_name' => true]]));
+    if (!$fp) { error_log("smtp: connexion impossible ($errstr)"); return false; }
+    stream_set_timeout($fp, 20);
+    $read = function () use ($fp): string { $r = ''; while (($l = fgets($fp, 1024)) !== false) { $r .= $l; if (strlen($l) < 4 || $l[3] === ' ') break; } return $r; };
+    $cmd = function (string $c, array $ok) use ($fp, $read): bool { if ($c !== '') fwrite($fp, $c . "\r\n"); $r = $read(); $code = (int)substr($r, 0, 3); if (!in_array($code, $ok, true)) { error_log('smtp: ' . trim(preg_replace('/AUTH.*/', 'AUTH', $c)) . ' -> ' . trim($r)); return false; } return true; };
+    $ehlo = preg_replace('/[^a-z0-9.-]/i', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost')) ?: 'localhost';
+    $ok = $cmd('', [220]) && $cmd('EHLO ' . $ehlo, [250])
+        && $cmd('AUTH LOGIN', [334]) && $cmd(base64_encode((string)config('smtp_user')), [334]) && $cmd(base64_encode((string)config('smtp_pass')), [235])
+        && $cmd('MAIL FROM:<' . $from . '>', [250]) && $cmd('RCPT TO:<' . $to . '>', [250, 251]) && $cmd('DATA', [354]);
+    if ($ok) {
+        $dom = substr(strrchr($from, '@') ?: '@localhost', 1);
+        $msg = implode("\r\n", array_merge(['Date: ' . date('r'), 'To: <' . $to . '>', 'Subject: ' . $subject, 'Message-ID: <' . bin2hex(random_bytes(12)) . '@' . $dom . '>'], $headers)) . "\r\n\r\n" . $body;
+        $msg = preg_replace('/^\./m', '..', str_replace(["\r\n", "\r"], "\n", $msg));
+        fwrite($fp, str_replace("\n", "\r\n", $msg) . "\r\n.\r\n");
+        $ok = $cmd('', [250]);
+    }
+    @fwrite($fp, "QUIT\r\n"); @fclose($fp);
+    return $ok;
 }
