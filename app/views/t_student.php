@@ -334,7 +334,7 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
 <?php elseif ($tab === 'agenda'):
   $studyEdit = true; $studyBase = url('t_student', $sidp + ['tab' => 'agenda']);
   $agendaSessions = $sessions; $agendaTests = tests_upcoming((int)$s['id'], 60); ?>
-<p class="muted agenda-intro">Séances, devoirs, révisions et contrôles de <?= e($s['first_name']) ?> au même endroit. <?= e($s['first_name']) ?> et le parent voient le même agenda.</p>
+<p class="muted agenda-intro">Séances, contrôles, devoirs et révisions de <?= e($s['first_name']) ?>, semaine par semaine. <?= e($s['first_name']) ?> et le parent voient le même agenda.</p>
 <?php require __DIR__ . '/_study.php'; ?>
 
 <?php elseif ($tab === 'bilans'):
