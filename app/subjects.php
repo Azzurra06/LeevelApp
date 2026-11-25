@@ -32,9 +32,74 @@ function subjects_of(int $studentId): array
         $sub['avg'] = grades_average($sub['grades']);
         $sub['trend'] = grades_trend($sub['grades']);
         $sub['chapters'] = all('SELECT * FROM subject_chapters WHERE subject_id=? ORDER BY is_current DESC, FIELD(status,"in_progress","reinforce","todo","acquired"), id', [$sub['id']]);
+        $sub['resources'] = subject_resources((int)$sub['id']);
+        $sub['comments'] = subject_comments((int)$sub['id']);
         $out[] = $sub;
     }
     return $out;
+}
+
+/** Ressources d'une matière (liens, fichiers), les plus récentes d'abord. */
+function subject_resources(int $subjectId, bool $sharedOnly = false): array
+{
+    try {
+        return all('SELECT r.*, c.title chapter, f.original file_name, f.mime file_mime, f.size file_size FROM subject_resources r
+                    LEFT JOIN subject_chapters c ON c.id=r.chapter_id LEFT JOIN student_files f ON f.id=r.file_id
+                    WHERE r.subject_id=?' . ($sharedOnly ? ' AND r.shared=1' : '') . ' ORDER BY r.id DESC', [$subjectId]);
+    } catch (PDOException) { return []; }
+}
+/** Fil de commentaires d'une matière, du plus ancien au plus récent. */
+function subject_comments(int $subjectId, bool $sharedOnly = false): array
+{
+    try {
+        return all('SELECT m.*, c.title chapter, u.display_name, u.role, u.avatar, u.id uid FROM subject_comments m
+                    LEFT JOIN subject_chapters c ON c.id=m.chapter_id LEFT JOIN users u ON u.id=m.user_id
+                    WHERE m.subject_id=?' . ($sharedOnly ? ' AND m.shared=1' : '') . ' ORDER BY m.created_at, m.id', [$subjectId]);
+    } catch (PDOException) { return []; }
+}
+/** Ajoute une ressource (lien ou fichier) à une matière. Renvoie null si ajoutée, sinon l'erreur. */
+function subject_resource_add(array $subject, array $user, int $studentId): ?string
+{
+    $kind = ($_POST['kind'] ?? 'link') === 'file' ? 'file' : 'link';
+    $title = post_str('title', 160); $body = post_str('body', 2000);
+    $chapter = post_int('chapter_id') ? one('SELECT id FROM subject_chapters WHERE id=? AND subject_id=?', [post_int('chapter_id'), $subject['id']]) : null;
+    $shared = (int)!empty($_POST['shared']);
+    $url = null; $fileId = null;
+    if ($kind === 'link') {
+        $url = trim(post_str('url', 500));
+        if ($url !== '' && !preg_match('~^https?://~i', $url)) $url = 'https://' . $url;
+        if (!filter_var($url, FILTER_VALIDATE_URL)) return 'Adresse du lien invalide.';
+        if ($title === '') $title = mb_substr((string)parse_url($url, PHP_URL_HOST), 0, 160);
+    } else {
+        $f = $_FILES['rfile'] ?? [];
+        if ($err = upload_check($f, MSG_FILE_TYPES, 'photo, PDF, Word, Excel, PowerPoint, texte, audio ou vidéo')) return $err;
+        $r = store_upload($f, MSG_FILE_TYPES);
+        if (is_string($r)) return $r;
+        [$stored, $original, $mime, $size] = $r;
+        if ($title === '') $title = mb_substr(pathinfo($original, PATHINFO_FILENAME), 0, 160);
+        q('INSERT INTO student_files (student_id, subject_id, user_id, stored, original, mime, size, note) VALUES (?,?,?,?,?,?,?,?)', [$studentId, $subject['id'], $user['id'], $stored, $original, $mime, $size, $title]);
+        $fileId = (int)(one('SELECT id FROM student_files WHERE stored=?', [$stored])['id'] ?? 0) ?: null;
+    }
+    q('INSERT INTO subject_resources (subject_id, chapter_id, kind, title, url, file_id, body, shared, created_by) VALUES (?,?,?,?,?,?,?,?,?)',
+        [$subject['id'], $chapter['id'] ?? null, $kind, $title, $url, $fileId, $body ?: null, $shared, $user['id']]);
+    return null;
+}
+/** Ajoute un commentaire au fil d'une matière. */
+function subject_comment_add(array $subject, array $user, bool $shared = true): ?string
+{
+    $body = post_str('body', 2000);
+    if ($body === '') return 'Écrivez un commentaire.';
+    $chapter = post_int('chapter_id') ? one('SELECT id FROM subject_chapters WHERE id=? AND subject_id=?', [post_int('chapter_id'), $subject['id']]) : null;
+    q('INSERT INTO subject_comments (subject_id, chapter_id, user_id, body, shared) VALUES (?,?,?,?,?)', [$subject['id'], $chapter['id'] ?? null, $user['id'], $body, (int)$shared]);
+    return null;
+}
+/** Lien vers un fichier ou un lien de ressource, avec affichage plein écran pour les photos et PDF. */
+function resource_link_attrs(array $r): string
+{
+    if ($r['kind'] === 'link') return 'href="' . e($r['url']) . '" target="_blank" rel="noopener noreferrer"';
+    $u = url('file', ['id' => $r['file_id']]); $mime = (string)$r['file_mime'];
+    $lb = in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true) ? 'img' : ($mime === 'application/pdf' ? 'pdf' : '');
+    return 'href="' . e($u) . '"' . ($lb ? ' data-lightbox="' . $lb . '" data-dl="' . e($u) . '" data-name="' . e($r['file_name'] ?: $r['title']) . '"' : ' download="' . e($r['file_name'] ?: $r['title']) . '"');
 }
 
 /** Écart entre la moyenne actuelle et la moyenne de départ (null si l'une manque). */
@@ -224,8 +289,11 @@ function serve_student_file(array $viewer, int $fileId): never
 function student_files(int $studentId, ?int $subjectId = null, int $limit = 24): array
 {
     if (!subjects_available()) return [];
-    return all('SELECT f.*, u.display_name author, u.role author_role, ss.name subject FROM student_files f LEFT JOIN users u ON u.id=f.user_id LEFT JOIN student_subjects ss ON ss.id=f.subject_id
-                WHERE f.student_id=?' . ($subjectId ? ' AND f.subject_id=' . (int)$subjectId : '') . ' ORDER BY f.id DESC LIMIT ' . (int)$limit, [$studentId]);
+    $sql = 'SELECT f.*, u.display_name author, u.role author_role, ss.name subject FROM student_files f LEFT JOIN users u ON u.id=f.user_id LEFT JOIN student_subjects ss ON ss.id=f.subject_id
+            WHERE f.student_id=?' . ($subjectId ? ' AND f.subject_id=' . (int)$subjectId : '');
+    // les fichiers joints comme « ressource » d'une matière sont affichés dans les ressources, pas ici
+    try { return all($sql . ' AND f.id NOT IN (SELECT file_id FROM subject_resources WHERE file_id IS NOT NULL) ORDER BY f.id DESC LIMIT ' . (int)$limit, [$studentId]); }
+    catch (PDOException) { return all($sql . ' ORDER BY f.id DESC LIMIT ' . (int)$limit, [$studentId]); }
 }
 
 function student_blockers(int $studentId, ?int $subjectId = null, int $limit = 10): array

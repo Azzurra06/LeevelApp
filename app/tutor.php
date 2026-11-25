@@ -293,7 +293,8 @@ function tutor_route(string $r, bool $isPost): never
             $act = (string)($_POST['action'] ?? '');
             $subject = post_int('subject_id') ? subject_of_student(post_int('subject_id'), $sid) : null;
             $chapter = post_int('chapter_id') ? chapter_of_student(post_int('chapter_id'), $sid) : null;
-            $anchor = $subject ? '#subj-' . $subject['id'] : ($chapter ? '#subj-' . $chapter['subject_id'] : '');
+            $anchor = $subject ? '#subj-' . $subject['id'] : ($chapter ? '#subj-' . $chapter['subject_id'] . '-chapitres' : '');
+            if ($subject && in_array($act, ['chapter_add'], true)) $anchor = '#subj-' . $subject['id'] . '-chapitres';
             switch ($act) {
                 case 'subject_add':
                     $name = post_str('name', 80) ?: post_str('custom', 80);
@@ -310,11 +311,11 @@ function tutor_route(string $r, bool $isPost): never
                     if ($subject) { q('DELETE FROM student_subjects WHERE id=?', [$subject['id']]); flash('Matière retirée.'); $anchor = ''; }
                     break;
                 case 'grade_add':
-                    if ($subject) { $err = grade_add_from_post($subject, $u); flash($err ?? 'Note ajoutée.', $err ? 'err' : 'ok'); $anchor = '#notes-' . $subject['id']; }
+                    if ($subject) { $err = grade_add_from_post($subject, $u); flash($err ?? 'Note ajoutée.', $err ? 'err' : 'ok'); $anchor = '#subj-' . $subject['id'] . '-notes'; }
                     break;
                 case 'grade_del':
                     q('DELETE g FROM subject_grades g JOIN student_subjects ss ON ss.id=g.subject_id WHERE g.id=? AND ss.student_id=?', [post_int('grade_id'), $sid]);
-                    flash('Note supprimée.'); if ($subject) $anchor = '#notes-' . $subject['id'];
+                    flash('Note supprimée.'); if ($subject) $anchor = '#subj-' . $subject['id'] . '-notes';
                     break;
                 case 'chapter_add':
                     if ($subject && post_str('title', 160) !== '') {
@@ -370,6 +371,33 @@ function tutor_route(string $r, bool $isPost): never
                 case 'question_del':
                     q('DELETE cq FROM chapter_questions cq JOIN subject_chapters c ON c.id=cq.chapter_id JOIN student_subjects ss ON ss.id=c.subject_id WHERE cq.id=? AND ss.student_id=?', [post_int('question_id'), $sid]);
                     flash('Question supprimée.'); if ($chapter) $anchor = '#quiz-' . $chapter['id'];
+                    break;
+                case 'subject_focus':
+                    if ($subject) { try { q('UPDATE student_subjects SET focus=? WHERE id=?', [post_str('focus', 3000) ?: null, $subject['id']]); flash('Objectif enregistré.'); } catch (PDOException) { flash('La base de données doit être mise à jour (migration 033).', 'err'); } $anchor = '#subj-' . $subject['id'] . '-apercu'; }
+                    break;
+                case 'resource_add':
+                    if ($subject) { try { $err = subject_resource_add($subject, $u, $sid); } catch (PDOException) { $err = 'La base de données doit être mise à jour (migration 033).'; }
+                        flash($err ?? 'Ressource ajoutée.', $err ? 'err' : 'ok'); $anchor = '#subj-' . $subject['id'] . '-ressources'; }
+                    break;
+                case 'resource_del':
+                case 'resource_share':
+                    $res = one('SELECT r.* FROM subject_resources r JOIN student_subjects ss ON ss.id=r.subject_id WHERE r.id=? AND ss.student_id=?', [post_int('resource_id'), $sid]);
+                    if ($res) {
+                        if ($act === 'resource_del') {
+                            q('DELETE FROM subject_resources WHERE id=?', [$res['id']]);
+                            if ($res['file_id'] && ($f = one('SELECT * FROM student_files WHERE id=?', [$res['file_id']]))) delete_student_file($f);
+                            flash('Ressource supprimée.');
+                        } else { q('UPDATE subject_resources SET shared=1-shared WHERE id=?', [$res['id']]); flash($res['shared'] ? 'Ressource masquée pour l\'élève.' : 'Ressource visible par l\'élève.'); }
+                        $anchor = '#subj-' . $res['subject_id'] . '-ressources';
+                    }
+                    break;
+                case 'comment_add':
+                    if ($subject) { try { $err = subject_comment_add($subject, $u, !empty($_POST['shared'])); } catch (PDOException) { $err = 'La base de données doit être mise à jour (migration 033).'; }
+                        flash($err ?? 'Commentaire ajouté.', $err ? 'err' : 'ok'); $anchor = '#subj-' . $subject['id'] . '-commentaires'; }
+                    break;
+                case 'comment_del':
+                    $cm = one('SELECT m.* FROM subject_comments m JOIN student_subjects ss ON ss.id=m.subject_id WHERE m.id=? AND ss.student_id=?', [post_int('comment_id'), $sid]);
+                    if ($cm) { q('DELETE FROM subject_comments WHERE id=?', [$cm['id']]); flash('Commentaire supprimé.'); $anchor = '#subj-' . $cm['subject_id'] . '-commentaires'; }
                     break;
                 case 'blocker_seen':
                     q('UPDATE subject_blockers SET seen_at=NOW() WHERE id=? AND student_id=?', [post_int('blocker_id'), $sid]);

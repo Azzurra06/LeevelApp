@@ -560,6 +560,12 @@ function student_subjects_route(array $u, array $s, bool $isPost): never
         } elseif ($act === 'file_del') {
             $f = one('SELECT * FROM student_files WHERE id=? AND student_id=? AND user_id=?', [post_int('file_id'), $sid, $u['id']]);
             if ($f) { delete_student_file($f); flash('Fichier supprimé.'); }
+        } elseif ($act === 'comment' && $subject) {
+            try { $err = subject_comment_add($subject, $u, true); } catch (PDOException) { $err = 'Indisponible pour le moment.'; }
+            flash($err ?? 'Commentaire envoyé à ta tutrice.', $err ? 'err' : 'ok');
+        } elseif ($act === 'comment_del') {
+            q('DELETE m FROM subject_comments m JOIN student_subjects ss ON ss.id=m.subject_id WHERE m.id=? AND ss.student_id=? AND m.user_id=?', [post_int('comment_id'), $sid, $u['id']]);
+            flash('Commentaire supprimé.');
         } elseif ($act === 'blocker') {
             $body = post_str('body', 1000);
             $ch = post_int('chapter_id') ? chapter_of_student(post_int('chapter_id'), $sid) : null;

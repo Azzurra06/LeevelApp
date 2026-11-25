@@ -189,6 +189,17 @@
     const on = box.classList.toggle('editing');
     if (on) box.querySelector('.edit-form input:not([type=hidden])')?.focus();
   });
+  // Matière (tutrice) : sections Aperçu / Chapitres / Notes / Ressources / Commentaires
+  $$('[data-sec-scope]').forEach(sc => {
+    const nav = $('[data-sec-tabs]', sc); if (!nav) return;
+    const panes = $$('[data-sec-pane]', sc);
+    const show = k => { panes.forEach(p => { p.hidden = p.dataset.secPane !== k; }); $$('[data-sec-tab]', nav).forEach(b => b.classList.toggle('on', b.dataset.secTab === k)); };
+    $$('[data-sec-tab]', nav).forEach(b => b.addEventListener('click', () => { show(b.dataset.secTab); history.replaceState(null, '', '#' + sc.id + '-' + b.dataset.secTab); }));
+    $$('[data-sec-go]', sc).forEach(b => b.addEventListener('click', () => { show(b.dataset.secGo); nav.scrollIntoView({ block: 'nearest' }); }));
+    if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const p = t?.closest('[data-sec-pane]'); if (p && panes.includes(p)) show(p.dataset.secPane); }
+  });
+  $$('input[type=file][data-file-name]').forEach(i => i.addEventListener('change', () => { const l = i.closest('div')?.querySelector('[data-file-label]'); if (l && i.files[0]) l.textContent = i.files[0].name; }));
+
   // Création de dossier : « créer moi-même » / « inviter par e-mail »
   const applySwitch = (who) => {
     const val = $(`input[data-switch="${who}"]:checked`)?.value;

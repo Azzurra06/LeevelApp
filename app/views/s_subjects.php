@@ -47,8 +47,37 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
       <strong><?= e($x['name']) ?></strong><small><?= $x['avg'] !== null ? fmt_grade($x['avg']) . '/20' : 'pas de note' ?></small></a>
   <?php endforeach ?>
 </nav>
+<?php $myRes = array_values(array_filter($cur['resources'] ?? [], fn($r) => $r['shared']));
+$myCm = array_values(array_filter($cur['comments'] ?? [], fn($c) => $c['shared'])); ?>
+<?php if (!empty($cur['focus'])): ?><div class="card s-focus"><h2><?= icon('target') ?> Objectif en <?= e($cur['name']) ?></h2><p><?= nl2br(e($cur['focus'])) ?></p></div><?php endif ?>
 
 <div class="grid-2">
+  <div class="card" id="ressources">
+    <h2><?= icon('book-open') ?> Mes ressources</h2>
+    <?php if (!$myRes): ?><p class="muted">Ta tutrice ajoutera ici des liens et des fiches pour t'aider en <?= e($cur['name']) ?>.</p><?php endif ?>
+    <ul class="res-list"><?php foreach ($myRes as $r): ?>
+      <li class="res-item"><a class="res-ico" <?= resource_link_attrs($r) ?> aria-label="Ouvrir"><?= icon($r['kind'] === 'link' ? 'external-link' : 'file-text') ?></a>
+        <div class="res-main"><a <?= resource_link_attrs($r) ?>><strong><?= e($r['title']) ?></strong></a>
+          <small class="muted"><?= $r['kind'] === 'link' ? 'Lien' : 'Fichier' ?><?= $r['chapter'] ? ' · ' . e($r['chapter']) : '' ?> · <?= e(fdate($r['created_at'])) ?></small>
+          <?php if ($r['body']): ?><p class="res-body"><?= nl2br(e($r['body'])) ?></p><?php endif ?></div></li>
+    <?php endforeach ?></ul>
+  </div>
+
+  <div class="card" id="commentaires">
+    <h2><?= icon('message-circle') ?> Échanges sur <?= e($cur['name']) ?></h2>
+    <?php if (!$myCm): ?><p class="muted">Pose une question ou dis à ta tutrice où tu en es dans cette matière.</p><?php endif ?>
+    <ul class="cm-list"><?php foreach ($myCm as $cm): $mine = (int)$cm['user_id'] === (int)$u['id']; ?>
+      <li class="cm-item<?= $mine ? ' mine' : '' ?>"><?= avatar_html(['id' => $cm['uid'], 'avatar' => $cm['avatar'], 'display_name' => $cm['display_name'] ?? '?'], 'sm') ?>
+        <div class="cm-bubble"><div class="cm-meta"><strong><?= $mine ? 'Moi' : e($cm['display_name'] ?? '') ?></strong> · <?= e(fdatetime($cm['created_at'])) ?><?= $cm['chapter'] ? ' · ' . e($cm['chapter']) : '' ?></div><p><?= nl2br(e($cm['body'])) ?></p></div>
+        <?php if ($mine): ?><form method="post" data-confirm="Supprimer ce commentaire ?"><?= $hiddenSubj() ?><input type="hidden" name="action" value="comment_del"><input type="hidden" name="comment_id" value="<?= (int)$cm['id'] ?>"><button class="edit-btn" aria-label="Supprimer"><?= icon('trash-2') ?></button></form><?php endif ?></li>
+    <?php endforeach ?></ul>
+    <form method="post" class="stack cm-form"><?= $hiddenSubj() ?><input type="hidden" name="action" value="comment">
+      <textarea name="body" rows="2" maxlength="2000" required placeholder="Écris à ta tutrice à propos de <?= e($cur['name']) ?>…"></textarea>
+      <div class="row cm-opts"><?php if ($cur['chapters']): ?><label>Chapitre<select name="chapter_id"><option value="">Toute la matière</option><?php foreach ($cur['chapters'] as $c): ?><option value="<?= (int)$c['id'] ?>"><?= e($c['title']) ?></option><?php endforeach ?></select></label><?php endif ?>
+        <button class="btn sm"><?= icon('send') ?> Envoyer</button></div>
+    </form>
+  </div>
+
   <div class="card" id="notes">
     <h2><?= icon('chart-column') ?> Mes notes</h2>
     <div class="avg-row">

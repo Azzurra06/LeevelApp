@@ -1534,3 +1534,52 @@ body.lb-open{overflow:hidden}
 /* Tutrice : outils de l'élève */
 .tools-t-intro{margin:0 0 12px}
 .tt-method{margin:0 0 12px}.tt-method ul{margin:6px 0 0;padding-left:18px;color:var(--taupe-d);font-size:.92rem}
+
+/* Matière (tutrice) : en-tête, sections, ressources, commentaires */
+.subj-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.subj-head-t{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+.subj-head-t h2{margin:0}
+.subj-avg{font-size:.95rem;color:var(--muted)}.subj-avg strong{font-size:1.2rem;color:var(--ink)}
+.sec-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line);margin:0 0 16px}
+.sec-tabs button{flex:none;border:0;background:none;padding:9px 12px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.sec-tabs button small{font-weight:600;font-size:.75rem;background:var(--bg);border-radius:999px;padding:1px 7px;margin-left:4px;color:var(--taupe-d)}
+.sec-tabs button.on{color:var(--accent-d);border-bottom-color:var(--accent-d)}
+.sec-tabs button.on small{background:var(--accent-l);color:var(--accent-d)}
+.sec-pane[hidden]{display:none}
+.subj-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ov-block{background:var(--bg);border-radius:14px;padding:14px 16px;min-width:0}
+.ov-h{margin:0 0 10px;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:var(--taupe-d)}
+.ov-block .ed-head{margin-bottom:6px}.ov-block .ed-head .ov-h{margin:0}
+.ov-focus{margin:0 0 8px;white-space:normal}
+.ov-last{margin:10px 0 0;font-size:.92rem}
+.ov-links{margin:10px 0 0;display:flex;gap:12px;flex-wrap:wrap}
+@media (max-width:900px){.subj-overview{grid-template-columns:1fr}}
+.chap-res{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.res-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;background:var(--accent-l);color:var(--accent-d);font-size:.8rem;font-weight:600;text-decoration:none;max-width:100%}
+.res-chip .ic{width:13px;height:13px}
+.res-list,.cm-list{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:8px}
+.res-item{display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.res-item.private{background:var(--bg)}
+.res-ico{flex:none;width:38px;height:38px;border-radius:10px;background:var(--accent-l);color:var(--accent-d);display:inline-flex;align-items:center;justify-content:center}
+.res-ico .ic{width:18px;height:18px}
+.res-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.res-main>a{color:var(--ink);text-decoration:none;overflow-wrap:anywhere}.res-main>a:hover strong{color:var(--accent-d)}
+.res-body{margin:4px 0 0;font-size:.9rem;color:var(--taupe-d)}
+.res-acts{display:flex;gap:4px;flex:none}
+.res-add>summary,.cm-form{cursor:pointer}
+.res-add>summary{font-weight:600;color:var(--accent-d);list-style:none;display:inline-flex;align-items:center;gap:6px;padding:6px 0}
+.res-add>summary::-webkit-details-marker{display:none}
+.res-add form{margin-top:8px}
+.seg-opt{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.88rem}
+.seg-opt input{position:absolute;opacity:0;pointer-events:none}
+.seg-opt:has(input:checked){background:var(--surface);color:var(--accent-d);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.cm-item{display:flex;align-items:flex-start;gap:10px}
+.cm-bubble{flex:1;min-width:0;background:var(--bg);border-radius:12px;padding:10px 12px}
+.cm-item.mine .cm-bubble{background:var(--accent-l)}
+.cm-item.private .cm-bubble{border:1px dashed var(--beige-2)}
+.cm-meta{font-size:.8rem;color:var(--muted)}.cm-meta strong{color:var(--ink)}
+.cm-meta .badge .ic{width:11px;height:11px}
+.cm-bubble p{margin:4px 0 0;overflow-wrap:anywhere}
+.cm-opts{align-items:flex-end;gap:12px;flex-wrap:wrap}.cm-opts label:not(.check){display:flex;flex-direction:column;gap:4px;font-size:.85rem}
+.cm-opts .btn{margin-left:auto}
+.s-focus{background:var(--accent-l);border:1.5px solid var(--accent)}.s-focus h2{margin-bottom:6px}.s-focus p{margin:0}
