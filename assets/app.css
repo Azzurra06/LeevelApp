@@ -1785,33 +1785,36 @@ a.sc-d{text-decoration:none;color:inherit}a.sc-d:hover{outline:2px solid var(--a
 .s-row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
 .s-row3>.card{margin:0}
 @media (max-width:980px){.s-row3{grid-template-columns:1fr}}
-.link-card.fb-cta.s-last{background:var(--accent-l)!important;border:1.5px solid var(--accent)!important;box-shadow:none;align-items:flex-start}
-.link-card.fb-cta.s-last h2{color:var(--accent-d);margin:2px 0 4px;font-size:1.05rem}
-.s-k{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-d);opacity:.8}
-.s-next{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
-.s-next li{display:flex;align-items:center;gap:10px}.s-next li:not(.first){opacity:.8}
-.s-next li>span:last-child{display:flex;flex-direction:column}.s-next small{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:4px}.s-next small .ic{width:13px;height:13px}
-.cal-page.sm{width:38px;height:42px}.cal-page.sm b{font-size:1rem}
-/* Missions de la semaine : carte vivante */
-.wk-card{background:linear-gradient(135deg,#6242F5 0%,#8A6CFF 100%);color:#fff;border:0}
-.wk-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
-.wk-ring{flex:none;width:68px;height:68px;border-radius:50%;background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.25) 0);display:grid;place-items:center}
-.wk-ring span{width:54px;height:54px;border-radius:50%;background:#6E50F7;display:grid;place-items:center;font-weight:800;font-size:1.05rem}
-.wk-intro{flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px}.wk-intro strong{font-size:1.1rem}.wk-intro small{opacity:.85}
-.wk-add{background:#fff!important;color:var(--accent-d)!important}
-.wk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-.wk-item{display:flex;align-items:flex-start;gap:12px;background:#fff;color:var(--ink);border-radius:14px;padding:12px 14px;transition:transform .15s}
-.wk-item:hover{transform:translateY(-1px)}
-.wk-item.done{background:#F1FBF4}.wk-item.done .wk-main>strong{text-decoration:line-through;color:var(--taupe-d)}
-.wk-box{width:34px;height:34px;border-radius:10px;border:2px solid var(--accent);background:#fff;color:transparent;cursor:pointer;display:grid;place-items:center;padding:0;transition:all .15s}
-.wk-box:hover{background:var(--accent-l);color:var(--accent)}
+.s-row3>.tile{height:auto}
+.tile.s-last{background:var(--accent-l)!important;border:1px solid #D9CFFF!important;flex-direction:column;gap:12px}
+.tile.s-last .cal-page{box-shadow:0 2px 8px rgba(98,66,245,.15)}
+.s-last-cta{margin-top:auto;display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--accent-d);color:#fff;font-weight:600;font-size:.88rem;padding:7px 14px;border-radius:999px}
+.s-last-cta .ic{width:15px;height:15px}
+/* Missions de la semaine : liste simple */
+.wk-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.wk-intro{flex:1;min-width:180px;display:flex;flex-direction:column}.wk-intro strong{font-size:1rem}.wk-intro small{color:var(--muted);font-size:.82rem}
+.wk-bar{height:6px;border-radius:99px;background:var(--accent-l);overflow:hidden;margin-bottom:8px}.wk-bar i{display:block;height:100%;width:0;max-width:100%;flex:none;background:var(--accent);border-radius:99px;transition:width .4s}
+.wk-list{list-style:none;margin:0;padding:0}
+.wk-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.wk-item:first-child{border-top:0}
+.wk-item.done .wk-main>strong{text-decoration:line-through;color:var(--muted)}
+.wk-box{width:24px;height:24px;border-radius:7px;border:2px solid var(--accent);background:#fff;color:transparent;cursor:pointer;display:grid;place-items:center;padding:0;transition:background .15s,transform .15s}
+.wk-box:hover{background:var(--accent-l);color:var(--accent);transform:scale(1.08)}
 .wk-item.done .wk-box{background:#2E9E5B;border-color:#2E9E5B;color:#fff}
-.wk-box .ic{width:20px;height:20px}
-.wk-emo{font-size:1.4rem;line-height:34px}
-.wk-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.wk-main>small{color:var(--muted);font-size:.85rem}
-.wk-more{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
-.wk-dl{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.wk-box .ic{width:15px;height:15px}
+.wk-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.wk-main>strong{font-size:.95rem;font-weight:600}
+.wk-main>small{color:var(--muted);font-size:.82rem}
+.wk-more{display:flex;align-items:center;gap:6px;flex:none}
+.wk-dl{font-size:.72rem;color:var(--muted)}
+.wk-df{display:inline-flex;gap:2px;background:var(--bg);border-radius:99px;padding:2px}
+.wk-df button{border:0;background:none;font:inherit;font-size:.75rem;padding:3px 9px;border-radius:99px;cursor:pointer;color:var(--taupe-d)}
+.wk-df button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1);font-weight:600}
+.wk-df button.on.df-easy{color:#2E9E5B}.wk-df button.on.df-medium{color:#C77700}.wk-df button.on.df-hard{color:#B42318}
+@media (max-width:700px){.wk-item{flex-wrap:wrap}.wk-more{width:100%;padding-left:36px}}
+/* Progression : colonnes de même hauteur */
+.dash-row.eq{align-items:stretch}.dash-row.eq>.card{margin:0;height:auto}
+.dash-row.eq>.col-stack>.card{margin:0}.dash-row.eq>.col-stack>*{flex:1}
 /* Agenda de la semaine : jour par jour, lignes séparées */
 .agw{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);margin-bottom:6px}
 .agw-day{padding:10px 12px;border-top:1px solid var(--line)}.agw-day:first-child{border-top:0}

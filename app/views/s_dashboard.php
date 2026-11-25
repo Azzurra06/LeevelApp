@@ -7,7 +7,6 @@ $days = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 $months = ['', 'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 $lastMood = one('SELECT value FROM progress_entries WHERE student_id=? AND entry_type="feeling" AND created_at > NOW() - INTERVAL 7 DAY ORDER BY id DESC LIMIT 1', [$s['id']])['value'] ?? null;
 $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' => ['😣', "C'est dur"]];
-$upcomingS = array_values(array_filter($sessions, fn($x) => $x['status'] === 'planned' && strtotime($x['starts_at']) >= time() - 3600));
 $gsplit = goals_split($goals); $wk = $gsplit['missions'];
 $wkDone = count(array_filter($wk, fn($g) => $g['status'] === 'acquired')); $wkPct = $wk ? (int)round($wkDone * 100 / count($wk)) : 0;
 $catEmo = ['methodo' => '🗂️', 'autonomie' => '🚀', 'motivation' => '💪', 'evaluations' => '🎯', 'comprehension' => '💡']; ?>
@@ -19,21 +18,23 @@ $catEmo = ['methodo' => '🗂️', 'autonomie' => '🚀', 'motivation' => '💪'
 
 <?php /* 2. Séances */ ?>
 <h2 class="dash-sec">Mes séances</h2>
+<?php $awaiting = session_awaiting_feedback((int)$s['id']); ?>
 <div class="s-row3">
-  <?php $awaiting = session_awaiting_feedback((int)$s['id']); ?>
-  <a class="card link-card fb-cta s-last" href="<?= e(url('s_planning')) ?>#recap">
-    <span class="lc-emoji">💬</span>
-    <div><span class="s-k">Ma dernière séance</span>
-      <?php if ($awaiting): ?><h2>Ta séance du <?= e(fdatetime($awaiting['starts_at'])) ?></h2><small>Dis à ta tutrice comment ça s'est passé, en 1 minute.</small>
-      <?php elseif (!empty($recap)): $rep = $recap['report']; ?><h2><?= e(fdatetime($recap['starts_at'])) ?></h2><small><?= $rep && ($rep['worked_on'] || $rep['next_focus']) ? 'Le bilan de ta tutrice est là : va le lire !' : 'Ton retour est envoyé. Le bilan arrive bientôt.' ?></small>
-      <?php else: ?><h2>Pas encore de séance</h2><small>Le bilan apparaîtra ici après ta première séance.</small><?php endif ?></div>
-    <?= icon('chevron-right', 'go') ?></a>
-  <a class="card tile tone-blue tile-link" href="<?= e(url('s_planning', ['av' => 'sessions'])) ?>#devoirs" aria-label="Voir mes séances à venir">
-    <h2><?= icon('calendar') ?> Séances à venir <?= icon('chevron-right', 'tile-chev') ?></h2>
-    <?php if (!$upcomingS): ?><div class="tile-row"><span class="tile-emoji">📅</span><div><strong>Pas encore prévue</strong><small>Ta tutrice la planifie bientôt.</small></div></div><?php endif ?>
-    <ul class="s-next"><?php foreach (array_slice($upcomingS, 0, 3) as $i => $se): $ts = strtotime($se['starts_at']); ?>
-      <li class="<?= $i === 0 ? 'first' : '' ?>"><span class="cal-page sm"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b></span><span><strong><?= date('H\hi', $ts) ?> · <?= fdur((int)$se['duration_min']) ?></strong><small><?= icon($se['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$se['mode']]) ?></small></span></li>
-    <?php endforeach ?></ul>
+  <a class="card tile s-last tile-link" href="<?= e(url('s_planning')) ?>#recap" aria-label="Voir ma dernière séance">
+    <h2><?= icon('message-circle') ?> Ma dernière séance <?= icon('chevron-right', 'tile-chev') ?></h2>
+    <?php $ls = $awaiting ?: ($recap ?? null); if ($ls): $ts = strtotime($ls['starts_at']); ?>
+      <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>
+        <div><strong><?= date('H\hi', $ts) ?> · <?= fdur((int)$ls['duration_min']) ?></strong>
+        <?php if ($awaiting): ?><small>Ton avis n'est pas encore donné</small><?php else: $rep = $recap['report']; ?><small><?= $rep && ($rep['worked_on'] || $rep['next_focus']) ? 'Le bilan de ta tutrice est prêt' : 'Retour envoyé · bilan bientôt' ?></small><?php endif ?></div></div>
+      <span class="s-last-cta"><?= $awaiting ? 'Donner mon retour (1 min)' : 'Lire le bilan' ?> <?= icon('chevron-right') ?></span>
+    <?php else: ?><div class="tile-row"><span class="tile-emoji">💬</span><div><strong>Pas encore de séance</strong><small>Le bilan apparaîtra ici après ta première séance.</small></div></div><?php endif ?>
+  </a>
+  <a class="card tile tone-blue tile-link" href="<?= e(url('s_planning')) ?>" aria-label="Voir le détail de mes séances">
+    <h2><?= icon('calendar') ?> Prochaine séance <?= icon('chevron-right', 'tile-chev') ?></h2>
+    <?php if ($next): $ts = strtotime($next['starts_at']); ?>
+      <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>
+        <div><strong><?= date('H\hi', $ts) ?> · <?= fdur((int)$next['duration_min']) ?></strong><small><?= icon($next['mode'] === 'visio' ? 'video' : 'map-pin') ?> <?= e(MODES[$next['mode']]) ?></small></div></div>
+    <?php else: ?><div class="tile-row"><span class="tile-emoji">📅</span><div><strong>Pas encore prévue</strong><small>Ta tutrice la planifie bientôt.</small></div></div><?php endif ?>
   </a>
   <div class="card tile tone-pink">
     <h2><?= icon('smile') ?> Mon humeur de la semaine</h2>
@@ -47,21 +48,18 @@ $catEmo = ['methodo' => '🗂️', 'autonomie' => '🚀', 'motivation' => '💪'
 <h2 class="dash-sec">Mes missions de la semaine</h2>
 <div class="card wk-card" id="missions">
   <div class="wk-head">
-    <div class="wk-ring" style="--p:<?= $wkPct ?>"><span><?= $wkDone ?>/<?= count($wk) ?></span></div>
-    <div class="wk-intro"><strong><?= !$wk ? 'Choisis ta première mission !' : ($wkDone === count($wk) ? 'Toutes tes missions sont réussies, bravo ! 🎉' : ($wkDone ? 'Bien joué, continue comme ça ! 💪' : 'C\'est parti pour la semaine ! 🚀')) ?></strong>
-      <small><?= e(week_label()) ?> · coche une mission dès qu'elle est faite</small></div>
-    <a class="btn sm wk-add" href="<?= e(url('s_goals')) ?>#banque"><?= icon('plus') ?> Choisir une mission</a>
+    <div class="wk-intro"><strong><?= !$wk ? 'Choisis ta première mission !' : ($wkDone === count($wk) ? 'Tout est fait, bravo ! 🎉' : $wkDone . ' sur ' . count($wk) . ' réussie' . ($wkDone > 1 ? 's' : '')) ?></strong><small><?= e(week_label()) ?></small></div>
+    <a class="btn ghost sm" href="<?= e(url('s_goals')) ?>#banque"><?= icon('plus') ?> Choisir une mission</a>
   </div>
-  <?php if ($wk): ?><ul class="wk-list"><?php foreach ($wk as $g): $isDone = $g['status'] === 'acquired'; $st = mission_status_key($g); ?>
+  <?php if ($wk): ?><div class="wk-bar"><i data-w="<?= $wkPct ?>"></i></div>
+  <ul class="wk-list"><?php foreach ($wk as $g): $isDone = $g['status'] === 'acquired'; ?>
     <li class="wk-item<?= $isDone ? ' done' : '' ?>">
-      <form method="post" action="<?= e(url('s_goal')) ?>" class="wk-check"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><input type="hidden" name="back" value="s"><input type="hidden" name="mstatus" value="<?= $isDone ? 'in_progress' : 'acquired' ?>">
+      <form method="post" action="<?= e(url('s_goal')) ?>" class="wk-check"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><input type="hidden" name="back" value="s"><input type="hidden" name="mstatus" value="<?= $isDone ? 'todo' : 'acquired' ?>">
         <button class="wk-box" aria-label="<?= $isDone ? 'Décocher' : 'Mission réalisée' ?>" title="<?= $isDone ? 'Décocher' : 'Je l\'ai fait !' ?>"><?= icon('check') ?></button></form>
-      <span class="wk-emo" aria-hidden="true"><?= $catEmo[$g['category']] ?? '⭐' ?></span>
-      <div class="wk-main"><strong><?= e($g['title']) ?></strong><?php if ($g['description']): ?><small><?= e($g['description']) ?></small><?php endif ?>
-        <form method="post" action="<?= e(url('s_goal')) ?>" class="wk-more"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><input type="hidden" name="back" value="s">
-          <?php if (!$isDone): ?><span class="m-seg"><?php foreach (['todo' => 'À faire', 'in_progress' => 'En cours'] as $k => $l): ?><button name="mstatus" value="<?= $k ?>" class="<?= $st === $k ? 'on st-' . $k : '' ?>"><?= $l ?></button><?php endforeach ?></span><?php endif ?>
-          <span class="wk-dl"><?= $isDone ? "C'était :" : 'Difficulté :' ?></span><span class="m-seg"><?php foreach (DIFFICULTY as $k => $l): ?><button name="difficulty" value="<?= $k ?>" class="<?= ($g['difficulty'] ?? '') === $k ? 'on df-' . $k : '' ?>"><?= e($l) ?></button><?php endforeach ?></span>
-        </form></div>
+      <div class="wk-main"><strong><?= $catEmo[$g['category']] ?? '⭐' ?> <?= e($g['title']) ?></strong><?php if ($g['description']): ?><small><?= e($g['description']) ?></small><?php endif ?></div>
+      <form method="post" action="<?= e(url('s_goal')) ?>" class="wk-more"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><input type="hidden" name="back" value="s">
+        <span class="wk-dl">Difficulté</span><span class="wk-df"><?php foreach (DIFFICULTY as $k => $l): ?><button name="difficulty" value="<?= $k ?>" class="<?= ($g['difficulty'] ?? '') === $k ? 'on df-' . $k : '' ?>"><?= e($l) ?></button><?php endforeach ?></span>
+      </form>
     </li>
   <?php endforeach ?></ul><?php endif ?>
 </div>
@@ -75,7 +73,7 @@ $catEmo = ['methodo' => '🗂️', 'autonomie' => '🚀', 'motivation' => '💪'
 
 <?php /* 5. Progression, objectifs de l'année, outils */ ?>
 <h2 class="dash-sec">Ma progression</h2>
-<div class="grid-2 two-cols dash-row">
+<div class="grid-2 two-cols dash-row eq">
   <div class="card tone-blue">
     <h2><?= icon('chart-column') ?> Mes progrès</h2>
     <?php foreach (array_slice($progressing, 0, 6) as $g): ?><div class="axis"><span class="lbl"><?= e($g['title']) ?></span><span class="n"><?= $g['status'] === 'acquired' ? 100 : (int)$g['progress'] ?>%</span><div class="bar"><i data-w="<?= $g['status'] === 'acquired' ? 100 : (int)$g['progress'] ?>"></i></div></div><?php endforeach ?>
