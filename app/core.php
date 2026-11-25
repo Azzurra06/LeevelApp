@@ -118,6 +118,8 @@ function boot(): void
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: DENY');
     header('Referrer-Policy: same-origin');
+    header_remove('X-Powered-By');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()');
     header("Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'");
     if ($prod) header('Strict-Transport-Security: max-age=31536000');
     header('Cache-Control: no-store');
