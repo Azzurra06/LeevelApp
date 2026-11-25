@@ -119,3 +119,73 @@ function tools_from_text(string $kind, string $txt): array
     }
     return array_slice($out, 0, 20);
 }
+
+
+// ---------- Banque d'objectifs SMART (spécifiques, mesurables, atteignables, réalistes, temporellement définis) ----------
+const GOAL_BANK = [
+    'organisation' => ['list-checks', 'Organisation et gestion du temps', 'methodo', [
+        ['Planifier ma semaine', 'Chaque lundi, je prends 5 minutes pour noter mes contrôles, devoirs importants et moments de révision.', 28],
+        ['Anticiper un contrôle', 'Je commence à réviser au moins 3 jours avant un contrôle, pendant 10 minutes minimum.', 21],
+        ['Réviser régulièrement', 'Je fais 3 petites séances de révision de 10 minutes sur des jours différents.', 7],
+        ['Respecter un temps de travail', 'Je réalise 2 séances de 20 minutes de travail sans téléphone ni jeux vidéo.', 7],
+        ['Choisir mes priorités', 'Avant 3 séances de travail, je choisis les 2 tâches les plus importantes à faire.', 14],
+        ['Estimer mon temps', 'Pour 3 exercices, j\'estime le temps nécessaire puis je compare avec le temps réellement passé.', 14],
+    ]],
+    'methodes' => ['brain', 'Méthodes de travail et mémorisation', 'methodo', [
+        ['Réviser sans regarder mon cours', 'À 3 reprises, je ferme mon cours et j\'essaie de restituer 3 informations de mémoire.', 14],
+        ['Tester mes connaissances', 'Je réalise 2 quiz de 5 questions sans regarder mes fiches.', 14],
+        ['Revoir mes erreurs', 'Je reprends 3 erreurs d\'anciens exercices et j\'essaie de les corriger.', 14],
+        ['Identifier mes lacunes', 'Je note 3 notions que je maîtrise et 2 que je dois retravailler.', 7],
+        ['Expliquer une leçon', 'J\'explique une notion avec mes propres mots pendant 2 minutes, sans lire mon cours.', 7],
+        ['Réviser à plusieurs reprises', 'Je revois une même notion 3 fois dans la semaine, sur 3 jours différents.', 7],
+    ]],
+    'comprehension' => ['book-open', 'Compréhension et application', 'comprehension', [
+        ['Comprendre les consignes', 'Sur 3 exercices, je souligne les mots importants et reformule ce qu\'on me demande.', 14],
+        ['Utiliser une méthode', 'J\'applique toutes les étapes de la méthode L.I.R.E. sur 2 problèmes.', 14],
+        ['Choisir ma démarche', 'Avant de résoudre 3 exercices, j\'explique quelle méthode je vais utiliser et pourquoi.', 14],
+        ['Vérifier ma compréhension', 'Après 2 leçons, je donne un exemple concret pour montrer que j\'ai compris.', 14],
+        ['Décomposer un problème', 'Pour 2 exercices difficiles, je découpe le travail en au moins 3 petites étapes.', 14],
+        ['Identifier mon blocage', 'Quand je ne comprends pas, je note précisément ce qui me bloque dans 3 exercices.', 14],
+    ]],
+    'autonomie' => ['rocket', 'Autonomie et prise d\'initiative', 'autonomie', [
+        ['Commencer seul', 'Je commence mes devoirs sans qu\'un adulte me le rappelle, au moins 3 fois dans la semaine.', 7],
+        ['Chercher avant de demander', 'Sur 3 exercices, je cherche seul pendant 5 minutes avant de demander de l\'aide.', 14],
+        ['Terminer un exercice seul', 'Je réalise 2 exercices de A à Z sans aide, en utilisant mes outils si nécessaire.', 14],
+        ['Préparer mon matériel', 'Avant 3 séances, je prépare seul tout ce dont j\'ai besoin pour travailler.', 14],
+        ['Utiliser mes ressources', 'Je cherche une réponse dans mon cours, mes fiches ou une vidéo avant de demander de l\'aide, à 2 reprises.', 14],
+    ]],
+    'perseverance' => ['flag', 'Persévérance et motivation', 'motivation', [
+        ['Ne pas abandonner tout de suite', 'Face à 3 difficultés, j\'essaie une deuxième méthode avant d\'arrêter.', 14],
+        ['Reprendre après un blocage', 'Quand je bloque, je fais une pause de 2 minutes puis je réessaie, au moins 2 fois.', 14],
+        ['Faire un exercice difficile', 'Je termine 1 exercice que je trouve difficile, même si j\'ai besoin d\'indices.', 7],
+        ['Travailler une matière difficile', 'Je consacre 2 fois 15 minutes à une matière que j\'aime moins.', 7],
+        ['Reconnaître mes progrès', 'En fin de semaine, je note 2 choses que je réussis mieux qu\'avant.', 7],
+    ]],
+    'stress' => ['heart', 'Gestion du stress et des évaluations', 'evaluations', [
+        ['M\'entraîner en temps limité', 'Je réalise 2 exercices avec un temps défini à l\'avance, sans le dépasser de plus de 2 minutes.', 14],
+        ['Apprendre à me calmer', 'Avant 3 exercices ou évaluations, je prends 1 minute pour respirer lentement.', 14],
+        ['Garder du temps pour relire', 'Pendant un contrôle blanc, je réserve les 5 dernières minutes à la relecture.', 14],
+        ['Utiliser une méthode de relecture', 'Sur 3 exercices, je vérifie la consigne, ma réponse et les éventuelles erreurs de calcul.', 14],
+        ['Gérer une question difficile', 'Pendant 1 contrôle blanc, si je bloque plus de 3 minutes, je passe à la suite et j\'y reviens ensuite.', 14],
+    ]],
+    'confiance' => ['smile', 'Confiance en soi et communication', 'motivation', [
+        ['Oser poser des questions', 'Je pose au moins 2 questions précises lorsque je ne comprends pas quelque chose.', 14],
+        ['Faire mon bilan', 'En fin de semaine, je cite 1 réussite, 1 difficulté et 1 chose à améliorer la semaine suivante.', 7],
+    ]],
+];
+function week_monday(?string $d = null): string { return date('Y-m-d', strtotime('monday this week', strtotime($d ?? 'today'))); }
+function week_sunday(?string $d = null): string { return date('Y-m-d', strtotime(week_monday($d) . ' +6 days')); }
+/** « Semaine du lun. 23/11 au dim. 29/11 » */
+function week_label(?string $d = null): string { return 'du lun. ' . date('d/m', strtotime(week_monday($d))) . ' au dim. ' . date('d/m', strtotime(week_sunday($d))); }
+/** Ajoute un objectif de la banque à la liste de l'élève (sans doublon). */
+function goal_bank_add(int $studentId, int $by, string $key): string
+{
+    [$cat, $i] = array_pad(explode(':', $key, 2), 2, '');
+    $g = GOAL_BANK[$cat][3][(int)$i] ?? null;
+    if (!$g || !ctype_digit((string)$i)) return '!Objectif introuvable.';
+    if (one('SELECT 1 FROM goals WHERE student_id=? AND LOWER(title)=LOWER(?)', [$studentId, $g[0]])) return '!Cet objectif est déjà dans la liste.';
+    // objectif hebdomadaire : du lundi au dimanche de la semaine en cours (status « En cours »)
+    q('INSERT INTO goals (student_id, title, description, category, target_date, status, created_by) VALUES (?,?,?,?,?,?,?)',
+        [$studentId, $g[0], $g[1], GOAL_BANK[$cat][2], week_sunday(), 'in_progress', $by]);
+    return 'Objectif de la semaine ajouté : ' . $g[0];
+}

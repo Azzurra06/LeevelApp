@@ -107,6 +107,17 @@ function dispatch(string $r, string $method): void
         case 'file':
             serve_student_file(require_login(), (int)($_GET['id'] ?? 0));
 
+        case 'goal_bank':
+            $u = require_login();
+            $st = $isPost ? study_student_for($u, post_int('sid')) : null;
+            if (!$st) { http_response_code(403); render('error', ['msg' => 'Action non autorisée.']); }
+            if (($_POST['action'] ?? '') === 'delete' && $u['role'] === 'student') {
+                q('DELETE FROM goals WHERE id=? AND student_id=? AND created_by=?', [post_int('goal_id'), $st['id'], $u['id']]); $msg = 'Objectif retiré.';
+            } else $msg = goal_bank_add((int)$st['id'], (int)$u['id'], post_str('key', 40));
+            flash(ltrim($msg, '!'), str_starts_with($msg, '!') ? 'err' : 'ok');
+            header('Location: ' . ($u['role'] === 'tutor' ? url('t_student', ['sid' => $st['id'], 'tab' => 'objectifs']) : url('s_goals')) . (post_str('cat', 30) ? '#bank-' . preg_replace('/[^a-z]/', '', post_str('cat', 30)) : ''), true, 303);
+            exit;
+
         case 'study':
             $u = require_login();
             $st = $isPost ? study_student_for($u, post_int('sid')) : null;
@@ -460,6 +471,9 @@ function family_route(string $r, bool $isPost): never
     if (!$s['guardian_consent_at']) render('error', ['msg' => "Ton espace sera disponible dès que ton parent aura validé l'autorisation d'utilisation."]);
     if ($r === 's_planning') {
         render('p_planning', ['u' => $u, 's' => $s] + family_view_data($s));
+    }
+    if ($r === 's_goals') {
+        render('s_goals', ['u' => $u, 's' => $s, 'goals' => all('SELECT * FROM goals WHERE student_id=? ORDER BY FIELD(status,"in_progress","rework","todo","acquired"), target_date, id', [$s['id']])]);
     }
     if ($r === 's_tools') {
         $ssub = qn_latest('student', (int)$s['id']);

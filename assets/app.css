@@ -1619,3 +1619,19 @@ body.lb-open{overflow:hidden}
 .study-legend{margin:8px 0 0}.study-legend .sc-t{display:inline-block;margin-right:6px}
 @media (max-width:720px){.sc-d{min-height:58px}.sc-t{font-size:.6rem;padding:1px 3px}}
 .badge.rev{background:#EAF5EE;color:#26734A}
+
+/* Banque d'objectifs SMART */
+.bank-intro{margin:-4px 0 10px}
+.bank-tabs button{display:inline-flex;align-items:center;gap:6px}.bank-tabs .ic{width:15px;height:15px}
+.bank-list,.sg-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.bank-item,.sg-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.bank-item.added{background:var(--bg)}
+.bank-main,.sg-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.bank-meta{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:600;color:var(--accent-d)}.bank-meta .ic{width:13px;height:13px}
+.bank-item .badge .ic{width:12px;height:12px}
+.sg-side{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:120px}
+.sg-item.done{background:#F3FAF5}
+@media (max-width:720px){.bank-item,.sg-item{flex-direction:column;align-items:stretch}.bank-item form,.bank-item .badge{align-self:flex-start}.sg-side{align-items:stretch}}
+.sec-tabs.bank-tabs{flex-wrap:wrap;gap:6px;border-bottom:0;overflow:visible;margin-bottom:14px}
+.sec-tabs.bank-tabs button{border:1px solid var(--line);border-radius:999px;margin:0;padding:6px 12px;font-size:.85rem;background:var(--surface)}
+.sec-tabs.bank-tabs button.on{background:var(--accent-d);border-color:var(--accent-d);color:#fff}

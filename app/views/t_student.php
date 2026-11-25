@@ -198,7 +198,7 @@ $sugg = array_values(array_filter($reco['goals'] ?? [], fn($sg) => !in_array(mb_
     <div class="view goal-row">
       <div class="goal-main">
         <h3><?= e($g['title']) ?></h3>
-        <div class="goal-tags"><span class="badge"><?= e(AXES[$g['category']] ?? $g['category']) ?></span><?php if (($g['horizon'] ?? '') === 'year'): ?><span class="badge sage">Objectif de l'année</span><?php endif ?><?php if ($g['is_mission']): ?><span class="badge">🚀 Mission</span><?php endif ?><?php if ($g['target_date']): ?><span class="badge"><?= icon('calendar') ?> <?= e(fdate($g['target_date'])) ?></span><?php endif ?></div>
+        <div class="goal-tags"><span class="badge"><?= e(AXES[$g['category']] ?? $g['category']) ?></span><?php if ($g['created_by'] && (int)$g['created_by'] === (int)$s['user_id']): ?><span class="badge sage">Choisi par <?= e($s['first_name']) ?></span><?php endif ?><?php if (($g['horizon'] ?? '') === 'year'): ?><span class="badge sage">Objectif de l'année</span><?php endif ?><?php if ($g['is_mission']): ?><span class="badge">🚀 Mission</span><?php endif ?><?php if ($g['target_date']): ?><span class="badge"><?= icon('calendar') ?> <?= e(fdate($g['target_date'])) ?></span><?php endif ?></div>
         <?php if ($g['description']): ?><p class="muted goal-desc"><?= e($g['description']) ?></p><?php endif ?>
         <p class="goal-student"><?= icon('smile') ?> <?= $g['student_done_at'] ? 'Signalé terminé par ' . e($s['first_name']) . ' le ' . e(fdate($g['student_done_at'])) : '<span class="muted">Pas encore signalé par ' . e($s['first_name']) . '</span>' ?><?= $g['student_feeling'] ? ' · « ' . e(FEELINGS[$g['student_feeling']]) . ' »' : '' ?></p>
         <?php if ($g['tutor_comment']): ?><p class="goal-comment"><?= icon('message-circle') ?> <?= e($g['tutor_comment']) ?></p><?php endif ?>
@@ -211,6 +211,8 @@ $sugg = array_values(array_filter($reco['goals'] ?? [], fn($sg) => !in_array(mb_
 <?php endforeach ?>
 </div>
 <?php endforeach ?>
+
+<br><?php $bankKid = false; require __DIR__ . '/_goal_bank.php'; ?>
 
 <?php elseif ($tab === 'matieres'): require __DIR__ . '/_t_subjects.php'; ?>
 

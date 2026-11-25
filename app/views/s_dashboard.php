@@ -20,7 +20,8 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
     <?php if ($main): ?>
       <div class="tile-row"><div class="mini-ring" style="--p:<?= (int)$main['progress'] ?>"><span><?= (int)$main['progress'] ?>%</span></div>
         <div><strong><?= e($main['title']) ?></strong><small><?= e(GOAL_STATUS[$main['status']]) ?></small></div></div>
-    <?php else: ?><div class="tile-row"><span class="tile-emoji">🎯</span><div><strong>À choisir ensemble</strong><small>On le fixe à la prochaine séance.</small></div></div><?php endif ?>
+    <?php else: ?><div class="tile-row"><span class="tile-emoji">🎯</span><div><strong>À choisir ensemble</strong><small>Choisis-en un dans la banque d'objectifs.</small></div></div><?php endif ?>
+    <a class="card-link" href="<?= e(url('s_goals')) ?>">Mes objectifs et la banque d'objectifs →</a>
   </div>
   <a class="card tile tone-blue tile-link" href="<?= e(url('s_planning')) ?>" aria-label="Voir le détail de mes séances">
     <h2><?= icon('calendar') ?> Prochaine séance <?= icon('chevron-right', 'tile-chev') ?></h2>
