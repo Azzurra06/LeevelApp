@@ -225,11 +225,11 @@ $row = function (array $g) use ($goalForm, $s) { ?>
     <?php if (!$gs['year']): ?><p class="muted">Aucun objectif de l'année pour l'instant.</p><?php endif ?>
     <ul class="gl-list"><?php foreach ($gs['year'] as $g) $row($g) ?></ul>
   </div>
-  <?php if ($sugg): ?><div class="card obj-sugg"><h2><?= icon('lightbulb') ?> Suggestions d'après l'analyse pédagogique</h2>
+  <?php if ($sugg): ?><details class="card obj-sugg goal-bank"><summary class="bank-sum"><h2><?= icon('lightbulb') ?> Suggestions d'après l'analyse pédagogique <span class="muted">· <?= count($sugg) ?></span></h2><?= icon('chevron-right', 'bank-chev') ?></summary>
     <ul class="sugg-list"><?php foreach ($sugg as $sg): ?><li><div><strong><?= e($sg['title']) ?></strong><small class="muted"><?= e($sg['description']) ?></small></div>
       <form method="post" action="<?= e(url('t_goal')) ?>"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="id" value="0"><input type="hidden" name="title" value="<?= e($sg['title']) ?>"><input type="hidden" name="description" value="<?= e($sg['description']) ?>"><input type="hidden" name="category" value="<?= e($sg['category'] ?? 'methodo') ?>"><input type="hidden" name="is_year" value="1"><input type="hidden" name="status" value="in_progress">
         <button class="btn ghost sm"><?= icon('plus') ?> Ajouter</button></form></li><?php endforeach ?></ul>
-  </div><?php endif ?>
+  </details><?php endif ?>
 </section>
 </div>
 
