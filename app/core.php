@@ -121,7 +121,7 @@ function boot(): void
     header_remove('X-Powered-By');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()');
     header("Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'");
-    if ($prod) header('Strict-Transport-Security: max-age=31536000');
+    if ($prod) header('Strict-Transport-Security: max-age=63072000; includeSubDomains; preload');
     header('Cache-Control: no-store');
     session_name(config('session_name') ?: 'leevel_sid');
     session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => $prod]);
