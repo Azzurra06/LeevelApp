@@ -193,11 +193,12 @@
   if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const np = t?.closest('.new-panel[hidden]'); if (np) np.hidden = false; }
   // Matière (tutrice) : sections Aperçu / Chapitres / Notes / Ressources / Commentaires
   $$('[data-sec-scope]').forEach(sc => {
-    const nav = $('[data-sec-tabs]', sc); if (!nav) return;
-    const panes = $$('[data-sec-pane]', sc);
+    const own = el => el.closest('[data-sec-scope]') === sc;
+    const nav = $$('[data-sec-tabs]', sc).find(own); if (!nav) return;
+    const panes = $$('[data-sec-pane]', sc).filter(own);
     const show = k => { panes.forEach(p => { p.hidden = p.dataset.secPane !== k; }); $$('[data-sec-tab]', nav).forEach(b => b.classList.toggle('on', b.dataset.secTab === k)); };
     $$('[data-sec-tab]', nav).forEach(b => b.addEventListener('click', () => { show(b.dataset.secTab); history.replaceState(null, '', '#' + sc.id + '-' + b.dataset.secTab); }));
-    $$('[data-sec-go]', sc).forEach(b => b.addEventListener('click', () => { show(b.dataset.secGo); nav.scrollIntoView({ block: 'nearest' }); }));
+    $$('[data-sec-go]', sc).filter(own).forEach(b => b.addEventListener('click', () => { show(b.dataset.secGo); nav.scrollIntoView({ block: 'nearest' }); }));
     if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const p = t?.closest('[data-sec-pane]'); if (p && panes.includes(p)) show(p.dataset.secPane); }
   });
   $$('input[type=file][data-file-name]').forEach(i => i.addEventListener('change', () => { const l = i.closest('div')?.querySelector('[data-file-label]'); if (l && i.files[0]) l.textContent = i.files[0].name; }));
@@ -391,6 +392,15 @@
     });
   }
   $$('[data-print]').forEach(b => b.addEventListener('click', () => window.print()));
+  // Blocs d'ajout ouverts par un bouton : une croix pour les refermer (partout dans l'app)
+  [...new Set($$('[data-toggle]').map(b => b.dataset.toggle))].forEach(id => {
+    const p = document.getElementById(id);
+    if (!p || p.querySelector(`[data-toggle="${id}"]`) || p.querySelector('.panel-close')) return;
+    const x = document.createElement('button'); x.type = 'button'; x.className = 'panel-close'; x.setAttribute('aria-label', 'Fermer'); x.title = 'Fermer';
+    x.innerHTML = '<svg class="ic" aria-hidden="true"><use href="' + (document.querySelector('use')?.getAttribute('href')?.split('#')[0] || '') + '#i-x"></use></svg>';
+    x.addEventListener('click', () => { p.hidden = true; });
+    p.classList.add('has-close'); p.prepend(x);
+  });
   $$('[data-toggle]').forEach(b => b.addEventListener('click', () => { const t = document.getElementById(b.dataset.toggle); if (t) { t.hidden = !t.hidden; if (!t.hidden) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); const f = t.querySelector('textarea,input:not([type=hidden]),select'); if (f) setTimeout(() => f.focus({ preventScroll: true }), 350); } } }));
 
   // ---------- Grille masonry (gauche à droite) ----------

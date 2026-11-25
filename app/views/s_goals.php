@@ -12,19 +12,25 @@ $row = function (array $g, bool $canDone) use ($u, $s) { ?>
     </div></li>
 <?php }; ?>
 <div class="page-head"><div><h1><?= icon('target') ?> Mes objectifs</h1><p>Tes missions de la semaine et tes grands objectifs de l'année.</p></div></div>
-<div class="obj-cols">
+<div class="obj-page" id="objp" data-sec-scope>
+<nav class="sec-tabs obj-tabs" aria-label="Mes objectifs" data-sec-tabs>
+  <button type="button" class="on" data-sec-tab="missions"><?= icon('rocket') ?> Mes missions de la semaine <small><?= count($gs['missions']) ?></small></button>
+  <button type="button" data-sec-tab="annee"><?= icon('target') ?> Mes objectifs de l'année <small><?= count($gs['year']) ?></small></button>
+</nav>
+<section class="sec-pane" data-sec-pane="missions" id="objp-missions">
+  <p class="muted obj-week"><?= icon('calendar') ?> Semaine <?= e(week_label()) ?></p>
   <div class="card obj-card">
-    <div class="obj-h"><h2><?= icon('rocket') ?> Mes missions de la semaine</h2><span class="muted"><?= e(week_label()) ?></span></div>
-    <?php if (!$gs['missions']): ?><p class="muted">Pas encore de mission cette semaine : choisis-en une dans la banque.</p><?php endif ?>
+    <?php if (!$gs['missions']): ?><p class="muted">Pas encore de mission cette semaine : choisis-en une dans la banque ci-dessous.</p><?php endif ?>
     <ul class="gl-list"><?php foreach ($gs['missions'] as $g) $row($g, true) ?></ul>
-    <button type="button" class="btn sm" data-toggle="bank-panel"><?= icon('plus') ?> Choisir une mission</button>
   </div>
+  <?php $bankKid = true; require __DIR__ . '/_goal_bank.php'; ?>
+  <?php if ($gs['history']): ?><details class="card obj-fold"><summary><?= icon('archive') ?> Mes missions des semaines passées <span class="muted">· <?= count($gs['history']) ?></span></summary>
+    <ul class="gl-list"><?php foreach ($gs['history'] as $g) $row($g, false) ?></ul></details><?php endif ?>
+</section>
+<section class="sec-pane" data-sec-pane="annee" id="objp-annee" hidden>
   <div class="card obj-card">
-    <div class="obj-h"><h2><?= icon('target') ?> Mes objectifs de l'année</h2></div>
     <?php if (!$gs['year']): ?><p class="muted">Tu les fixeras avec ta tutrice : par exemple gagner en autonomie ou augmenter tes notes.</p><?php endif ?>
     <ul class="gl-list"><?php foreach ($gs['year'] as $g) $row($g, false) ?></ul>
   </div>
+</section>
 </div>
-<div id="bank-panel" class="new-panel" hidden><?php $bankKid = true; require __DIR__ . '/_goal_bank.php'; ?></div>
-<?php if ($gs['history']): ?><details class="card obj-fold"><summary><?= icon('archive') ?> Mes missions des semaines passées <span class="muted">· <?= count($gs['history']) ?></span></summary>
-  <ul class="gl-list"><?php foreach ($gs['history'] as $g) $row($g, false) ?></ul></details><?php endif ?>

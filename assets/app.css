@@ -1720,3 +1720,15 @@ a.sc-d{text-decoration:none;color:inherit}a.sc-d:hover{outline:2px solid var(--a
 .sg-com{display:flex;gap:5px;align-items:flex-start;color:var(--accent-d)!important}.sg-com .ic{width:13px;height:13px;flex:none;margin-top:2px}
 @media (max-width:720px){.gl-prog{width:70px}.sg-row{flex-wrap:wrap}.sg-side{width:100%;justify-content:flex-start;padding-left:22px}}
 .bank-below{margin-top:16px}
+
+/* Croix de fermeture des blocs d'ajout */
+.has-close{position:relative}
+.panel-close{position:absolute;top:10px;right:10px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--taupe-d);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.panel-close:hover{background:var(--bg);color:var(--ink)}.panel-close .ic{width:16px;height:16px}
+.has-close>h3:first-of-type,.has-close>.goal-bank>h2{padding-right:44px}
+/* Objectifs : sous-onglets */
+.obj-tabs{margin-bottom:16px}.obj-tabs button{display:inline-flex;align-items:center;gap:6px;font-size:1rem}.obj-tabs .ic{width:17px;height:17px}
+.obj-page .obj-h{align-items:center;margin-bottom:12px}
+.obj-week{margin:0;display:inline-flex;align-items:center;gap:6px}.obj-week .ic{width:15px;height:15px}
+.obj-page .obj-card,.obj-page .goal-bank,.obj-page .obj-sugg{margin-bottom:16px}
+.obj-page .new-panel{margin-bottom:16px}

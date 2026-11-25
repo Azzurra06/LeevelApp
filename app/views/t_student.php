@@ -161,7 +161,7 @@ $stat = fn($c) => !$data[$c]['sub'] ? ['Non commencé', 'warn'] : ($data[$c]['su
 <?php require __DIR__ . '/_analysis.php' ?>
 
 <?php elseif ($tab === 'objectifs'):
-$goalForm = function (?array $g) use ($hidden, $catOpts) { $g ??= ['id' => 0, 'title' => '', 'description' => '', 'category' => 'methodo', 'target_date' => '', 'status' => 'todo', 'progress' => 0, 'tutor_comment' => '', 'is_mission' => 0]; ?>
+$goalForm = function (?array $g, string $kind = '') use ($hidden, $catOpts) { $g ??= ['id' => 0, 'title' => '', 'description' => '', 'category' => 'methodo', 'target_date' => '', 'status' => 'todo', 'progress' => 0, 'tutor_comment' => '', 'is_mission' => 0]; ?>
   <form method="post" action="<?= e(url('t_goal')) ?>" class="stack"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="id" value="<?= (int)$g['id'] ?>">
     <div class="form-grid"><label>Titre<input name="title" required maxlength="200" value="<?= e($g['title']) ?>"></label>
       <label>Catégorie<select name="category"><?= $catOpts($g['category']) ?></select></label>
@@ -170,8 +170,12 @@ $goalForm = function (?array $g) use ($hidden, $catOpts) { $g ??= ['id' => 0, 't
       <label>Progression (%)<input type="number" name="progress" min="0" max="100" step="5" value="<?= (int)$g['progress'] ?>"></label></div>
     <label>Description<textarea name="description" maxlength="3000"><?= e($g['description']) ?></textarea></label>
     <label>Commentaire de la tutrice<textarea name="tutor_comment" maxlength="3000"><?= e($g['tutor_comment']) ?></textarea></label>
+    <?php if ($kind === 'year'): ?><input type="hidden" name="is_year" value="1">
+    <?php elseif ($kind === 'mission'): ?><input type="hidden" name="is_mission" value="1">
+    <?php else: ?>
     <label class="check"><input type="checkbox" name="is_year" value="1" <?= ($g['horizon'] ?? 'month') === 'year' ? 'checked' : '' ?>> Objectif de l'année (affiché simplement au parent et à l'élève)</label>
     <label class="check"><input type="checkbox" name="is_mission" value="1" <?= $g['is_mission'] ? 'checked' : '' ?>> Afficher comme « mission » dans l'espace élève (3 max affichées)</label>
+    <?php endif ?>
     <div class="row"><button class="btn"><?= icon('save') ?> <?= $g['id'] ? 'Enregistrer' : 'Ajouter' ?></button>
       <?php if ($g['id']): ?><button class="btn ghost" name="delete" value="1" data-confirm="Supprimer cet objectif ?"><?= icon('trash-2') ?> Supprimer</button><?php endif ?></div>
   </form>
@@ -192,31 +196,38 @@ $row = function (array $g) use ($goalForm, $s) { ?>
     </div>
   </details></li>
 <?php }; ?>
-<div class="obj-actions"><button class="btn sm" data-toggle="newmission"><?= icon('plus') ?> Mission de la semaine</button><button class="btn ghost sm" data-toggle="newyear"><?= icon('plus') ?> Objectif de l'année</button><button class="btn ghost sm" data-toggle="bank-panel"><?= icon('sparkles') ?> Banque de missions</button></div>
-<div id="newmission" class="card new-panel" hidden><h3>Nouvelle mission (semaine <?= e(week_label()) ?>)</h3><?php $goalForm(['id' => 0, 'title' => '', 'description' => '', 'category' => 'methodo', 'target_date' => week_sunday(), 'status' => 'in_progress', 'progress' => 0, 'tutor_comment' => '', 'is_mission' => 1, 'horizon' => 'month']) ?></div>
-<div id="newyear" class="card new-panel" hidden><h3>Nouvel objectif de l'année</h3><?php $goalForm(['id' => 0, 'title' => '', 'description' => '', 'category' => 'autonomie', 'target_date' => '', 'status' => 'in_progress', 'progress' => 0, 'tutor_comment' => '', 'is_mission' => 0, 'horizon' => 'year']) ?></div>
+<div class="obj-page" id="objp" data-sec-scope>
+<nav class="sec-tabs obj-tabs" aria-label="Objectifs" data-sec-tabs>
+  <button type="button" class="on" data-sec-tab="missions"><?= icon('rocket') ?> Missions de la semaine <small><?= count($gs['missions']) ?></small></button>
+  <button type="button" data-sec-tab="annee"><?= icon('target') ?> Objectifs de l'année <small><?= count($gs['year']) ?></small></button>
+</nav>
 
-<div class="obj-cols">
+<section class="sec-pane" data-sec-pane="missions" id="objp-missions">
+  <div class="obj-h"><p class="muted obj-week"><?= icon('calendar') ?> Semaine <?= e(week_label()) ?></p><button class="btn ghost sm" data-toggle="newmission"><?= icon('plus') ?> Mission personnalisée</button></div>
+  <div id="newmission" class="card new-panel" hidden><h3>Nouvelle mission (semaine <?= e(week_label()) ?>)</h3><?php $goalForm(['id' => 0, 'title' => '', 'description' => '', 'category' => 'methodo', 'target_date' => week_sunday(), 'status' => 'in_progress', 'progress' => 0, 'tutor_comment' => '', 'is_mission' => 1, 'horizon' => 'month'], 'mission') ?></div>
   <div class="card obj-card">
-    <div class="obj-h"><h2><?= icon('rocket') ?> Missions de la semaine</h2><span class="muted"><?= e(week_label()) ?></span></div>
-    <?php if (!$gs['missions']): ?><p class="muted">Aucune mission cette semaine. Ajoutez-en une depuis la <button type="button" class="link-btn" data-toggle="bank-panel">banque de missions</button>.</p><?php endif ?>
+    <?php if (!$gs['missions']): ?><p class="muted">Aucune mission cette semaine : choisissez-en dans la banque ci-dessous.</p><?php endif ?>
     <ul class="gl-list"><?php foreach ($gs['missions'] as $g) $row($g) ?></ul>
   </div>
+  <?php $bankKid = false; require __DIR__ . '/_goal_bank.php'; ?>
+  <?php if ($gs['history']): ?><details class="card obj-fold"><summary><?= icon('archive') ?> Historique des missions <span class="muted">· <?= count($gs['history']) ?></span></summary>
+    <ul class="gl-list"><?php foreach ($gs['history'] as $g) $row($g) ?></ul></details><?php endif ?>
+</section>
+
+<section class="sec-pane" data-sec-pane="annee" id="objp-annee" hidden>
+  <div class="obj-h"><p class="muted obj-week">Les grands caps de l'année : gagner en autonomie, augmenter sa moyenne…</p><button class="btn ghost sm" data-toggle="newyear"><?= icon('plus') ?> Objectif de l'année</button></div>
+  <div id="newyear" class="card new-panel" hidden><h3>Nouvel objectif de l'année</h3><?php $goalForm(['id' => 0, 'title' => '', 'description' => '', 'category' => 'autonomie', 'target_date' => '', 'status' => 'in_progress', 'progress' => 0, 'tutor_comment' => '', 'is_mission' => 0, 'horizon' => 'year'], 'year') ?></div>
   <div class="card obj-card">
-    <div class="obj-h"><h2><?= icon('target') ?> Objectifs de l'année</h2><span class="muted"><?= count($gs['year']) ?></span></div>
-    <?php if (!$gs['year']): ?><p class="muted">Les grands caps de l'année : gagner en autonomie, augmenter sa moyenne en maths…</p><?php endif ?>
+    <?php if (!$gs['year']): ?><p class="muted">Aucun objectif de l'année pour l'instant.</p><?php endif ?>
     <ul class="gl-list"><?php foreach ($gs['year'] as $g) $row($g) ?></ul>
   </div>
+  <?php if ($sugg): ?><div class="card obj-sugg"><h2><?= icon('lightbulb') ?> Suggestions d'après l'analyse pédagogique</h2>
+    <ul class="sugg-list"><?php foreach ($sugg as $sg): ?><li><div><strong><?= e($sg['title']) ?></strong><small class="muted"><?= e($sg['description']) ?></small></div>
+      <form method="post" action="<?= e(url('t_goal')) ?>"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="id" value="0"><input type="hidden" name="title" value="<?= e($sg['title']) ?>"><input type="hidden" name="description" value="<?= e($sg['description']) ?>"><input type="hidden" name="category" value="<?= e($sg['category'] ?? 'methodo') ?>"><input type="hidden" name="is_year" value="1"><input type="hidden" name="status" value="in_progress">
+        <button class="btn ghost sm"><?= icon('plus') ?> Ajouter</button></form></li><?php endforeach ?></ul>
+  </div><?php endif ?>
+</section>
 </div>
-
-<div id="bank-panel" class="new-panel bank-below" hidden><?php $bankKid = false; require __DIR__ . '/_goal_bank.php'; ?></div>
-<?php if ($sugg): ?><details class="card obj-fold"><summary><?= icon('lightbulb') ?> Suggestions d'après l'analyse pédagogique <span class="muted">· <?= count($sugg) ?></span></summary>
-  <ul class="sugg-list"><?php foreach ($sugg as $sg): ?><li><div><strong><?= e($sg['title']) ?></strong><small class="muted"><?= e($sg['description']) ?></small></div>
-    <form method="post" action="<?= e(url('t_goal')) ?>"><?= $hidden() ?><input type="hidden" name="back" value="t_student"><input type="hidden" name="id" value="0"><input type="hidden" name="title" value="<?= e($sg['title']) ?>"><input type="hidden" name="is_year" value="1"><input type="hidden" name="status" value="in_progress">
-      <button class="btn ghost sm"><?= icon('plus') ?> Objectif de l'année</button></form></li><?php endforeach ?></ul>
-</details><?php endif ?>
-<?php if ($gs['history']): ?><details class="card obj-fold"><summary><?= icon('archive') ?> Historique des missions <span class="muted">· <?= count($gs['history']) ?></span></summary>
-  <ul class="gl-list"><?php foreach ($gs['history'] as $g) $row($g) ?></ul></details><?php endif ?>
 
 <?php elseif ($tab === 'matieres'): require __DIR__ . '/_t_subjects.php'; ?>
 

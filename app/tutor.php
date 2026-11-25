@@ -549,7 +549,8 @@ function tutor_route(string $r, bool $isPost): never
         case 't_goal':
             if (!$isPost) $back();
             save_goal($sid, (int)$u['id']);
-            $back('objectifs');
+            header('Location: ' . url('t_student', ['sid' => $sid, 'tab' => 'objectifs']) . (!empty($_POST['is_year']) ? '#objp-annee' : '#objp-missions'), true, 303);
+            exit;
 
         case 't_shared':
             if (!$isPost) $back();
