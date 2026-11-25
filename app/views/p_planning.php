@@ -9,4 +9,5 @@ $total = array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' ? (int)$x['d
   <div class="card stat"><span class="muted">Volume prévu</span><strong><?= fdur($total) ?></strong></div>
 </div><br>
 <?php $scheduleEdit = false; if (schedule_available() && schedule_of($s)) require __DIR__ . '/_schedule_card.php'; ?>
+<?php if (function_exists('study_tasks')): $studyEdit = (current_user()['role'] ?? '') === 'student'; $studySubjects = array_map(fn($x) => ['id' => $x['id'], 'name' => $x['name']], $subjects ?? []); $studyBase = url($studyEdit ? 's_planning' : 'p_planning'); $study = $study ?? []; require __DIR__ . '/_study.php'; ?><br><?php endif ?>
 <div class="card"><?php require __DIR__ . '/_planning.php' ?></div>

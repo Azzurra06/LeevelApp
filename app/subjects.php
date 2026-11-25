@@ -339,3 +339,39 @@ function subject_suggestions(int $studentId): array
     $names = array_values(array_unique(array_filter(array_map(fn($k) => $lv[$k][0] ?? null, $keys))));
     return array_values(array_diff($names, $have));
 }
+
+
+// ---------- Devoirs et révisions ----------
+const STUDY_KINDS = ['devoir' => 'Devoir', 'revision' => 'Révision'];
+function study_tasks(int $studentId): array
+{
+    try {
+        return all('SELECT t.*, ss.name subject, u.display_name author, u.role author_role FROM study_tasks t
+                    LEFT JOIN student_subjects ss ON ss.id=t.subject_id LEFT JOIN users u ON u.id=t.created_by
+                    WHERE t.student_id=? ORDER BY t.due_date, t.id', [$studentId]);
+    } catch (PDOException) { return []; }
+}
+/** Élève ou tutrice de l'élève : peut modifier le planning ; parent : lecture seule. */
+function study_student_for(array $u, int $sid): ?array
+{
+    if ($u['role'] === 'student') return one('SELECT * FROM students WHERE id=? AND user_id=?', [$sid, $u['id']]);
+    if ($u['role'] === 'tutor') return one('SELECT s.* FROM students s JOIN family_members fm ON fm.family_id=s.family_id AND fm.user_id=? AND fm.member_role="tutor" WHERE s.id=?', [$u['id'], $sid]);
+    return null;
+}
+function study_post(array $u, array $s): string
+{
+    $act = (string)($_POST['action'] ?? '');
+    $t = post_int('task_id') ? one('SELECT * FROM study_tasks WHERE id=? AND student_id=?', [post_int('task_id'), $s['id']]) : null;
+    if ($act === 'toggle' && $t) { q('UPDATE study_tasks SET done_at=' . ($t['done_at'] ? 'NULL' : 'NOW()') . ' WHERE id=?', [$t['id']]); return $t['done_at'] ? 'Remis à faire.' : 'Bravo, c\'est fait !'; }
+    if ($act === 'delete' && $t) { q('DELETE FROM study_tasks WHERE id=?', [$t['id']]); return 'Supprimé.'; }
+    if ($act === 'save') {
+        $title = post_str('title', 200); $date = post_str('due_date', 10);
+        if ($title === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) return '!Indiquez au moins un intitulé et une date.';
+        $kind = post_enum('kind', STUDY_KINDS, 'devoir');
+        $subj = post_int('subject_id') ? one('SELECT id FROM student_subjects WHERE id=? AND student_id=?', [post_int('subject_id'), $s['id']]) : null;
+        if ($t) q('UPDATE study_tasks SET kind=?, title=?, details=?, due_date=?, subject_id=? WHERE id=?', [$kind, $title, post_str('details', 2000) ?: null, $date, $subj['id'] ?? null, $t['id']]);
+        else q('INSERT INTO study_tasks (student_id, subject_id, kind, title, details, due_date, created_by) VALUES (?,?,?,?,?,?,?)', [$s['id'], $subj['id'] ?? null, $kind, $title, post_str('details', 2000) ?: null, $date, $u['id']]);
+        return $t ? 'Modifié.' : 'Ajouté au planning.';
+    }
+    return '';
+}

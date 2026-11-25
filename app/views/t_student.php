@@ -248,6 +248,7 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
   </form>
 <?php }; ?>
 <?php $scheduleEdit = true; if (schedule_available()) require __DIR__ . '/_schedule_card.php'; ?>
+<?php $studyEdit = true; $studyBase = url('t_student', $sidp + ['tab' => 'seances']); require __DIR__ . '/_study.php'; ?><br>
 <div class="card"><div class="row between"><h2><?= icon('calendar') ?> Séances · <?= fdur(array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' ? (int)$x['duration_min'] : 0, $sessions))) ?> au total</h2>
   <div class="row"><button class="btn" data-toggle="newsess"><?= icon('plus') ?> Ajouter une séance</button></div></div>
   <?php $calView = ($_GET['view'] ?? '') === 'cal'; ?>
