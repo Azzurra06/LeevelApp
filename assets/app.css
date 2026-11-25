@@ -1635,3 +1635,7 @@ body.lb-open{overflow:hidden}
 .sec-tabs.bank-tabs{flex-wrap:wrap;gap:6px;border-bottom:0;overflow:visible;margin-bottom:14px}
 .sec-tabs.bank-tabs button{border:1px solid var(--line);border-radius:999px;margin:0;padding:6px 12px;font-size:.85rem;background:var(--surface)}
 .sec-tabs.bank-tabs button.on{background:var(--accent-d);border-color:var(--accent-d);color:#fff}
+/* Élève : bilan de la dernière séance mis en avant */
+#recap.card{background:var(--accent-l);border:1.5px solid var(--accent)}
+#recap .mood,#recap .recap-note,#recap textarea{background:var(--surface)}
+#recap .badge{background:var(--surface)}
