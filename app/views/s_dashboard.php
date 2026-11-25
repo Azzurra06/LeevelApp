@@ -15,14 +15,15 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
 <?php endif ?>
 
 <div class="s-tiles">
-  <div class="card tile tone-violet">
-    <h2><?= icon('target') ?> Mon objectif principal</h2>
-    <?php if ($main): ?>
-      <div class="tile-row"><div class="mini-ring" style="--p:<?= (int)$main['progress'] ?>"><span><?= (int)$main['progress'] ?>%</span></div>
-        <div><strong><?= e($main['title']) ?></strong><small><?= e(GOAL_STATUS[$main['status']]) ?></small></div></div>
-    <?php else: ?><div class="tile-row"><span class="tile-emoji">🎯</span><div><strong>À choisir ensemble</strong><small>Choisis-en un dans la banque d'objectifs.</small></div></div><?php endif ?>
-    <a class="card-link" href="<?= e(url('s_goals')) ?>">Mes objectifs et la banque d'objectifs →</a>
-  </div>
+  <a class="card tile tone-violet tile-link" href="<?= e(url('s_subjects')) ?>#recap" aria-label="Voir le bilan de ma dernière séance">
+    <h2><?= icon('file-text') ?> Ma dernière séance <?= icon('chevron-right', 'tile-chev') ?></h2>
+    <?php if (!empty($recap)): $ts = strtotime($recap['starts_at']); $rep = $recap['report']; $fb = $recap['feedback']; ?>
+      <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>
+        <div><strong><?= e(session_label($recap)) ?></strong>
+          <small><?= $rep && ($rep['worked_on'] || $rep['next_focus']) ? icon('check') . ' Le bilan de ta tutrice est là' : 'Bilan bientôt disponible' ?></small>
+          <small><?= $fb ? icon('check') . ' Retour envoyé' : icon('message-circle') . ' Donne ton retour' ?></small></div></div>
+    <?php else: ?><div class="tile-row"><span class="tile-emoji">📅</span><div><strong>Pas encore de séance</strong><small>Le bilan apparaîtra ici après ta première séance.</small></div></div><?php endif ?>
+  </a>
   <a class="card tile tone-blue tile-link" href="<?= e(url('s_planning')) ?>" aria-label="Voir le détail de mes séances">
     <h2><?= icon('calendar') ?> Prochaine séance <?= icon('chevron-right', 'tile-chev') ?></h2>
     <?php if ($next): $ts = strtotime($next['starts_at']); ?>
@@ -39,7 +40,7 @@ $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' =
 </div>
 
 <div class="card tone-violet missions-card">
-  <h2><?= icon('rocket') ?> Mes missions</h2>
+  <div class="row between"><h2><?= icon('rocket') ?> Mes missions</h2><a class="card-link" href="<?= e(url('s_goals')) ?>">Mes objectifs →</a></div>
   <?php if (!$missions): ?>
     <div class="empty-ill"><span>🚀</span><p>Pas de mission pour l'instant.<br><small class="muted">Ta tutrice t'en proposera bientôt : de petits défis à relever entre deux séances.</small></p></div>
   <?php endif ?>

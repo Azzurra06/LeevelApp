@@ -1639,3 +1639,4 @@ body.lb-open{overflow:hidden}
 #recap.card{background:var(--accent-l);border:1.5px solid var(--accent)}
 #recap .mood,#recap .recap-note,#recap textarea{background:var(--surface)}
 #recap .badge{background:var(--surface)}
+.tile-row small .ic{width:13px;height:13px;vertical-align:-2px}
