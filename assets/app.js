@@ -189,6 +189,8 @@
     const on = box.classList.toggle('editing');
     if (on) box.querySelector('.edit-form input:not([type=hidden])')?.focus();
   });
+  // Lien vers un élément d'un panneau replié (ex. #bank-stress) : on ouvre le panneau
+  if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const np = t?.closest('.new-panel[hidden]'); if (np) np.hidden = false; }
   // Matière (tutrice) : sections Aperçu / Chapitres / Notes / Ressources / Commentaires
   $$('[data-sec-scope]').forEach(sc => {
     const nav = $('[data-sec-tabs]', sc); if (!nav) return;

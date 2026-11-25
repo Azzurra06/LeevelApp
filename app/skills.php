@@ -189,3 +189,19 @@ function goal_bank_add(int $studentId, int $by, string $key): string
         [$studentId, $g[0], $g[1], GOAL_BANK[$cat][2], week_sunday(), 'in_progress', $by]);
     return 'Objectif de la semaine ajouté : ' . $g[0];
 }
+
+/** Objectifs répartis : missions de la semaine en cours, objectifs de l'année, historique (missions des semaines passées). */
+function goals_split(array $goals): array
+{
+    $mon = week_monday(); $ord = ['in_progress' => 0, 'rework' => 1, 'todo' => 2, 'acquired' => 3];
+    usort($goals, fn($a, $b) => ($ord[$a['status']] <=> $ord[$b['status']]) ?: strcmp((string)$a['target_date'], (string)$b['target_date']));
+    $out = ['missions' => [], 'year' => [], 'history' => []];
+    foreach ($goals as $g) {
+        if (($g['horizon'] ?? '') === 'year') $out['year'][] = $g;
+        elseif ($g['target_date'] && $g['target_date'] < $mon) $out['history'][] = $g;
+        else $out['missions'][] = $g;
+    }
+    usort($out['history'], fn($a, $b) => strcmp((string)$b['target_date'], (string)$a['target_date']));
+    return $out;
+}
+const GOAL_DOT = ['in_progress' => 'going', 'rework' => 'rework', 'todo' => 'todo', 'acquired' => 'done'];

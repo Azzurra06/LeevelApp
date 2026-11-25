@@ -494,7 +494,7 @@ function family_route(string $r, bool $isPost): never
             }
             flash('Merci, c\'est noté !');
         }
-        redirect('s');
+        redirect(($_POST['back'] ?? '') === 's_goals' ? 's_goals' : 's');
     }
     if ($r === 's_feedback' && $isPost) {
         $se = one('SELECT * FROM sessions WHERE id=? AND student_id=? AND starts_at < NOW()', [post_int('session_id'), $s['id']]);

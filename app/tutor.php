@@ -238,7 +238,7 @@ function tutor_route(string $r, bool $isPost): never
                 try { q('UPDATE students SET tools_json=? WHERE id=?', [$saved ? json_encode($saved, JSON_UNESCAPED_UNICODE) : null, $sid]); }
                 catch (PDOException) { flash('Mise à jour de la base nécessaire.', 'err'); }
             }
-            redirect('t_student', ['sid' => $sid, 'tab' => 'matieres', 'kind' => 'tools']);
+            redirect('t_student', ['sid' => $sid, 'tab' => 'outils']);
 
         case 't_skills':
             if (!$isPost || !skills_available()) redirect('t_student', ['sid' => $sid, 'tab' => 'matieres']);

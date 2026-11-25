@@ -1,19 +1,30 @@
-<?php $title = 'Mes objectifs';
-$by = ['in_progress' => [], 'rework' => [], 'todo' => [], 'acquired' => []]; foreach ($goals as $g) $by[$g['status']][] = $g;
-$lbl = ['in_progress' => 'En cours', 'rework' => 'À retravailler', 'todo' => 'À commencer', 'acquired' => 'Réussis 🎉']; ?>
-<div class="page-head"><div><h1><?= icon('target') ?> Mes objectifs</h1><p>Ce que tu veux réussir, étape par étape, avec ta tutrice.</p></div></div>
-<div class="card">
-  <?php if (!$goals): ?><div class="empty-ill sm"><span>🎯</span><p class="muted">Pas encore d'objectif. Choisis-en un dans la banque ci-dessous, ou fixez-le ensemble à la prochaine séance.</p></div><?php endif ?>
-  <?php foreach ($by as $k => $list): if (!$list) continue; ?>
-    <h3 class="study-gh"><?= e($lbl[$k]) ?> <span class="muted">· <?= count($list) ?></span></h3>
-    <ul class="sg-list"><?php foreach ($list as $g): ?>
-      <li class="sg-item<?= $k === 'acquired' ? ' done' : '' ?>"><div class="sg-main"><strong><?= e($g['title']) ?></strong>
-          <?php if ($g['description']): ?><small class="muted"><?= e($g['description']) ?></small><?php endif ?>
-          <span class="bank-meta"><?= e(AXES[$g['category']] ?? '') ?><?= $g['target_date'] ? ' · ' . ($g['target_date'] === week_sunday() ? 'cette semaine, jusqu\'à dimanche' : 'jusqu\'au ' . e(fdate($g['target_date']))) : '' ?></span>
-          <?php if ($g['tutor_comment']): ?><p class="goal-comment"><?= icon('message-circle') ?> <?= e($g['tutor_comment']) ?></p><?php endif ?></div>
-        <div class="sg-side"><div class="goal-prog"><div class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></div><strong><?= (int)$g['progress'] ?>%</strong></div>
-          <?php if ((int)$g['created_by'] === (int)$u['id'] && $g['status'] === 'todo'): ?><form method="post" action="<?= e(url('goal_bank')) ?>" data-confirm="Retirer cet objectif ?"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$s['id'] ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><button class="more-btn">Retirer</button></form><?php endif ?></div></li>
-    <?php endforeach ?></ul>
-  <?php endforeach ?>
-</div><br>
-<?php $bankKid = true; require __DIR__ . '/_goal_bank.php'; ?>
+<?php $title = 'Mes objectifs'; $gs = goals_split($goals);
+$row = function (array $g, bool $canDone) use ($u, $s) { ?>
+  <li class="sg-row<?= $g['status'] === 'acquired' ? ' done' : '' ?>"><span class="gl-dot <?= GOAL_DOT[$g['status']] ?>"></span>
+    <div class="gl-main"><strong><?= e($g['title']) ?></strong>
+      <?php if ($g['description']): ?><small class="muted"><?= e($g['description']) ?></small><?php endif ?>
+      <?php if ($g['tutor_comment']): ?><small class="sg-com"><?= icon('message-circle') ?> <?= e($g['tutor_comment']) ?></small><?php endif ?></div>
+    <div class="sg-side">
+      <span class="gl-prog"><span class="bar"><i data-w="<?= (int)$g['progress'] ?>"></i></span><b><?= (int)$g['progress'] ?>%</b></span>
+      <?php if ($canDone && $g['status'] !== 'acquired'): ?><?php if ($g['student_done_at']): ?><span class="badge sage"><?= icon('check') ?> Fait</span>
+      <?php else: ?><form method="post" action="<?= e(url('s_goal')) ?>"><?= csrf_field() ?><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><input type="hidden" name="done" value="1"><input type="hidden" name="back" value="s_goals"><button class="btn ghost sm"><?= icon('check') ?> J'ai fini</button></form><?php endif ?><?php endif ?>
+      <?php if ((int)$g['created_by'] === (int)$u['id'] && $g['status'] !== 'acquired' && !$g['student_done_at']): ?><form method="post" action="<?= e(url('goal_bank')) ?>" data-confirm="Retirer cette mission ?"><?= csrf_field() ?><input type="hidden" name="sid" value="<?= (int)$s['id'] ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="goal_id" value="<?= (int)$g['id'] ?>"><button class="more-btn">Retirer</button></form><?php endif ?>
+    </div></li>
+<?php }; ?>
+<div class="page-head"><div><h1><?= icon('target') ?> Mes objectifs</h1><p>Tes missions de la semaine et tes grands objectifs de l'année.</p></div></div>
+<div class="obj-cols">
+  <div class="card obj-card">
+    <div class="obj-h"><h2><?= icon('rocket') ?> Mes missions de la semaine</h2><span class="muted"><?= e(week_label()) ?></span></div>
+    <?php if (!$gs['missions']): ?><p class="muted">Pas encore de mission cette semaine : choisis-en une dans la banque.</p><?php endif ?>
+    <ul class="gl-list"><?php foreach ($gs['missions'] as $g) $row($g, true) ?></ul>
+    <button type="button" class="btn sm" data-toggle="bank-panel"><?= icon('plus') ?> Choisir une mission</button>
+  </div>
+  <div class="card obj-card">
+    <div class="obj-h"><h2><?= icon('target') ?> Mes objectifs de l'année</h2></div>
+    <?php if (!$gs['year']): ?><p class="muted">Tu les fixeras avec ta tutrice : par exemple gagner en autonomie ou augmenter tes notes.</p><?php endif ?>
+    <ul class="gl-list"><?php foreach ($gs['year'] as $g) $row($g, false) ?></ul>
+  </div>
+</div>
+<div id="bank-panel" class="new-panel" hidden><?php $bankKid = true; require __DIR__ . '/_goal_bank.php'; ?></div>
+<?php if ($gs['history']): ?><details class="card obj-fold"><summary><?= icon('archive') ?> Mes missions des semaines passées <span class="muted">· <?= count($gs['history']) ?></span></summary>
+  <ul class="gl-list"><?php foreach ($gs['history'] as $g) $row($g, false) ?></ul></details><?php endif ?>
