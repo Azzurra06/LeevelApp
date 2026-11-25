@@ -1640,3 +1640,5 @@ body.lb-open{overflow:hidden}
 #recap .mood,#recap .recap-note,#recap textarea{background:var(--surface)}
 #recap .badge{background:var(--surface)}
 .tile-row small .ic{width:13px;height:13px;vertical-align:-2px}
+.subj-sec-sep{margin:36px 0 14px;padding-top:24px;border-top:1px solid var(--beige-2)}
+.subj-sec-sep h2{margin:0 0 4px;font-size:1.35rem}.subj-sec-sep p{margin:0}

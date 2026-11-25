@@ -41,6 +41,7 @@ $hiddenSubj = fn() => csrf_field() . ($cur ? '<input type="hidden" name="subj" v
   <div class="card"><div class="empty-ill"><span>📚</span><p><strong>Tes matières arrivent bientôt</strong><br><small class="muted">Ta tutrice va ajouter les matières que vous travaillez ensemble. Tu pourras ensuite y noter tes résultats, voir tes chapitres et t'entraîner.</small></p></div></div>
 <?php return; endif ?>
 
+<div class="subj-sec-sep"><h2><?= icon('book-open') ?> Mes matières en détail</h2><p class="muted">Choisis une matière pour voir ton objectif, tes ressources, tes notes et tes chapitres.</p></div>
 <nav class="subj-chips" aria-label="Matières">
   <?php foreach ($subjects as $x): ?>
     <a href="<?= e($subjUrl($x)) ?>" class="subj-chip<?= (int)$x['id'] === (int)$cur['id'] ? ' on' : '' ?>"<?= (int)$x['id'] === (int)$cur['id'] ? ' aria-current="page"' : '' ?>>
