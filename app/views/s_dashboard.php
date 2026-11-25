@@ -4,6 +4,7 @@ $main = $goals[0] ?? null; foreach ($goals as $g) if ($g['status'] === 'in_progr
 $progressing = array_filter($goals, fn($g) => in_array($g['status'], ['in_progress', 'rework', 'acquired'], true));
 $tests = tests_upcoming((int)$s['id'], 4);
 $days = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+$dfull = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']; $mfull = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 $months = ['', 'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 $lastMood = one('SELECT value FROM progress_entries WHERE student_id=? AND entry_type="feeling" AND created_at > NOW() - INTERVAL 7 DAY ORDER BY id DESC LIMIT 1', [$s['id']])['value'] ?? null;
 $moods = ['good' => ['😄', 'Ça va bien'], 'ok' => ['😐', 'Moyen'], 'hard' => ['😣', "C'est dur"]];
@@ -23,9 +24,8 @@ $catEmo = ['methodo' => '🗂️', 'autonomie' => '🚀', 'motivation' => '💪'
   <a class="card tile s-last tile-link" href="<?= e(url('s_planning')) ?>#recap" aria-label="Voir ma dernière séance">
     <h2><?= icon('message-circle') ?> Ma dernière séance <?= icon('chevron-right', 'tile-chev') ?></h2>
     <?php $ls = $awaiting ?: ($recap ?? null); if ($ls): $ts = strtotime($ls['starts_at']); ?>
-      <div class="tile-row"><div class="cal-page"><small><?= e($days[(int)date('w', $ts)]) ?></small><b><?= date('j', $ts) ?></b><small><?= e($months[(int)date('n', $ts)]) ?></small></div>
-        <div><strong><?= date('H\hi', $ts) ?> · <?= fdur((int)$ls['duration_min']) ?></strong>
-        <?php if ($awaiting): ?><small>Ton avis n'est pas encore donné</small><?php else: $rep = $recap['report']; ?><small><?= $rep && ($rep['worked_on'] || $rep['next_focus']) ? 'Le bilan de ta tutrice est prêt' : 'Retour envoyé · bilan bientôt' ?></small><?php endif ?></div></div>
+      <div class="s-last-info"><strong><?= e(ucfirst($dfull[(int)date('w', $ts)])) ?> <?= date('j', $ts) ?> <?= e($mfull[(int)date('n', $ts)]) ?></strong><span><?= date('H\hi', $ts) ?> · <?= fdur((int)$ls['duration_min']) ?></span>
+        <?php if ($awaiting): ?><small>Ton avis n'est pas encore donné</small><?php else: $rep = $recap['report']; ?><small><?= $rep && ($rep['worked_on'] || $rep['next_focus']) ? 'Le bilan de ta tutrice est prêt' : 'Retour envoyé · bilan bientôt' ?></small><?php endif ?></div>
       <span class="s-last-cta"><?= $awaiting ? 'Donner mon retour (1 min)' : 'Lire le bilan' ?> <?= icon('chevron-right') ?></span>
     <?php else: ?><div class="tile-row"><span class="tile-emoji">💬</span><div><strong>Pas encore de séance</strong><small>Le bilan apparaîtra ici après ta première séance.</small></div></div><?php endif ?>
   </a>
