@@ -1,10 +1,11 @@
 <?php $title = 'Fiche - ' . $s['first_name']; $sidp = ['sid' => $s['id']];
-$tabs = ['profil' => 'Profil', 'parent' => 'Questionnaire parent', 'eleve' => 'Questionnaire élève', 'analyse' => 'Analyse pédagogique', 'objectifs' => 'Objectifs', 'matieres' => 'Matières', 'seances' => 'Séances', 'bilans' => 'Bilans', 'progression' => 'Progression'];
+$tabs = ['profil' => 'Profil', 'parent' => 'Questionnaire parent', 'eleve' => 'Questionnaire élève', 'analyse' => 'Analyse pédagogique', 'objectifs' => 'Objectifs', 'matieres' => 'Matières', 'seances' => 'Séances', 'agenda' => 'Agenda', 'bilans' => 'Bilans', 'progression' => 'Progression'];
 if (!isset($tabs[$tab])) $tab = 'profil';
 $hidden = fn() => csrf_field() . '<input type="hidden" name="sid" value="' . (int)$s['id'] . '">';
 $catOpts = fn($cur) => implode('', array_map(fn($a, $l) => '<option value="' . e($a) . '"' . ($cur === $a ? ' selected' : '') . '>' . e($l) . '</option>', array_keys(AXES), AXES)); ?>
-<?php if (in_array($tab, ['seances', 'matieres'], true)): ?>
-<div class="page-head"><div><h1><?= icon($tab === 'seances' ? 'calendar' : 'book-open') ?> <?= $tab === 'seances' ? 'Séances' : 'Matières' ?></h1><p><?= e($s['first_name']) ?> · <?= e($s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?></p></div></div>
+<?php $pageTabs = ['seances' => ['calendar', 'Séances'], 'matieres' => ['book-open', 'Matières'], 'objectifs' => ['target', 'Objectifs'], 'agenda' => ['list-checks', 'Agenda']];
+if (isset($pageTabs[$tab])): ?>
+<div class="page-head"><div><h1><?= icon($pageTabs[$tab][0]) ?> <?= $pageTabs[$tab][1] ?></h1><p><?= e($s['first_name']) ?> · <?= e($s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?></p></div></div>
 <?php else: $ficheTab = $tab; require __DIR__ . '/_fiche_head.php'; endif ?>
 
 <?php if ($tab === 'profil'): ?>
@@ -175,8 +176,10 @@ $goalForm = function (?array $g) use ($hidden, $catOpts) { $g ??= ['id' => 0, 't
       <?php if ($g['id']): ?><button class="btn ghost" name="delete" value="1" data-confirm="Supprimer cet objectif ?"><?= icon('trash-2') ?> Supprimer</button><?php endif ?></div>
   </form>
 <?php }; ?>
-<?php $byStatus = ['in_progress' => [], 'rework' => [], 'todo' => [], 'acquired' => []];
-foreach ($goals as $g) $byStatus[$g['status']][] = $g;
+<?php $stOrder = ['in_progress' => 0, 'rework' => 1, 'todo' => 2, 'acquired' => 3];
+$sorted = $goals; usort($sorted, fn($a, $b) => $stOrder[$a['status']] <=> $stOrder[$b['status']]);
+$byStatus = ["Objectifs de l'année" => array_values(array_filter($sorted, fn($g) => ($g['horizon'] ?? '') === 'year')),
+             'Missions de la semaine' => array_values(array_filter($sorted, fn($g) => ($g['horizon'] ?? '') !== 'year'))];
 $groupInfo = ['in_progress' => ['En cours', 'tone-blue'], 'rework' => ['À retravailler', 'tone-orange'], 'todo' => ['À commencer', 'tone-violet'], 'acquired' => ['Acquis', 'tone-green']];
 $existing = array_map(fn($g) => mb_strtolower($g['title']), $goals);
 $sugg = array_values(array_filter($reco['goals'] ?? [], fn($sg) => !in_array(mb_strtolower($sg['title']), $existing, true))); ?>
@@ -190,15 +193,16 @@ $sugg = array_values(array_filter($reco['goals'] ?? [], fn($sg) => !in_array(mb_
 </div>
 <?php endif ?>
 <?php if (!$goals): ?><div class="card"><div class="empty-ill sm"><span>🎯</span><p class="muted">Aucun objectif pour l'instant : ajoutez-en un ou partez des suggestions.</p></div></div><?php endif ?>
-<?php foreach ($byStatus as $k => $list): if (!$list) continue; [$gl, $gt] = $groupInfo[$k]; ?>
+<?php foreach ($byStatus as $gl => $list): ?>
 <h3 class="goal-group"><?= e($gl) ?> <span class="muted">· <?= count($list) ?></span></h3>
+<?php if (!$list): ?><p class="muted"><?= $gl === 'Missions de la semaine' ? 'Aucune mission cette semaine : ajoutez-en depuis la banque ci-dessous.' : "Aucun objectif de l'année (ex. gagner en autonomie, augmenter ses notes) : cochez « Objectif de l'année » en créant un objectif." ?></p><?php endif ?>
 <div class="goal-list">
 <?php foreach ($list as $g): ?>
-  <div class="card goal-card editable <?= $gt ?>" id="goal-<?= (int)$g['id'] ?>">
+  <div class="card goal-card editable <?= $groupInfo[$g['status']][1] ?>" id="goal-<?= (int)$g['id'] ?>">
     <div class="view goal-row">
       <div class="goal-main">
         <h3><?= e($g['title']) ?></h3>
-        <div class="goal-tags"><span class="badge"><?= e(AXES[$g['category']] ?? $g['category']) ?></span><?php if ($g['created_by'] && (int)$g['created_by'] === (int)$s['user_id']): ?><span class="badge sage">Choisi par <?= e($s['first_name']) ?></span><?php endif ?><?php if (($g['horizon'] ?? '') === 'year'): ?><span class="badge sage">Objectif de l'année</span><?php endif ?><?php if ($g['is_mission']): ?><span class="badge">🚀 Mission</span><?php endif ?><?php if ($g['target_date']): ?><span class="badge"><?= icon('calendar') ?> <?= e(fdate($g['target_date'])) ?></span><?php endif ?></div>
+        <div class="goal-tags"><span class="badge"><?= e(GOAL_STATUS[$g['status']]) ?></span><span class="badge"><?= e(AXES[$g['category']] ?? $g['category']) ?></span><?php if ($g['target_date'] && ($g['horizon'] ?? '') !== 'year'): ?><span class="badge"><?= e($g['target_date'] === week_sunday() ? 'Cette semaine' : 'Jusqu\'au ' . fdate($g['target_date'])) ?></span><?php endif ?><?php if ($g['created_by'] && (int)$g['created_by'] === (int)$s['user_id']): ?><span class="badge sage">Choisi par <?= e($s['first_name']) ?></span><?php endif ?><?php if (($g['horizon'] ?? '') === 'year'): ?><span class="badge sage">Objectif de l'année</span><?php endif ?><?php if ($g['is_mission']): ?><span class="badge">🚀 Mission</span><?php endif ?><?php if ($g['target_date']): ?><span class="badge"><?= icon('calendar') ?> <?= e(fdate($g['target_date'])) ?></span><?php endif ?></div>
         <?php if ($g['description']): ?><p class="muted goal-desc"><?= e($g['description']) ?></p><?php endif ?>
         <p class="goal-student"><?= icon('smile') ?> <?= $g['student_done_at'] ? 'Signalé terminé par ' . e($s['first_name']) . ' le ' . e(fdate($g['student_done_at'])) : '<span class="muted">Pas encore signalé par ' . e($s['first_name']) . '</span>' ?><?= $g['student_feeling'] ? ' · « ' . e(FEELINGS[$g['student_feeling']]) . ' »' : '' ?></p>
         <?php if ($g['tutor_comment']): ?><p class="goal-comment"><?= icon('message-circle') ?> <?= e($g['tutor_comment']) ?></p><?php endif ?>
@@ -250,7 +254,6 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
   </form>
 <?php }; ?>
 <?php $scheduleEdit = true; if (schedule_available()) require __DIR__ . '/_schedule_card.php'; ?>
-<?php $studyEdit = true; $studyBase = url('t_student', $sidp + ['tab' => 'seances']); require __DIR__ . '/_study.php'; ?><br>
 <div class="card"><div class="row between"><h2><?= icon('calendar') ?> Séances · <?= fdur(array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' ? (int)$x['duration_min'] : 0, $sessions))) ?> au total</h2>
   <div class="row"><button class="btn" data-toggle="newsess"><?= icon('plus') ?> Ajouter une séance</button></div></div>
   <?php $calView = ($_GET['view'] ?? '') === 'cal'; ?>
@@ -327,6 +330,12 @@ $sessForm = function (?array $se) use ($hidden) { $se ??= ['id' => 0, 'title' =>
 <?php endforeach; if ($curPane) echo '</div>'; ?>
 </div>
 <?php endif ?>
+
+<?php elseif ($tab === 'agenda'):
+  $studyEdit = true; $studyBase = url('t_student', $sidp + ['tab' => 'agenda']);
+  $agendaSessions = $sessions; $agendaTests = tests_upcoming((int)$s['id'], 60); ?>
+<p class="muted agenda-intro">Séances, devoirs, révisions et contrôles de <?= e($s['first_name']) ?> au même endroit. <?= e($s['first_name']) ?> et le parent voient le même agenda.</p>
+<?php require __DIR__ . '/_study.php'; ?>
 
 <?php elseif ($tab === 'bilans'):
 $months = array_values(array_unique(array_map(fn($x) => substr($x['starts_at'], 0, 7), $sessions)));

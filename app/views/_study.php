@@ -36,7 +36,7 @@ $item = function (array $t) use ($hid, $studyEdit, $day, $today, $form) { $late 
   </li>
 <?php }; ?>
 <div class="card study-card" id="devoirs">
-  <div class="row between study-head"><h2><?= icon('list-checks') ?> Devoirs et révisions</h2>
+  <div class="row between study-head"><h2><?= icon('list-checks') ?> <?= isset($agendaSessions) ? 'Devoirs, révisions et calendrier' : 'Devoirs et révisions' ?></h2>
     <?php if ($studyEdit): ?><button type="button" class="btn sm" data-toggle="study-new"><?= icon('plus') ?> Ajouter</button><?php endif ?></div>
   <?php if ($studyEdit): ?><div id="study-new" class="new-panel" hidden><?php $form(null) ?></div><?php endif ?>
   <div data-views>
@@ -52,15 +52,19 @@ $item = function (array $t) use ($hid, $studyEdit, $day, $today, $form) { $late 
     <div data-pane="scal" <?= $sm ? '' : 'hidden' ?>>
       <?php $first = strtotime($month . '-01'); $start = strtotime('monday this week', $first); $byDay = [];
         foreach ($study as $t) $byDay[$t['due_date']][] = $t;
+        $evDay = [];
+        foreach ($agendaSessions ?? [] as $se) if (in_array($se['status'], ['planned', 'done'], true)) $evDay[substr($se['starts_at'], 0, 10)][] = ['c' => 'sess', 't' => date('H\hi', strtotime($se['starts_at'])) . ' Séance', 'h' => session_label($se)];
+        foreach ($agendaTests ?? [] as $te) $evDay[$te['test_date']][] = ['c' => 'test', 't' => 'Contrôle' . (!empty($te['subject']) ? ' · ' . $te['subject'] : ''), 'h' => trim(($te['subject'] ?? '') . ' ' . ($te['label'] ?? $te['title'] ?? ''))];
         $prev = date('Y-m', strtotime('-1 month', $first)); $next = date('Y-m', strtotime('+1 month', $first));
         $mois = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']; ?>
       <div class="study-cal-nav"><a class="edit-btn" href="<?= e($studyBase . '&sm=' . $prev) ?>#devoirs" aria-label="Mois précédent"><?= icon('chevron-left') ?></a><strong><?= ucfirst($mois[(int)date('n', $first)]) ?> <?= date('Y', $first) ?></strong><a class="edit-btn" href="<?= e($studyBase . '&sm=' . $next) ?>#devoirs" aria-label="Mois suivant"><?= icon('chevron-right') ?></a></div>
       <div class="study-cal"><?php foreach (['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as $d): ?><div class="sc-h"><?= $d ?></div><?php endforeach ?>
         <?php for ($i = 0; $i < 42; $i++): $d = date('Y-m-d', strtotime("+$i day", $start)); if ($i >= 35 && substr($d, 0, 7) !== $month) break; ?>
           <div class="sc-d<?= substr($d, 0, 7) !== $month ? ' out' : '' ?><?= $d === $today ? ' today' : '' ?>"><span class="sc-n"><?= (int)substr($d, 8) ?></span>
+            <?php foreach ($evDay[$d] ?? [] as $ev): ?><span class="sc-t <?= $ev['c'] ?>" title="<?= e($ev['h']) ?>"><?= e($ev['t']) ?></span><?php endforeach ?>
             <?php foreach ($byDay[$d] ?? [] as $t): ?><span class="sc-t<?= $t['done_at'] ? ' done' : '' ?><?= $t['kind'] === 'revision' ? ' rev' : '' ?>" title="<?= e(STUDY_KINDS[$t['kind']] . ($t['subject'] ? ' · ' . $t['subject'] : '') . ' : ' . $t['title']) ?>"><?= e($t['subject'] ? $t['subject'] . ' · ' : '') ?><?= e($t['title']) ?></span><?php endforeach ?></div>
         <?php endfor ?></div>
-      <p class="study-legend muted"><small><span class="sc-t">Devoir</span> <span class="sc-t rev">Révision</span> <span class="sc-t done">Fait</span></small></p>
+      <p class="study-legend muted"><small><?php if (isset($agendaSessions)): ?><span class="sc-t sess">Séance</span> <span class="sc-t test">Contrôle</span> <?php endif ?><span class="sc-t">Devoir</span> <span class="sc-t rev">Révision</span> <span class="sc-t done">Fait</span></small></p>
     </div>
   </div>
 </div>

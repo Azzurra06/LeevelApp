@@ -185,7 +185,7 @@ function goal_bank_add(int $studentId, int $by, string $key): string
     if (!$g || !ctype_digit((string)$i)) return '!Objectif introuvable.';
     if (one('SELECT 1 FROM goals WHERE student_id=? AND LOWER(title)=LOWER(?)', [$studentId, $g[0]])) return '!Cet objectif est déjà dans la liste.';
     // objectif hebdomadaire : du lundi au dimanche de la semaine en cours (status « En cours »)
-    q('INSERT INTO goals (student_id, title, description, category, target_date, status, created_by) VALUES (?,?,?,?,?,?,?)',
+    q('INSERT INTO goals (student_id, title, description, category, target_date, status, is_mission, created_by) VALUES (?,?,?,?,?,?,1,?)',
         [$studentId, $g[0], $g[1], GOAL_BANK[$cat][2], week_sunday(), 'in_progress', $by]);
     return 'Objectif de la semaine ajouté : ' . $g[0];
 }

@@ -1642,3 +1642,13 @@ body.lb-open{overflow:hidden}
 .tile-row small .ic{width:13px;height:13px;vertical-align:-2px}
 .subj-sec-sep{margin:36px 0 14px;padding-top:24px;border-top:1px solid var(--beige-2)}
 .subj-sec-sep h2{margin:0 0 4px;font-size:1.35rem}.subj-sec-sep p{margin:0}
+
+/* Arborescence : onglets réservés à l'ordinateur, agenda unifié */
+@media (max-width:720px){.nav-bottom a[data-desk-only]{display:none}}
+.sc-t.sess{background:#E8F1FB;color:#1F5E9C}.sc-t.test{background:#FFF1E5;color:#B25A0E}
+.agenda-intro{margin:-6px 0 14px}
+/* Tutrice : 7 entrées de menu, on gagne de la place sur ordinateur */
+@media (min-width:721px){.has-switch .nav-main a{padding:7px 9px}}
+@media (min-width:721px) and (max-width:1440px){.has-switch .nav-main .nav-ic{display:none}.has-switch .acct-lbl,.has-switch .acct-chev{display:none}.has-switch .acct-btn{padding:5px 8px 5px 6px}.has-switch .st-switch select{max-width:180px}}
+@media (min-width:721px) and (max-width:1440px){.has-switch .st-switch select{max-width:230px}}
+@media (min-width:721px) and (max-width:1000px){.has-switch .nav-main a{padding:6px 6px;font-size:.84rem}.has-switch .st-switch select{max-width:150px}}

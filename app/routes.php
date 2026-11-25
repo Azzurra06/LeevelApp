@@ -124,7 +124,7 @@ function dispatch(string $r, string $method): void
             if (!$st) { http_response_code(403); render('error', ['msg' => 'Action non autorisée.']); }
             $msg = study_post($u, $st);
             if ($msg !== '') flash(ltrim($msg, '!'), str_starts_with($msg, '!') ? 'err' : 'ok');
-            $back = $u['role'] === 'tutor' ? url('t_student', ['sid' => $st['id'], 'tab' => 'seances'] + (post_str('sm', 7) ? ['sm' => post_str('sm', 7)] : [])) : url('s_planning', post_str('sm', 7) ? ['sm' => post_str('sm', 7)] : []);
+            $back = $u['role'] === 'tutor' ? url('t_student', ['sid' => $st['id'], 'tab' => 'agenda'] + (post_str('sm', 7) ? ['sm' => post_str('sm', 7)] : [])) : url('s_planning', post_str('sm', 7) ? ['sm' => post_str('sm', 7)] : []);
             header('Location: ' . $back . '#devoirs', true, 303);
             exit;
 

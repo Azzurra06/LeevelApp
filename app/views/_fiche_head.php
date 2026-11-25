@@ -1,6 +1,6 @@
 <?php // En-tête de la fiche élève et ses onglets. $s, $ficheTab (clé d'onglet, ou 'rdv'), $headExtra (HTML facultatif)
 $sidp = ['sid' => $s['id']];
-$ficheTabs = ['profil' => 'Profil', 'objectifs' => 'Objectifs', 'progression' => 'Progression', 'bilans' => 'Bilans mensuels', 'analyse' => 'Analyse pédagogique', 'parent' => 'Questionnaires'];
+$ficheTabs = ['profil' => 'Profil', 'progression' => 'Progression', 'bilans' => 'Bilans mensuels', 'analyse' => 'Analyse pédagogique', 'parent' => 'Questionnaires'];
 $tabOn = fn($k) => $ficheTab === $k || ($k === 'parent' && $ficheTab === 'eleve'); ?>
 <div class="page-head"><div><h1><?= e($s['first_name']) ?> <?php if ($s['is_demo']): ?><span class="badge demo">DÉMO</span><?php endif ?></h1><p><?= e($s['grade']) ?><?= $s['school'] ? ' · ' . e($s['school']) : '' ?> · <?= e($s['family_name'] ?? '') ?></p></div>
   <div class="row fiche-actions"><?= $headExtra ?? '' ?><a class="btn ghost sm" href="<?= e(url('t_export', $sidp)) ?>"><?= icon('download') ?> Exporter</a></div></div>
