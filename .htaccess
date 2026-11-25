@@ -17,3 +17,6 @@ DirectoryIndex index.php
   Header always set Referrer-Policy "same-origin"
   Header always unset X-Powered-By
 </IfModule>
+
+# Page « introuvable » de l'app (avec les mêmes en-têtes de sécurité)
+ErrorDocument 404 /404.html
