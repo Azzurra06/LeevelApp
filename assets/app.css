@@ -1862,3 +1862,14 @@ a.sc-d{text-decoration:none;color:inherit}a.sc-d:hover{outline:2px solid var(--a
 }
 /* Élève : 6 onglets, on resserre la barre sur écran moyen */
 @media (min-width:721px) and (max-width:1180px){body.student .nav-main .nav-ic{display:none}body.student .acct-lbl,body.student .acct-chev{display:none}body.student .acct-btn{padding:3px;gap:0}}
+/* Messagerie (ordinateur, les 3 rôles) : toute la hauteur de l'écran, deux colonnes de même hauteur */
+@media (min-width:981px){
+  .page-chat main.wrap{padding-bottom:24px}.page-chat .footer{display:none}
+  .page-chat .msg-layout{height:calc(100vh - var(--msg-top,110px));min-height:460px;align-items:stretch!important}
+  .page-chat .msg-layout>.card{margin:0;height:100%;min-height:0}
+  .page-chat .msg-with-side .msg-side{position:static;align-self:stretch}
+  .page-chat .chat-card{display:flex;flex-direction:column}
+  .page-chat .chat-card>*{flex:none}
+  .page-chat .chat-card .thread{flex:1 1 auto;min-height:0;max-height:none!important;height:auto!important}
+  .page-chat .contact-card{overflow-y:auto}
+}

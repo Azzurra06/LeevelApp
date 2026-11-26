@@ -292,6 +292,12 @@
     vv.addEventListener('resize', kb); document.addEventListener('focusin', () => setTimeout(kb, 250)); document.addEventListener('focusout', () => setTimeout(kb, 100));
   }
 
+  // Messagerie sur ordinateur : les colonnes remplissent la hauteur de l'écran
+  const msgLay = $('.page-chat .msg-layout');
+  if (msgLay) {
+    const fit = () => { if (innerWidth < 981) return; document.documentElement.style.setProperty('--msg-top', Math.round(msgLay.getBoundingClientRect().top + scrollY + 24) + 'px'); const th = $('[data-thread]'); if (th) th.scrollTop = th.scrollHeight; };
+    fit(); addEventListener('resize', fit);
+  }
   // Messagerie mobile, façon appli de messages : la page ne défile plus, seule la liste des messages défile ;
   // la zone de saisie est un bloc fixe en bas de la partie visible de l'écran (au-dessus du clavier quand il est ouvert)
   const chatForm = $('.page-chat .msg-form');
