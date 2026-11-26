@@ -1841,3 +1841,22 @@ a.sc-d{text-decoration:none;color:inherit}a.sc-d:hover{outline:2px solid var(--a
 .acct-av{line-height:0}.acct-av img.avatar{display:block}
 @media (min-width:721px){.acct-av{display:inline-flex}}
 @media (min-width:721px) and (max-width:1440px){.has-switch .acct-btn{padding:2px;width:40px;height:40px;justify-content:center;box-sizing:border-box}.has-switch .acct-av .avatar{width:34px;height:34px}}
+/* Messagerie tutrice (ordinateur) : infos du contact à gauche, fil en pleine hauteur */
+.msg-side{display:none}
+@media (min-width:981px){
+  .msg-layout.msg-with-side{grid-template-columns:260px minmax(0,1fr);align-items:stretch}
+  .msg-with-side .msg-side{display:flex;flex-direction:column;gap:14px;margin:0;align-self:start;position:sticky;top:84px}
+  .msg-with-side .chat-card{margin:0;display:flex;flex-direction:column}
+  .msg-with-side .chat-top,.msg-with-side .chat-card>p.muted{display:none}
+  .msg-with-side .thread{max-height:none;height:calc(100vh - 320px);min-height:360px}
+  .msg-side-who{display:flex;align-items:center;gap:12px}.msg-side-who>div{display:flex;flex-direction:column;min-width:0}
+  .msg-side-who strong{font-size:1rem;overflow:hidden;text-overflow:ellipsis}.msg-side-who small{color:var(--muted);font-size:.82rem}
+  .msg-side-ch{display:flex;gap:4px;background:var(--beige);border-radius:12px;padding:3px}
+  .msg-side-ch a{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 8px;border-radius:9px;text-decoration:none;color:var(--taupe-d);font-weight:600;font-size:.88rem}
+  .msg-side-ch a.on{background:var(--surface);color:var(--accent-d);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .msg-side-ch .ic{width:15px;height:15px}
+  .msg-side-info{margin:0;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+  .msg-side-info dt{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .msg-side-info dd{margin:2px 0 0;font-size:.9rem;overflow-wrap:anywhere}.msg-side-info a{color:var(--accent-d);text-decoration:none}
+  .msg-side-note{margin:0}.msg-side-fiche{align-self:flex-start}
+}
