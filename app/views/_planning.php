@@ -9,8 +9,14 @@ $hm = fn(string $dt) => date('H\hi', strtotime($dt));
 $endOf = fn(array $se) => date('H\hi', strtotime($se['starts_at']) + (int)$se['duration_min'] * 60);
 $statusTone = ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancelled' => 'err']; ?>
 <?php if (!$sessions): ?><p class="muted">Le planning sera bientôt disponible.</p><?php return; endif ?>
-<div data-views>
-<div class="seg"><button type="button" class="on" data-view="list"><?= icon('list-checks') ?> Liste</button><button type="button" data-view="cal"><?= icon('calendar') ?> Calendrier</button></div>
+<div data-views data-subj-scope class="plan-tabs" data-cur="list">
+<div class="plan-bar">
+<nav class="subj-tabs" aria-label="Séances" data-subj-tabs>
+  <button type="button" class="subj-tab on" data-subj-tab="pl-up">À venir <small><?= count($upcoming) ?></small></button>
+  <button type="button" class="subj-tab" data-subj-tab="pl-past">Passées <small><?= count($past) ?></small></button>
+</nav>
+<div class="seg plan-seg"><button type="button" class="on" data-view="list" title="Liste" aria-label="Liste"><?= icon('list-checks') ?><span> Liste</span></button><button type="button" data-view="cal" title="Calendrier" aria-label="Calendrier"><?= icon('calendar') ?><span> Calendrier</span></button></div>
+</div>
 <div data-pane="cal" hidden><?php require __DIR__ . '/_calendar.php' ?></div>
 <div data-pane="list" class="plan-list">
 <?php $item = function (array $se) use ($isPast, $statusTone, $endOf, $hm, $viewerRole) {
@@ -46,11 +52,6 @@ $statusTone = ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancel
       </div>
     </details>
 <?php }; ?>
-<div class="plan-tabs">
-<nav class="subj-tabs" aria-label="Séances" data-subj-tabs>
-  <button type="button" class="subj-tab on" data-subj-tab="pl-up">À venir <small><?= count($upcoming) ?></small></button>
-  <button type="button" class="subj-tab" data-subj-tab="pl-past">Séances passées <small><?= count($past) ?></small></button>
-</nav>
 <div id="pl-up" data-subj-pane class="plan-pane">
 <?php if (!$upcoming): ?><p class="muted">Aucune séance à venir pour le moment.</p><?php endif ?>
 <?php foreach ($byWeek as $wk => $list): $tot = array_sum(array_map(fn($x) => $x['status'] !== 'cancelled' && $x['status'] !== 'postponed' ? (int)$x['duration_min'] : 0, $list)); ?>
@@ -63,7 +64,6 @@ $statusTone = ['planned' => '', 'done' => 'sage', 'postponed' => 'warn', 'cancel
 <div id="pl-past" data-subj-pane class="plan-pane" hidden>
 <?php if (!$past): ?><p class="muted">Aucune séance passée pour le moment.</p><?php endif ?>
 <?php foreach ($past as $se) $item($se) ?>
-</div>
 </div>
 </div>
 </div>

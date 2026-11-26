@@ -26,7 +26,7 @@
   const showKind = k => { if (!kindNav) return; $$('[data-kind-pane]').forEach(p => p.hidden = p.dataset.kindPane !== k); $$('[data-kind-tab]', kindNav).forEach(b => b.classList.toggle('on', b.dataset.kindTab === k)); };
   if (kindNav) $$('[data-kind-tab]', kindNav).forEach(b => b.addEventListener('click', () => { showKind(b.dataset.kindTab); history.replaceState(null, '', b.dataset.kindTab === 'skills' ? '#competences' : location.pathname + location.search); }));
   $$('[data-subj-tabs]').forEach(nav => {
-    const scope = nav.parentElement, panes = $$('[data-subj-pane]', scope);
+    const scope = nav.closest('[data-subj-scope]') || nav.parentElement, panes = $$('[data-subj-pane]', scope);
     const show = id => { panes.forEach(p => p.hidden = p.id !== id); $$('[data-subj-tab]', nav).forEach(b => b.classList.toggle('on', b.dataset.subjTab === id)); };
     $$('[data-subj-tab]', nav).forEach(b => b.addEventListener('click', () => { show(b.dataset.subjTab); history.replaceState(null, '', '#' + b.dataset.subjTab); }));
     const fromHash = () => { if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); const pane = t?.closest('[data-subj-pane]'); if (pane && panes.includes(pane) && pane.hidden) { show(pane.id); t.scrollIntoView({ block: 'start' }); } } };
@@ -177,7 +177,7 @@
   $$('[data-views]').forEach(box => {
     const btns = $$('[data-view]', box), panes = $$('[data-pane]', box);
     btns.forEach(b => b.addEventListener('click', () => {
-      btns.forEach(x => x.classList.toggle('on', x === b));
+      btns.forEach(x => x.classList.toggle('on', x === b)); box.dataset.cur = b.dataset.view;
       panes.forEach(p => { p.hidden = p.dataset.pane !== b.dataset.view; });
     }));
   });

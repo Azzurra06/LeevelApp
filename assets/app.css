@@ -1830,3 +1830,14 @@ a.sc-d{text-decoration:none;color:inherit}a.sc-d:hover{outline:2px solid var(--a
 .agw-late{display:inline-flex;align-items:center;gap:6px;margin:0 0 10px;padding:5px 10px;border-radius:999px;background:#FDECEC;color:#B42318;font-weight:600;font-size:.85rem;text-decoration:none}.agw-late .ic{width:15px;height:15px}
 .agw-empty{margin:4px 0 10px}
 .agw-card .da-k{min-width:74px;text-align:center}
+
+/* Séances : une seule barre (À venir / Passées + Liste / Calendrier) */
+.plan-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.plan-bar .subj-tabs{margin:0}
+.plan-tabs[data-cur=cal] .plan-bar .subj-tabs{visibility:hidden}
+.plan-seg{margin:0!important}
+@media (max-width:600px){.plan-seg span{display:none}.plan-bar{flex-wrap:nowrap}.plan-bar .subj-tabs{flex-wrap:nowrap!important;flex-direction:row!important;overflow:visible;gap:6px;width:auto;min-width:0}.plan-bar .subj-tab{white-space:nowrap;flex:none}.plan-bar .subj-tab{padding-left:12px;padding-right:12px}}
+/* Navbar : photo bien ronde, centrée dans son anneau */
+.acct-av{line-height:0}.acct-av img.avatar{display:block}
+@media (min-width:721px){.acct-av{display:inline-flex}}
+@media (min-width:721px) and (max-width:1440px){.has-switch .acct-btn{padding:2px;width:40px;height:40px;justify-content:center;box-sizing:border-box}.has-switch .acct-av .avatar{width:34px;height:34px}}
