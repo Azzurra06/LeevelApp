@@ -1873,3 +1873,5 @@ a.sc-d{text-decoration:none;color:inherit}a.sc-d:hover{outline:2px solid var(--a
   .page-chat .chat-card .thread{flex:1 1 auto;min-height:0;max-height:none!important;height:auto!important}
   .page-chat .contact-card{overflow-y:auto}
 }
+/* Parent (ordinateur) : la colonne de gauche présente déjà la tutrice, pas de bandeau en double au-dessus du fil */
+@media (min-width:821px){body.page-p_messages .chat-top>.chat-head{display:none}}
