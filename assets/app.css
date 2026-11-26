@@ -1860,3 +1860,5 @@ a.sc-d{text-decoration:none;color:inherit}a.sc-d:hover{outline:2px solid var(--a
   .msg-side-info dd{margin:2px 0 0;font-size:.9rem;overflow-wrap:anywhere}.msg-side-info a{color:var(--accent-d);text-decoration:none}
   .msg-side-note{margin:0}.msg-side-fiche{align-self:flex-start}
 }
+/* Élève : 6 onglets, on resserre la barre sur écran moyen */
+@media (min-width:721px) and (max-width:1180px){body.student .nav-main .nav-ic{display:none}body.student .acct-lbl,body.student .acct-chev{display:none}body.student .acct-btn{padding:3px;gap:0}}

@@ -2,7 +2,7 @@
 $nav = match ($role) {
     'tutor' => [['t', 'house', 'Accueil', 'Accueil'], ['t_student', 'user', 'Élève', 'Élève'], ['t_student', 'target', 'Objectifs', 'Objectifs', ['tab' => 'objectifs'], 'desk'], ['t_student', 'book-open', 'Matières', 'Matières', ['tab' => 'matieres'], 'desk'], ['t_student', 'calendar', 'Séances', 'Séances', ['tab' => 'seances']], ['t_student', 'list-checks', 'Agenda', 'Agenda', ['tab' => 'agenda']], ['t_messages', 'message-circle', 'Messagerie', 'Messagerie']],
     'parent' => [['p', 'house', 'Suivi', 'Suivi'], ['p_child', 'smile', 'Mon enfant', 'Mon enfant'], ['p_planning', 'calendar', 'Agenda', 'Agenda'], ['p_finance', 'file-text', 'Finances', 'Finances'], ['p_messages', 'message-circle', 'Messagerie', 'Messagerie']],
-    'student' => [['s', 'house', 'Mon espace', 'Accueil'], ['s_planning', 'calendar', 'Agenda', 'Agenda'], ['s_subjects', 'book-open', 'Mes matières', 'Matières'], ['s_tools', 'lightbulb', 'Mes outils', 'Outils'], ['s_messages', 'message-circle', 'Messagerie', 'Messagerie']],
+    'student' => [['s', 'house', 'Mon espace', 'Accueil'], ['s_planning', 'calendar', 'Agenda', 'Agenda'], ['s_goals', 'target', 'Mes objectifs', 'Objectifs'], ['s_subjects', 'book-open', 'Mes matières', 'Matières'], ['s_tools', 'lightbulb', 'Mes outils', 'Outils'], ['s_messages', 'message-circle', 'Messagerie', 'Messagerie']],
     default => [],
 };
 $unread = $role ? unread_count($me) : 0;
@@ -46,7 +46,6 @@ $switchRoute = in_array($r, ['t', 't_rdv', 't_student', 't_messages', 't_synthes
         <div class="acct-head"><?= avatar_html($me, 'md') ?><div><strong><?= e($me['display_name']) ?></strong><small><?= e(ROLE_LABELS[$role] ?? '') ?> · <?= e($me['username']) ?></small></div></div>
         <a role="menuitem" href="<?= e(url('account')) ?>" class="<?= $r === 'account' ? 'on' : '' ?>"><?= icon('settings') ?> Mon compte</a>
         <?php if ($role === 'tutor'): ?><a role="menuitem" href="<?= e(url('t_users')) ?>" class="<?= $r === 't_users' ? 'on' : '' ?>"><?= icon('users') ?> Familles et dossiers</a><a role="menuitem" href="<?= e(url('t_finance')) ?>" class="<?= $r === 't_finance' ? 'on' : '' ?>"><?= icon('file-text') ?> Finances</a><?php else: ?><a role="menuitem" href="<?= e(url('q')) ?>" class="<?= in_array($r, ['q', 'q_recap'], true) ? 'on' : '' ?>"><?= icon('clipboard-list') ?> Mon questionnaire</a><?php endif ?>
-        <?php if ($role === 'student'): ?><a role="menuitem" href="<?= e(url('s_goals')) ?>" class="<?= $r === 's_goals' ? 'on' : '' ?>"><?= icon('target') ?> Mes objectifs</a><?php endif ?>
         <a role="menuitem" href="<?= e(url('help')) ?>" class="<?= $r === 'help' ? 'on' : '' ?>"><?= icon('circle-help') ?> Centre d'aide</a>
         <?php $others = linked_accounts(); ?>
         <div class="acct-sep"><?= $others ? 'Changer de compte' : 'Autres comptes' ?></div>
